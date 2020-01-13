@@ -12,7 +12,7 @@
 #define _rst 8
 
 
-#define SAMPLES 128             //SAMPLES-pt FFT. Must be a base 2 number. Max 128 for Arduino Uno.
+#define SAMPLES 64             //SAMPLES-pt FFT. Must be a base 2 number. Max 128 for Arduino Uno.
 #define SAMPLING_FREQUENCY 1024 //Ts = Based on Nyquist, must be 2 times the highest expected frequency.
  
 arduinoFFT FFT = arduinoFFT();
@@ -88,7 +88,7 @@ for(int i = 0; i < numStrings; i++)
     tft.setTextColor(ILI9340_WHITE, ILI9340_RED); 
   }
   
-  tft.println((String) stringFrequencyCurrent[i] + " " + stringFrequencyTarget[i]);
+  tft.println((String) i + ": " + stringFrequencyCurrent[i] + " " + stringFrequencyTarget[i]);
 
 }
  
