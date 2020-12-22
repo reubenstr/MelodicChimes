@@ -7,8 +7,6 @@ Chime::Chime(uint8_t coilPin, uint8_t pickPin, uint8_t stepperStepPin, uint8_t s
 
     stepper = new SimpleStepper(stepperStepPin, stepperDirectionPin);
 
-    stepper->SetCurrentPosition(0);
-    stepper->SetTargetPosition(10000);
       
 }
 
@@ -34,7 +32,7 @@ void PlayPortamento(uint8_t startNoteNumber, uint8_t targetNoteNumber, float not
 }
 
 // Process muting, picking, and tuning.
-// Must be called often in main loop.
+// Must be called often or lag will develop.
 bool Chime::Update()
 {
 
