@@ -1,0 +1,42 @@
+
+#define AUDIO_GUITARTUNER_BLOCKS  6 // default : 24
+
+AudioMemory(120);     
+notefreq1.begin(.45); 
+Min 348.56 | Max: 362.16 | Delta: 13.60 | Count 132
+
+AudioMemory(120);     
+notefreq1.begin(.35); 
+Min 349.21 | Max: 357.65 | Delta: 8.45 | Count 162
+Min 340.85 | Max: 358.46 | Delta: 17.61 | Count 132
+Min 339.93 | Max: 361.11 | Delta: 21.18 | Count 168
+Min 348.50 | Max: 354.83 | Delta: 6.33 | Count 128
+Min 349.71 | Max: 361.95 | Delta: 12.24 | Count 127
+143.4
+
+AudioMemory(120);     
+notefreq1.begin(.25); 
+Min 348.64 | Max: 372.78 | Delta: 24.14 | Count 200
+Min 349.26 | Max: 356.09 | Delta: 6.82 | Count 134
+Min 349.85 | Max: 357.61 | Delta: 7.76 | Count 160
+Min 332.38 | Max: 356.05 | Delta: 23.68 | Count 119
+Min 349.47 | Max: 366.48 | Delta: 17.01 | Count 169
+156.4
+
+AudioMemory(120);     
+notefreq1.begin(.15); 
+Min 348.43 | Max: 364.51 | Delta: 16.07 | Count 167
+Min 320.54 | Max: 357.16 | Delta: 36.62 | Count 162
+Min 341.97 | Max: 356.57 | Delta: 14.60 | Count 123
+Min 349.56 | Max: 364.74 | Delta: 15.18 | Count 166
+Min 341.98 | Max: 370.00 | Delta: 28.02 | Count 168
+157.2
+
+AudioMemory(120);     
+notefreq1.begin(.05); 
+Min 349.45 | Max: 355.92 | Delta: 6.48 | Count 122
+Min 349.42 | Max: 360.28 | Delta: 10.87 | Count 142
+Min 348.61 | Max: 354.32 | Delta: 5.71 | Count 164
+Min 332.11 | Max: 357.95 | Delta: 25.83 | Count 128
+Min 348.29 | Max: 365.02 | Delta: 16.73 | Count 129
+137
