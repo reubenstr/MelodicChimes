@@ -1,9 +1,8 @@
 // Melodic Chimes
 //
 // Auto-tuning string chimes control via MIDI
-// 
+//
 // PROTOTYPING
-
 
 #include <Audio.h>
 #include <Wire.h>
@@ -13,6 +12,22 @@
 
 #include <PWMServo.h> // Built-in
 
+#include "movingAvg.h" // Arduino. Modifed to handle floats.
+
+#define C 261.6
+#define Cs 277.2
+#define D 293.7
+#define Eb 311.1
+#define E 329.6
+#define F 349.2
+#define Fs 370.0
+#define G 392.0
+#define Gs 415.3
+#define A 440.0
+
+const int numNotes = 9;
+float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
+
 /*
 
 DEVELOPMENT NOTES
@@ -20,6 +35,13 @@ DEVELOPMENT NOTES
 defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
 faster analysis at the sacrafice of less lower frequency detection
 which is not required for this application.
+
+Blocks : lowest frequncy (rough estimate) : milliseconds per note
+3 : 233hz : 9
+4 : 174hz : 12
+5 : 139hz : 15
+
+
 
 A weak magnet for the coil is has a low signal to noise ratio.
 A stronger magnet provides a high signal to noise ration.
@@ -61,6 +83,8 @@ AudioAnalyzeNoteFrequency notefreq1;
 AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
 AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
+movingAvg movingAverage(10);
+
 enum PickSide
 {
     Left,
@@ -99,8 +123,11 @@ float GetFrequency()
             if (note < min)
                 min = note;
 
-            Serial.printf("Note 1 (%U): %3.2fhz | Probability: %.2f\n", millis() - timeElapsed1, note, prob);
+            Serial.printf("(%ums) %3.2f\n", millis() - timeElapsed1, note, prob);
+            //Serial.printf("(%U) %3.2f | Prob: %.2f\n", millis() - timeElapsed1, note, prob);
             // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
+            // Serial.printf("A. Mem. Max: %u\n", AudioMemoryUsageMax());
+
             timeElapsed1 = millis();
 
             return note;
@@ -167,9 +194,19 @@ void SetMotorDirection(Direction direction)
         digitalWrite(PIN_MOTOR_PHASE, false);
 }
 
+bool GetMotorDirection()
+{
+    return digitalRead(PIN_MOTOR_PHASE);
+}
+
 void EnableMotor(bool enable)
 {
     digitalWrite(PIN_MOTOR_ENABLE, enable);
+}
+
+bool MotorState()
+{
+    return digitalRead(PIN_MOTOR_ENABLE);
 }
 
 /*
@@ -242,6 +279,8 @@ void setup()
 
     position = 0;
     //SetDirection(true);
+
+    movingAverage.begin();
 }
 
 void loop()
@@ -252,25 +291,45 @@ void loop()
     static int attemptCount = 0;
     static bool activeFrequencyFlag = false;
     static unsigned int noteCount;
+    static float errorAcc = 0;
+    static int accCount = 0;
+    static float errorMax = 0;
+    static float errorMin = 5000.0;
 
-    /*    
+    static float freqAcc = 0;
+    static float freqMax = 0;
+    static float freqMin = 5000.0;
 
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // NOTES AREA
+    //////////////////////////////////////////////////////////////////////////////////////////
+    /* 
     Turn tests: start, turn, test, turn, end
     400.03 - full - 246.60 - full - 399.67
     427.02 - full - 272.89 - full - 429.36
 
     Estimated Hz per rotation: 153.78
                     per degre: 0.4271
-    */
 
+    DC-DC motor rated at 60RPM
+
+    */
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // TEMP TEST AREA
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    /*
     GetFrequency();
+  
+    EnableMotor(true);
+    SetMotorDirection(Up);
+       */
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // DC-Motor TEST AREA
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    /*
-   // Debug LEDs: show motor direction when motor is in motion.
+    // Debug LEDs: show motor direction when motor is in motion.
     if (digitalRead(PIN_MOTOR_ENABLE))
     {
         digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_PHASE));
@@ -278,33 +337,44 @@ void loop()
     }
     else
     {
-         digitalWrite(PIN_LED_1, LOW);
+        digitalWrite(PIN_LED_1, LOW);
         digitalWrite(PIN_LED_2, LOW);
     }
-    
+    ////
 
-    static unsigned long startPick = millis();
-    if (millis() - startPick >= 500)
+    /* */
+    // Attempt a melody.
+    static unsigned long startTarget = 5000; // trigger on startup
+    static signed noteSelect = 0;
+    if (millis() - startTarget >= 1500)
     {
-        if (millis() - startPick != 500)
+        startTarget = millis();
+
+        if (noteSelect < numNotes)
         {
-            Serial.printf("********* Pick : %u\n", millis() - startPick);
+            targetFrequency = notes[noteSelect];
+            Pick();
+            Serial.printf("Target frequency: %3.2f | Note Index: %u\n", targetFrequency, noteSelect);
+            noteSelect++;
         }
-
-        startPick = millis();
-        Pick();
     }
+    ////
+ 
 
-    static int noFreqCount = 0;
+    static unsigned int noFreqCount = 0;
     static unsigned long start = millis();
-    if (millis() - start >= 20)
+
+    unsigned int delayBetweenRetrievingNotes = 1;
+    unsigned int noFreqDetectionTimeout_NoteCycles = 100; //
+
+    if (millis() - start >= delayBetweenRetrievingNotes)
     {
         start = millis();
 
         float returnFrequency = GetFrequency();
         if (returnFrequency > 0)
         {
-           noteCount++;     
+            noteCount++;
             noFreqCount = 0;
             currentFrequency = returnFrequency;
             activeFrequencyFlag = true;
@@ -312,11 +382,22 @@ void loop()
         else // No frequency detected
         {
             noFreqCount++;
-            if (noFreqCount != 0)
+            if (noFreqCount >= noFreqDetectionTimeout_NoteCycles)
             {
                 if (activeFrequencyFlag)
                 {
                     Serial.println("activeFrequencyFlag = false");
+                    Serial.printf("\t\tAverage Error: %3.2f | Min: %3.2f | Max: %3.2f | Error Spread: %3.2f | Num. Samples: %u\n", errorAcc / accCount, errorMin, errorMax, errorMax - errorMin, accCount);
+                    Serial.printf("\t\tAverage Freq.: %3.2f | Min: %3.2f | Max: %3.2f | Freq. Spread: %3.2f | Num. Samples: %u\n", freqAcc / accCount, freqMax, freqMin, freqMax - freqMin, accCount);
+                    Serial.printf("\t\tMovAvg. Freq.: %3.2f with %d samples.", movingAverage.getAvg(), movingAverage.getCount());
+                    errorMin = 5000.0;
+                    errorMax = 0.0;
+                    errorAcc = 0;
+                    accCount = 0;
+                    freqAcc = 0;
+                    freqMax = 0;
+                    freqMin = 5000.5;
+                    movingAverage.reset();
                 }
 
                 activeFrequencyFlag = false;
@@ -325,18 +406,46 @@ void loop()
 
         if (activeFrequencyFlag)
         {
-            EnableMotor(true);
+            float frequencyTolerance = 1.0;
 
-            Serial.printf("%5u: Target %3.2f | Current: %3.2f | Error: %3.2f \n", noteCount, targetFrequency, currentFrequency, targetFrequency - currentFrequency);
+            movingAverage.reading(currentFrequency);
 
-            if (currentFrequency < targetFrequency)
+            if (currentFrequency < targetFrequency - frequencyTolerance)
             {
+                EnableMotor(true);
                 SetMotorDirection(Direction::Up);
             }
-            else if (currentFrequency > targetFrequency)
+            else if (currentFrequency > targetFrequency + frequencyTolerance)
             {
+                EnableMotor(true);
                 SetMotorDirection(Direction::Down);
             }
+            else
+            {
+                EnableMotor(false);
+            }
+
+            float error = currentFrequency - targetFrequency;
+
+            accCount++;
+
+            freqAcc += currentFrequency;
+            if (currentFrequency > freqMax)
+                freqMax = currentFrequency;
+            if (currentFrequency < freqMin)
+                freqMin = currentFrequency;
+
+            errorAcc += error;
+            if (error > errorMax)
+                errorMax = error;
+            if (error < errorMin)
+                errorMin = error;
+
+            char motState[12];
+            sprintf(motState, "%s", MotorState() ? "On" : "Off");
+            char dirStr[12];
+            sprintf(dirStr, "%s", MotorState() == 0 ? "" : GetMotorDirection() ? "(Up)" : "(Down)");
+            Serial.printf("\t%5u: Target %3.2f | Current: %3.2f | Error: %3.2f | Motor state %s %s \n", noteCount, targetFrequency, currentFrequency, error, motState, dirStr);
         }
         else
         {
@@ -344,7 +453,7 @@ void loop()
         }
     }
 
-*/
+    /*  */
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // STEPPER TEST AREA
