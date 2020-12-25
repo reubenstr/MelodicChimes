@@ -30,7 +30,8 @@
 
 const int numNotes = 9;
 float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
-int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
+//int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
+int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
 bool pickedFlag = false;
 
@@ -97,12 +98,27 @@ enum PickSide
     Right
 } pickSide;
 
+//////////////////////////////
+// Motor
 // Direction of the motor refers to the pitch
 // increasing or decreasing.
 enum Direction
 {
     Up,
     Down
+};
+
+unsigned long startMillis;
+unsigned int runTime;
+bool runFlag;
+
+//////////////////////////////
+
+enum State
+{
+    sPick,
+    sMute,
+    sPretune
 };
 
 /**/
@@ -202,6 +218,7 @@ void Halt()
     }
 }
 
+////////////////////////////////////////////////////////////////////////
 // DC-Motor code:
 void SetMotorDirection(Direction direction)
 {
@@ -226,44 +243,28 @@ bool MotorState()
     return digitalRead(PIN_MOTOR_ENABLE);
 }
 
-/*
-STEPPER CODE
-void SetDirection(bool dir)
+void SetMotorRunTime(Direction direction, unsigned int rt)
 {
-    direction = dir;
-    digitalWrite(DIR, direction);
+    runTime = rt;
+    startMillis = millis();
+    SetMotorDirection(direction);
+    EnableMotor(true);
 }
 
-bool Run()
+void MotorRun()
 {
-    static unsigned long startMicros = micros();
-
-    //int delayMicros = (1.0 / 100.0) * 1000000;
-    int delayMicros = 5000;
-
-    if (micros() - startMicros > delayMicros)
+    if (millis() - startMillis > runTime)
     {
-        startMicros = micros();
-
-        if (direction)
-        {
-            position++;
-        }
-        else
-        {
-            position--;
-        }
-
-        digitalWrite(STEP, HIGH);
-        delayMicroseconds(5);
-        digitalWrite(STEP, LOW);
-
-        return true;
+        EnableMotor(false);
     }
-
-    return false;
 }
-*/
+
+void MotorStop()
+{
+    EnableMotor(true);
+}
+
+////////////////////////////////////////////////////////////////////////
 
 void setup()
 {
@@ -294,19 +295,16 @@ void setup()
 
     servo3.attach(PIN_SERVO_3, 1000, 2000);
 
-    position = 0;
-    //SetDirection(true);
+    //movingAverage.begin();
 
-    movingAverage.begin();
-
-    Pick(true);
-    delay(3000);
-
+    //Pick(true);
+    //delay(3000);
 }
 
 void loop()
 {
 
+/*
     static float targetFrequency = 329.63;
     static float currentFrequency = 0;
     static int attemptCount = 0;
@@ -320,6 +318,7 @@ void loop()
     static float freqAcc = 0;
     static float freqMax = 0;
     static float freqMin = 5000.0;
+    */
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // NOTES AREA
@@ -331,6 +330,8 @@ void loop()
 
     Estimated Hz per rotation: 153.78
                     per degre: 0.4271
+
+    0.12815 hz / millisecond
 
 
     TEST MOTOR:
@@ -372,31 +373,147 @@ void loop()
     }
     ////
 
-    /*  */
+    /*  
     // Attempt a melody.
     static unsigned long startTarget = millis();
     static int noteSelect = 0;
-
-    //unsigned int delay = noteSelect < 4 ? 500 : startTarget < 7 ? 750 : 1000;
-    //unsigned int delay = 1000;
-
     static unsigned int delay = 0;
 
-    if (millis() - startTarget >= delay)
+  
+
+    static State state = sPick;
+
+    static bool preTuneCompletedFlag;
+
+    if (noteSelect < numNotes)
     {
-        startTarget = millis();
 
-        delay = delays[noteSelect];
-
-        if (noteSelect < numNotes)
+        if (state == State::sPick)
         {
-            targetFrequency = notes[noteSelect];
-            Pick();
-            Serial.printf("Target frequency: %3.2f | Note Index: %u\n", targetFrequency, noteSelect);
-            noteSelect++;
+            if (millis() - startTarget >= delay)
+            {
+                startTarget = millis();
+
+                Pick();
+                delay = delays[noteSelect] / 2;
+                targetFrequency = notes[noteSelect];
+                Serial.printf("Target frequency: %3.2f | Note Index: %u\n", targetFrequency, noteSelect);
+                noteSelect++;
+                state = State::sMute;
+            }
+        }
+        else if (state == State::sMute)
+        {
+            if (millis() - startTarget >= delay)
+            {
+                startTarget = millis();
+                Mute();
+                preTuneCompletedFlag = false;
+                state = State::sPretune;
+            }
+        }
+        else if (state == State::sPretune)
+        {
+
+            static unsigned long pretuneMillis = 0;
+            static unsigned int preTuneTime = 0;
+
+            if (millis() - startTarget >= delay)
+            {
+                startTarget = millis();
+                state = State::sPick;
+            }
+
+            if (preTuneCompletedFlag == false)
+            {
+                preTuneCompletedFlag = true;
+                pretuneMillis = millis();
+                float deltaFreq = notes[noteSelect] - notes[noteSelect - 1];
+                preTuneTime = abs(deltaFreq * 10);
+
+                if (deltaFreq > 0)
+                    SetMotorDirection(Direction::Up);
+                if (deltaFreq <= 0)
+                    SetMotorDirection(Direction::Down);
+
+                Serial.printf("\t\t\tFreq Delta: %3.2f | Delay (ms): %u\n", deltaFreq, preTuneTime);
+                char motState[12];
+                sprintf(motState, "%s", MotorState() ? "On" : "Off");
+                char dirStr[12];
+                sprintf(dirStr, "%s", MotorState() == 0 ? "" : GetMotorDirection() ? "(Up)" : "(Down)");
+                Serial.printf("\t\t\tNext Target %3.2f | Current: %3.2f | Motor state %s %s \n", notes[noteSelect], notes[noteSelect - 1], motState, dirStr);
+        
+                EnableMotor(true);
+            }
+
+            if (millis() - pretuneMillis > preTuneTime)
+            {
+                EnableMotor(false);
+            }
         }
     }
-    ////
+    */
+
+    ////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+
+    // NEW AREA, NEW MOTOR CODE
+
+    /*
+    static int noteSelect = 0;
+    static unsigned long noteStartMillis;
+
+    if (millis() - noteStartMillis >= 2000)
+    {
+        noteStartMillis = millis();
+        targetFrequency = notes[noteSelect];
+
+        Pick();
+
+        Serial.printf("New target: %3.2f\n", targetFrequency);
+        noteSelect++;
+        if (noteSelect == numNotes)
+        {
+            noteSelect = 0;
+        }
+    }
+    */
+
+    MotorRun();
+
+    static float targetFrequency = 329.63;
+    float frequencyTolerance = 1.0;
+    float detectedFrequency = GetFrequency();
+
+    if (detectedFrequency > 0)
+    {
+        float frequencyDelta = targetFrequency - detectedFrequency;
+        int runTime;
+        int runTimeCoef = 5; // Based on Hz/milliseconds (a function motor RPM/torque). TODO: needs an algorithm approch, y = mx+b
+
+        if (detectedFrequency < targetFrequency - frequencyTolerance)
+        {
+            runTime = abs(frequencyDelta * runTimeCoef);
+            SetMotorRunTime(Direction::Up, runTime);
+        }
+        else if (detectedFrequency > targetFrequency + frequencyTolerance)
+        {
+            runTime = abs(frequencyDelta * runTimeCoef);
+            SetMotorRunTime(Direction::Down, runTime);
+        }
+        else
+        {
+            runTime = 0;
+            MotorStop();
+        }
+
+        Serial.printf("Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectedFrequency, targetFrequency, frequencyDelta, runTime);
+    }
+
+    ////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+
+    /*
 
     static unsigned int noFreqCount = 0;
     static unsigned long start = millis();
@@ -507,122 +624,11 @@ void loop()
         }
         else
         {
+
             EnableMotor(false);
         }
     }
-
-    /*  */
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // STEPPER TEST AREA
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    /* 
-    if (position < 200)
-    {
-        if (Run())
-        {
-            Serial.printf("Position: %i\n", position);
-        }
-    } */
-
-    /*
-    float returnFrequency = GetFrequency();
-    if (returnFrequency > 0)
-    {
-        activeFrequencyFlag = true;
-        attemptCount = 0;
-        currentFrequency = returnFrequency;
-    }
-    else
-    {
-        if (attemptCount++ > 10)
-        {
-            //Halt();
-            if (activeFrequencyFlag)
-                Serial.println("activeFrequencyFlag = false");
-            activeFrequencyFlag = false;
-        }
-    }
     */
-
-    /*
-        Stepper PI Loop
-
-        Driver microstepping at: 1/4 step
-
-    // PI controller
-    // motor 1 is the master
-    // motor 2 is the slave
-    // Traverse: motor 2 corrects to motor encoder ticks
-    // Turn: motor 2 corrects to error in yaw sensor
-    float error = 0;
-    static float integral = 0;
-    static signed int correction = 0;
-    float pTerm = 0.80;
-    float iTerm = 0.10;
-
-    static int samCount = 0;
-    static double acc = 0;
-
-    static unsigned long start = millis();
-    if (millis() - start > 20)
-    {
-        start = millis();
-
-        float returnFrequency = GetFrequency();
-        if (returnFrequency > 0)
-        {
-            currentFrequency = returnFrequency;
-            activeFrequencyFlag = true;
-        }
-        else
-        {
-            if (activeFrequencyFlag)
-            {
-                Serial.println("activeFrequencyFlag = false");
-            }
-
-            activeFrequencyFlag = false;
-        }
-
-        if (activeFrequencyFlag)
-        {
-            error = currentFrequency - targetFrequency;
-            integral = integral + error;
-            correction = (pTerm * error) + (iTerm * integral);
-            Serial.printf("Target %3.2f | Current: %3.2f | Error: %3.2f (%3.0f) | Integral: %3.0f (%3.0f) | Correction %i\n", targetFrequency, currentFrequency, error, pTerm * error, integral, integral * iTerm, correction);
-
-            acc += currentFrequency;
-            samCount++;
-            Serial.printf("Avg: %3.2f\n", acc / samCount);
-            //motor.setTargetRel(correction);
-        }
-        else
-        {
-            //motor.setTargetRel(0);
-            integral = 0;
-
-            acc = 0;
-            samCount = 0;
-        }
-    }
-      */
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // GENERAL TEST AREA
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    /*
-  static int timeElapsed2 = millis();
-  if (notefreq2.available())
-  {
-    float note2 = notefreq2.read();
-    float prob2 = notefreq2.probability();
-    //Serial.printf("Note 2 (%U): %3.2fhz | Probability: %.2f\n", millis() - timeElapsed2, note2, prob2);
-    timeElapsed2 = millis();
-  }
-  */
 
     FlashOnboardLED();
 }
