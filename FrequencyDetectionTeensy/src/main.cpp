@@ -10,9 +10,12 @@
 #include <SD.h>
 #include <SerialFlash.h>
 
+#include <Servo.h>    // Built-in
 #include <PWMServo.h> // Built-in
 
 #include "movingAvg.h" // Arduino. Modifed to handle floats.
+
+#define SERIAL 0
 
 #define C 261.6
 #define Cs 277.2
@@ -27,6 +30,9 @@
 
 const int numNotes = 9;
 float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
+int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
+
+bool pickedFlag = false;
 
 /*
 
@@ -65,7 +71,7 @@ as I need only basic features (speeds and modest acceleration).
 #define PIN_LED_3 22
 #define PIN_LED_4 23
 
-#define PIN_SERVO_3 6
+#define PIN_SERVO_3 3
 
 #define STEP A0
 #define DIR A1
@@ -123,8 +129,9 @@ float GetFrequency()
             if (note < min)
                 min = note;
 
-            Serial.printf("(%ums) %3.2f\n", millis() - timeElapsed1, note, prob);
-            //Serial.printf("(%U) %3.2f | Prob: %.2f\n", millis() - timeElapsed1, note, prob);
+            if (SERIAL)
+                Serial.printf("(%ums) %3.2f\n", millis() - timeElapsed1, note, prob);
+            // Serial.printf("(%U) %3.2f | Prob: %.2f\n", millis() - timeElapsed1, note, prob);
             // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
             // Serial.printf("A. Mem. Max: %u\n", AudioMemoryUsageMax());
 
@@ -140,8 +147,18 @@ float GetFrequency()
 }
 
 /**/
-void Pick()
+void Pick(bool homeFlag = false)
 {
+
+    if (homeFlag)
+    {
+        pickSide = Left;
+        servo3.write(100);
+        return;
+    }
+
+    pickedFlag = true;
+
     if (pickSide == Left)
     {
         pickSide = Right;
@@ -281,6 +298,10 @@ void setup()
     //SetDirection(true);
 
     movingAverage.begin();
+
+    Pick(true);
+    delay(3000);
+
 }
 
 void loop()
@@ -311,7 +332,16 @@ void loop()
     Estimated Hz per rotation: 153.78
                     per degre: 0.4271
 
-    DC-DC motor rated at 60RPM
+
+    TEST MOTOR:
+    6v, 50RPM (no load), 24oz/in (crude test), 1200ms per revolution. 
+    Pololu's N20 6v (low power) 54RPM has a oz/in of 24 which is on par with out test motor.
+
+    The current torque is capable of turning the peg (of our current test string (high E)).
+    ---
+    POSSIBLE MOTOR:
+    Pololu: N20, 6v, 220RPM, 28oz/in |  273ms per revolution
+    Pololu: N20, 6v, 310RPM, 24oz/in |  194ms per revolution
 
     */
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -342,13 +372,21 @@ void loop()
     }
     ////
 
-    /* */
+    /*  */
     // Attempt a melody.
-    static unsigned long startTarget = 5000; // trigger on startup
-    static signed noteSelect = 0;
-    if (millis() - startTarget >= 1500)
+    static unsigned long startTarget = millis();
+    static int noteSelect = 0;
+
+    //unsigned int delay = noteSelect < 4 ? 500 : startTarget < 7 ? 750 : 1000;
+    //unsigned int delay = 1000;
+
+    static unsigned int delay = 0;
+
+    if (millis() - startTarget >= delay)
     {
         startTarget = millis();
+
+        delay = delays[noteSelect];
 
         if (noteSelect < numNotes)
         {
@@ -359,15 +397,31 @@ void loop()
         }
     }
     ////
- 
 
     static unsigned int noFreqCount = 0;
     static unsigned long start = millis();
 
     unsigned int delayBetweenRetrievingNotes = 1;
-    unsigned int noFreqDetectionTimeout_NoteCycles = 100; //
+    unsigned int noFreqDetectionTimeout_NoteCycles = 20; //
 
-    if (millis() - start >= delayBetweenRetrievingNotes)
+    // Delay clearing pickFlag for x milliseconds.
+    static unsigned long pickMillis = millis();
+    if (pickedFlag)
+    {
+        if (millis() - pickMillis > 50)
+        {
+            pickedFlag = false;
+        }
+    }
+    else
+    {
+        pickMillis = millis();
+    }
+
+    // After a pick wait X milliseconds to allow servo PWM to kick in
+    // as well as allow the string to settle for a more accurate frequency detection.
+    // frequency tends to spike after a harse pick and our picking system harshly picks.
+    if (millis() - start >= delayBetweenRetrievingNotes && pickedFlag == false)
     {
         start = millis();
 
@@ -386,10 +440,14 @@ void loop()
             {
                 if (activeFrequencyFlag)
                 {
-                    Serial.println("activeFrequencyFlag = false");
-                    Serial.printf("\t\tAverage Error: %3.2f | Min: %3.2f | Max: %3.2f | Error Spread: %3.2f | Num. Samples: %u\n", errorAcc / accCount, errorMin, errorMax, errorMax - errorMin, accCount);
-                    Serial.printf("\t\tAverage Freq.: %3.2f | Min: %3.2f | Max: %3.2f | Freq. Spread: %3.2f | Num. Samples: %u\n", freqAcc / accCount, freqMax, freqMin, freqMax - freqMin, accCount);
-                    Serial.printf("\t\tMovAvg. Freq.: %3.2f with %d samples.", movingAverage.getAvg(), movingAverage.getCount());
+                    if (SERIAL)
+                        Serial.println("activeFrequencyFlag = false");
+                    if (SERIAL)
+                        Serial.printf("\t\tAverage Error: %3.2f | Min: %3.2f | Max: %3.2f | Error Spread: %3.2f | Num. Samples: %u\n", errorAcc / accCount, errorMin, errorMax, errorMax - errorMin, accCount);
+                    if (SERIAL)
+                        Serial.printf("\t\tAverage Freq.: %3.2f | Min: %3.2f | Max: %3.2f | Freq. Spread: %3.2f | Num. Samples: %u\n", freqAcc / accCount, freqMax, freqMin, freqMax - freqMin, accCount);
+                    if (SERIAL)
+                        Serial.printf("\t\tMovAvg. Freq.: %3.2f with %d samples.\n", movingAverage.getAvg(), movingAverage.getCount());
                     errorMin = 5000.0;
                     errorMax = 0.0;
                     errorAcc = 0;
@@ -445,7 +503,7 @@ void loop()
             sprintf(motState, "%s", MotorState() ? "On" : "Off");
             char dirStr[12];
             sprintf(dirStr, "%s", MotorState() == 0 ? "" : GetMotorDirection() ? "(Up)" : "(Down)");
-            Serial.printf("\t%5u: Target %3.2f | Current: %3.2f | Error: %3.2f | Motor state %s %s \n", noteCount, targetFrequency, currentFrequency, error, motState, dirStr);
+            // Serial.printf("\t%5u: Target %3.2f | Current: %3.2f | Error: %3.2f | Motor state %s %s \n", noteCount, targetFrequency, currentFrequency, error, motState, dirStr);
         }
         else
         {
