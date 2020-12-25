@@ -90,7 +90,7 @@ AudioAnalyzeNoteFrequency notefreq1;
 AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
 AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
-movingAvg movingAverage(10);
+movingAvg movingAverage(5);
 
 enum PickSide
 {
@@ -121,48 +121,45 @@ enum State
     sPretune
 };
 
-/**/
-float GetFrequency()
+////////////////////////////////////////////////////////////////////////
+
+// Flash onboard LED to show activity
+void FlashOnboardLED()
 {
-    static float min = 2048;
-    static float max = 0;
-    static int count = 0;
-    static int timeElapsed1 = millis();
-
-    if (notefreq1.available())
+    static unsigned long start = millis();
+    if (millis() - start > 50)
     {
-        float note = notefreq1.read();
-        float prob = notefreq1.probability();
-
-        //if (prob >= 0.99)
-        if (prob > 0.995)
-        {
-            count++;
-
-            if (note > max)
-                max = note;
-
-            if (note < min)
-                min = note;
-
-            if (SERIAL)
-                Serial.printf("(%ums) %3.2f\n", millis() - timeElapsed1, note, prob);
-            // Serial.printf("(%U) %3.2f | Prob: %.2f\n", millis() - timeElapsed1, note, prob);
-            // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
-            // Serial.printf("A. Mem. Max: %u\n", AudioMemoryUsageMax());
-
-            timeElapsed1 = millis();
-
-            return note;
-        }
-
-        timeElapsed1 = millis();
+        start = millis();
+        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     }
-
-    return 0;
 }
 
-/**/
+// On error, halt program.
+void Halt()
+{
+    Serial.println("Halted!");
+    while (1)
+    {
+    }
+}
+
+void DebugLEDs()
+{
+    // Debug LEDs: show motor direction when motor is in motion.
+    if (digitalRead(PIN_MOTOR_ENABLE))
+    {
+        digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_PHASE));
+        digitalWrite(PIN_LED_2, !digitalRead(PIN_MOTOR_PHASE));
+    }
+    else
+    {
+        digitalWrite(PIN_LED_1, LOW);
+        digitalWrite(PIN_LED_2, LOW);
+    }
+}
+////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////
 void Pick(bool homeFlag = false)
 {
 
@@ -198,25 +195,7 @@ void Mute()
         servo3.write(80);
     }
 }
-
-// Flash onboard LED to show activity
-void FlashOnboardLED()
-{
-    static unsigned long start = millis();
-    if (millis() - start > 50)
-    {
-        start = millis();
-        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    }
-}
-
-void Halt()
-{
-    Serial.println("Halted!");
-    while (1)
-    {
-    }
-}
+////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////
 // DC-Motor code:
@@ -263,9 +242,113 @@ void MotorStop()
 {
     EnableMotor(true);
 }
-
 ////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////
+float GetFrequency()
+{
+    float probabilityPassable = 0.995;
+    static int timeElapsed = millis();
+
+    static float min = 2048;
+    static float max = 0;
+
+    if (notefreq1.available())
+    {
+        float note = notefreq1.read();
+        float prob = notefreq1.probability();
+
+        if (prob > probabilityPassable)
+        {
+            if (note > max)
+                max = note;
+
+            if (note < min)
+                min = note;
+
+            // Serial.printf("Detected: %3.2f | Probability %1.2f | Time: %ums \n", note, prob, millis() - timeElapsed);
+            // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
+
+            timeElapsed = millis();
+
+            return note;
+        }
+
+        timeElapsed = millis();
+    }
+
+    return 0;
+}
+
+void FrequencyToMotor(float targetFrequency)
+{
+    static unsigned int detectionCount = 0;
+    static unsigned long startTimeNewTarget;
+    static unsigned int hitTargetCount = 0;
+    static unsigned int targetTimeAcc = 0;
+    static bool newTargetHitFlag = false;
+    float frequencyTolerance = 1.0;
+    float detectedFrequency = GetFrequency();
+
+    static float oldTarget;
+    if (oldTarget != targetFrequency)
+    {
+        oldTarget = targetFrequency;
+        startTimeNewTarget = millis();
+        newTargetHitFlag = false;
+    }
+
+    if (detectedFrequency > 0)
+    {
+        float frequencyDelta = targetFrequency - detectedFrequency;
+        int runTime;
+
+        detectionCount++;
+        movingAverage.reading(detectedFrequency);
+
+        // Based on Hz/milliseconds(of motor turning)
+        // (which is a function motor RPM/torque). TODO: needs an algorithm approch, y = mx+b
+        float runTimeCoef = 6;
+
+        // TBD: use either the directly detected frequency or use a moving average (or other type of average).
+        // float comparisonFrequency = detectedFrequency;                       // Target hit: 10 | Elapsed time: 459 | Average time to hit targets: 521
+        // float comparisonFrequency = movingAverage.getAvg(); (20 readings)    // Target hit:  8 | Elapsed time: 675 | Average time to hit targets: 657
+        // float comparisonFrequency = movingAverage.getAvg(); //(10 readings)  // Target hit: 10 | Elapsed time: 402 | Average time to hit targets: 640
+        // float comparisonFrequency = movingAverage.getAvg(); //(5 readings)   // Target hit:  9 | Elapsed time: 604 | Average time to hit targets: 550
+
+        if (detectedFrequency < targetFrequency - frequencyTolerance)
+        {
+            runTime = abs(frequencyDelta * runTimeCoef);
+            SetMotorRunTime(Direction::Up, runTime);
+        }
+        else if (detectedFrequency > targetFrequency + frequencyTolerance)
+        {
+            runTime = abs(frequencyDelta * runTimeCoef);
+            SetMotorRunTime(Direction::Down, runTime);
+        }
+        else
+        {
+            // Target hit.
+            if (newTargetHitFlag == false)
+            {
+                hitTargetCount++;
+                targetTimeAcc += millis() - startTimeNewTarget;
+                Serial.printf("Target hit: %u | Elapsed time: %u | Average time to hit targets: %u\n", hitTargetCount, millis() - startTimeNewTarget, targetTimeAcc / hitTargetCount);
+            }
+
+            newTargetHitFlag = true;
+            startTimeNewTarget = millis();
+
+            runTime = 0;
+            MotorStop();
+        }
+
+        Serial.printf("%4u | Detected: %3.2f (Avg: %3.2f) | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, detectedFrequency, movingAverage.getAvg(), targetFrequency, frequencyDelta, runTime);
+    }
+}
+////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////
 void setup()
 {
     delay(1000); // Give platformio time to switch back to the terminal.
@@ -274,9 +357,6 @@ void setup()
     Serial.println("Teensy starting up.");
 
     pinMode(LED_BUILTIN, OUTPUT);
-
-    // pinMode(STEP, OUTPUT);
-    // pinMode(DIR, OUTPUT);
 
     digitalWrite(PIN_MOTOR_PHASE, LOW);
     digitalWrite(PIN_MOTOR_ENABLE, LOW);
@@ -295,7 +375,7 @@ void setup()
 
     servo3.attach(PIN_SERVO_3, 1000, 2000);
 
-    //movingAverage.begin();
+    movingAverage.begin();
 
     //Pick(true);
     //delay(3000);
@@ -304,7 +384,7 @@ void setup()
 void loop()
 {
 
-/*
+    /*
     static float targetFrequency = 329.63;
     static float currentFrequency = 0;
     static int attemptCount = 0;
@@ -360,26 +440,13 @@ void loop()
     // DC-Motor TEST AREA
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    // Debug LEDs: show motor direction when motor is in motion.
-    if (digitalRead(PIN_MOTOR_ENABLE))
-    {
-        digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_PHASE));
-        digitalWrite(PIN_LED_2, !digitalRead(PIN_MOTOR_PHASE));
-    }
-    else
-    {
-        digitalWrite(PIN_LED_1, LOW);
-        digitalWrite(PIN_LED_2, LOW);
-    }
     ////
 
     /*  
     // Attempt a melody.
     static unsigned long startTarget = millis();
     static int noteSelect = 0;
-    static unsigned int delay = 0;
-
-  
+    static unsigned int delay = 0;  
 
     static State state = sPick;
 
@@ -459,16 +526,18 @@ void loop()
 
     // NEW AREA, NEW MOTOR CODE
 
-    /*
+    static float targetFrequency = 440;
+    static unsigned long startPick = millis();
+
     static int noteSelect = 0;
     static unsigned long noteStartMillis;
-
     if (millis() - noteStartMillis >= 2000)
     {
         noteStartMillis = millis();
         targetFrequency = notes[noteSelect];
 
         Pick();
+        startPick = millis();
 
         Serial.printf("New target: %3.2f\n", targetFrequency);
         noteSelect++;
@@ -477,38 +546,23 @@ void loop()
             noteSelect = 0;
         }
     }
-    */
+
+    DebugLEDs();
+
+    // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
+    
+    // delay: 100 === Target hit: 10 | Elapsed time: 430 | Average time to hit targets: 434
+    // delay: 200 === Target hit: 10 | Elapsed time: 374 | Average time to hit targets: 397
+    // delay: 300 === Target hit: 9 | Elapsed time: 346 | Average time to hit targets: 467
+    // 400 Target hit: 9 | Elapsed time: 292 | Average time to hit targets: 424
+    // 500 Target hit: 8 | Elapsed time: 944 | Average time to hit targets: 404
+
+    if (millis() - startPick > 500)
+    {
+        FrequencyToMotor(targetFrequency);
+    }
 
     MotorRun();
-
-    static float targetFrequency = 329.63;
-    float frequencyTolerance = 1.0;
-    float detectedFrequency = GetFrequency();
-
-    if (detectedFrequency > 0)
-    {
-        float frequencyDelta = targetFrequency - detectedFrequency;
-        int runTime;
-        int runTimeCoef = 5; // Based on Hz/milliseconds (a function motor RPM/torque). TODO: needs an algorithm approch, y = mx+b
-
-        if (detectedFrequency < targetFrequency - frequencyTolerance)
-        {
-            runTime = abs(frequencyDelta * runTimeCoef);
-            SetMotorRunTime(Direction::Up, runTime);
-        }
-        else if (detectedFrequency > targetFrequency + frequencyTolerance)
-        {
-            runTime = abs(frequencyDelta * runTimeCoef);
-            SetMotorRunTime(Direction::Down, runTime);
-        }
-        else
-        {
-            runTime = 0;
-            MotorStop();
-        }
-
-        Serial.printf("Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectedFrequency, targetFrequency, frequencyDelta, runTime);
-    }
 
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
