@@ -18,14 +18,6 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     if (detectedFrequency == 0)
         return;
 
-    static float oldTarget;
-    if (oldTarget != targetFrequency)
-    {
-        oldTarget = targetFrequency;
-        startTimeNewTarget = millis();
-        newTargetHitFlag = false;
-    }
-
     float frequencyDelta = targetFrequency - detectedFrequency;
     int runTime;
 
@@ -40,34 +32,25 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     // float comparisonFrequency = movingAverage.getAvg(); //(10 readings)  // Target hit: 10 | Elapsed time: 402 | Average time to hit targets: 640
     // float comparisonFrequency = movingAverage.getAvg(); //(5 readings)   // Target hit:  9 | Elapsed time: 604 | Average time to hit targets: 550
 
+    runTime = abs(frequencyDelta * runTimeCoef);
+    if (runTime < 20) runTime = 20;
+
     if (detectedFrequency < targetFrequency - frequencyTolerance)
-    {
-        runTime = abs(frequencyDelta * runTimeCoef);
+    {        
         _dcMotor.SetMotorRunTime(DCMotor::Direction::Up, runTime);
     }
     else if (detectedFrequency > targetFrequency + frequencyTolerance)
-    {
-        runTime = abs(frequencyDelta * runTimeCoef);
+    {      
         _dcMotor.SetMotorRunTime(DCMotor::Direction::Down, runTime);
     }
     else
     {
-        // Target hit.
-        if (newTargetHitFlag == false)
-        {
-            hitTargetCount++;
-            targetTimeAcc += millis() - startTimeNewTarget;
-            Serial.printf("Target hit: %u | Elapsed time: %u | Average time to hit targets: %u\n", hitTargetCount, millis() - startTimeNewTarget, targetTimeAcc / hitTargetCount);
-        }
-
-        newTargetHitFlag = true;
-        startTimeNewTarget = millis();
-
-        runTime = 0;
+        startTimeNewTarget = millis();    
+        runTime = 0;  
         _dcMotor.MotorStop();
     }
 
-    Serial.printf("%4u | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, detectedFrequency, targetFrequency, frequencyDelta, runTime);
+    // Serial.printf("%4u | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, detectedFrequency, targetFrequency, frequencyDelta, runTime);
 }
 
 void Chime::Tick()

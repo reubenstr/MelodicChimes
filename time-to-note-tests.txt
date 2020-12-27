@@ -1,0 +1,62 @@
+Note 1 from 261.60 to 277.20 with time 0.
+Note 2 from 277.20 to 293.70 with time 0.
+Note 3 from 293.70 to 311.10 with time 596.
+Note 4 from 311.10 to 329.60 with time 365.
+Note 5 from 329.60 to 349.20 with time 338.
+Note 6 from 349.20 to 370.00 with time 398.
+Note 7 from 370.00 to 392.00 with time 427.
+Note 8 from 392.00 to 415.30 with time 0.
+Note 9 from 415.30 to 440.00 with time 0.
+
+// manual picking
+Note 1 from 261.60 to 277.20 with time 0.
+Note 2 from 277.20 to 293.70 with time 522.
+Note 3 from 293.70 to 311.10 with time 466.
+Note 4 from 311.10 to 329.60 with time 323.
+Note 5 from 329.60 to 349.20 with time 325.
+Note 6 from 349.20 to 370.00 with time 355.
+Note 7 from 370.00 to 392.00 with time 616.
+Note 8 from 392.00 to 415.30 with time 763.
+Note 9 from 415.30 to 440.00 with time 1012.
+
+Note 1 from 261.60 to 277.20 with time 1536.
+Note 2 from 277.20 to 293.70 with time 334.
+Note 3 from 293.70 to 311.10 with time 858.
+Note 4 from 311.10 to 329.60 with time 540.
+Note 5 from 329.60 to 349.20 with time 324.
+Note 6 from 349.20 to 370.00 with time 355.
+Note 7 from 370.00 to 392.00 with time 355.
+Note 8 from 392.00 to 415.30 with time 1329.
+Note 9 from 415.30 to 440.00 with time 925.
+
+// manual but with min run time of 20ms
+
+Note 1 from 261.60 to 277.20 with time 1593.
+Note 2 from 277.20 to 293.70 with time 565.
+Note 3 from 293.70 to 311.10 with time 610.
+Note 4 from 311.10 to 329.60 with time 438.
+Note 5 from 329.60 to 349.20 with time 265.
+Note 6 from 349.20 to 370.00 with time 557.
+Note 7 from 370.00 to 392.00 with time 325.
+Note 8 from 392.00 to 415.30 with time 965.
+Note 9 from 415.30 to 440.00 with time 967.
+
+Note 1 from 261.60 to 277.20 with time 1826.
+Note 2 from 277.20 to 293.70 with time 392.
+Note 3 from 293.70 to 311.10 with time 335.
+Note 4 from 311.10 to 329.60 with time 279.
+Note 5 from 329.60 to 349.20 with time 354.
+Note 6 from 349.20 to 370.00 with time 442.
+Note 7 from 370.00 to 392.00 with time 486.
+Note 8 from 392.00 to 415.30 with time 1358.
+Note 9 from 415.30 to 440.00 with time 925.
+
+Note 1 from 261.60 to 277.20 with time 1754.
+Note 2 from 277.20 to 293.70 with time 493.
+Note 3 from 293.70 to 311.10 with time 248.
+Note 4 from 311.10 to 329.60 with time 308.
+Note 5 from 329.60 to 349.20 with time 368.
+Note 6 from 349.20 to 370.00 with time 297.
+Note 7 from 370.00 to 392.00 with time 413.
+Note 8 from 392.00 to 415.30 with time 908.
+Note 9 from 415.30 to 440.00 with time 823.

@@ -28,10 +28,11 @@
 #define Gs 415.3
 #define A 440.0
 
-const int numNotes = 9;
-float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
-//int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
-int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
+const int numNotes = 10;
+//float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
+float notesChromatic[10] = {C, Cs, D, Eb, E, F, Fs, G, Gs, A};
+// int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
+// int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
 bool pickedFlag = false;
 
@@ -72,7 +73,13 @@ as I need only basic features (speeds and modest acceleration).
 #define PIN_LED_3 22
 #define PIN_LED_4 23
 
-#define PIN_SERVO_3 3
+//#define PIN_SERVO_3 3
+
+#define PIN_MOTOR_PICK_PHASE 5
+#define PIN_MOTOR_PICK_ENABLE 6
+#define PIN_SWITCH_INDEX_MOTOR 2
+
+#define MOTOR_PICK_INDEX_ACTIVATED 1
 
 Chime chime(PIN_MOTOR_PHASE, PIN_MOTOR_ENABLE);
 
@@ -202,23 +209,23 @@ float GetFrequency()
 
     if (notefreq1.available())
     {
-        float note = notefreq1.read();
+        float frequency = notefreq1.read();
         float probability = notefreq1.probability();
 
         if (probability > acceptableProbability)
         {
-            if (note > max)
-                max = note;
+            if (frequency > max)
+                max = frequency;
 
-            if (note < min)
-                min = note;
+            if (frequency < min)
+                min = frequency;
 
             // Serial.printf("Detected: %3.2f | Probability %1.2f | Time: %ums \n", note, prob, millis() - timeElapsed);
             // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
 
             timeElapsed = millis();
 
-            return note;
+            return frequency;
         }
 
         timeElapsed = millis();
@@ -228,6 +235,75 @@ float GetFrequency()
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+// Blocking routine to aquire timing parameters.
+void CalibrateTiming()
+{
+    const int numNotes = 10;
+    float freqCalibraion[numNotes] = {C, Cs, D, Eb, E, F, Fs, G, Gs, A};
+
+    float targetFrequency;
+    int noteSelect = 0;
+    unsigned long noteStartMillis = 5000;
+    bool noteFinishedFlag = true;
+
+    static int times[10];
+    for (int i = 0; i < 10; i++)
+    {
+        times[i] = 0;
+    }
+
+    while (noteSelect < numNotes + 1)
+    {
+
+        if (millis() - noteStartMillis >= 2000)
+        {
+            noteStartMillis = millis();
+            targetFrequency = freqCalibraion[noteSelect];
+
+            // Pick();
+
+            noteFinishedFlag = false;
+
+            Serial.printf("New target note (%u) at %3.2f\n", noteSelect, targetFrequency);
+
+            noteSelect++;
+        }
+
+        DebugLEDs();
+
+        float detectedFrequency = GetFrequency();
+        float frequencyTolerance = 1.0;
+
+        // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
+        if (millis() - noteStartMillis > 50)
+        {
+            chime.FrequencyToMotor(detectedFrequency, targetFrequency);
+        }
+
+        chime.Tick();
+
+        if ((detectedFrequency > (targetFrequency - frequencyTolerance)) && (detectedFrequency < (targetFrequency + frequencyTolerance)))
+        {
+            if (!noteFinishedFlag)
+            {
+                noteFinishedFlag = true;
+                Serial.printf("Frequency (%u) within tolerance, elapsed time: %u\n", noteSelect, millis() - noteStartMillis);
+
+                times[noteSelect] = millis() - noteStartMillis;
+            }
+        }
+    }
+
+    Serial.printf("\n\n");
+    for (int i = 0; i < numNotes; i++)
+    {
+        if (i != 0)
+            Serial.printf("Note %u from %3.2f to %3.2f with time %4u\n", i, freqCalibraion[i - 1], freqCalibraion[i], times[i]);
+    }
+
+    Serial.printf("Finished calibration routine.\n\n\n");
+}
 
 ////////////////////////////////////////////////////////////////////////
 void setup()
@@ -245,6 +321,10 @@ void setup()
     pinMode(PIN_MOTOR_PHASE, OUTPUT);
     pinMode(PIN_MOTOR_ENABLE, OUTPUT);
 
+    pinMode(PIN_MOTOR_PICK_PHASE, OUTPUT);
+    pinMode(PIN_MOTOR_PICK_ENABLE, OUTPUT);
+    pinMode(PIN_SWITCH_INDEX_MOTOR, INPUT_PULLUP);
+
     pinMode(PIN_LED_1, OUTPUT);
     pinMode(PIN_LED_2, OUTPUT);
     pinMode(PIN_LED_3, OUTPUT);
@@ -254,13 +334,30 @@ void setup()
     notefreq1.begin(.15);
     // notefreq2.begin(.25);
 
-    servo3.attach(PIN_SERVO_3, 1000, 2000);
+    //servo3.attach(PIN_SERVO_3, 1000, 2000);
 
     movingAverage.begin();
 
     // Start in known position.
-    Pick(true);
-    delay(2000);
+    //Pick(true);
+    //delay(2000);
+
+    /*
+
+    digitalWrite(PIN_MOTOR_PICK_PHASE, HIGH);
+    digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
+
+    while (1)
+    {
+        if (digitalRead(PIN_SWITCH_INDEX_MOTOR) == MOTOR_PICK_INDEX_ACTIVATED)
+        {
+            digitalWrite(PIN_MOTOR_PICK_ENABLE, LOW);
+            delay(500);
+            digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
+            delay(150);
+        }
+    }
+    */
 }
 
 void loop()
@@ -274,10 +371,13 @@ void loop()
     400.03 - full - 246.60 - full - 399.67
     427.02 - full - 272.89 - full - 429.36
 
+    A full rotation roughly spans 8 notes.
+
     Estimated Hz per rotation: 153.78
                     per degre: 0.4271
 
-    0.12815 hz / millisecond
+    0.12815 hz / millisecond (estimated from full turn test)
+    0.05714 hz / millisecond (estimated from note to note test (with pickStall)) ~350ms motor time per note.
 
 
     TEST MOTOR:
@@ -285,10 +385,13 @@ void loop()
     Pololu's N20 6v (low power) 54RPM has a oz/in of 24 which is on par with out test motor.
 
     The current torque is capable of turning the peg (of our current test string (high E)).
+
+    Test indicate time between notes ~350ms (average), but high notes (A440) take 900ms
+    meaning the current motor does not have enough torque.
+
     ---
     POSSIBLE MOTOR:
-    Pololu: N20, 6v, 220RPM, 28oz/in |  273ms per revolution
-    Pololu: N20, 6v, 310RPM, 24oz/in |  194ms per revolution
+
 
     */
 
@@ -296,45 +399,82 @@ void loop()
     // DC-Motor TEST AREA
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    static float targetFrequency = 440;
+    static bool doOnce = true;
+    if (doOnce)
+    {
+        doOnce = false;
+        // CalibrateTiming();
+    }
 
-    /*
-    static unsigned long startPick = millis();
+    static float targetFrequency = 329.6;
+
+    /*  
+    static int times[10];
+    for (int i = 0; i < 10; i++)
+    {
+        times[i] = 0;
+    }
 
     static int noteSelect = 0;
     static unsigned long noteStartMillis;
+    static bool noteFinishedFlag = true;
+
     if (millis() - noteStartMillis >= 2000)
     {
         noteStartMillis = millis();
-        targetFrequency = notes[noteSelect];
-
-        Pick();
-        startPick = millis();
-
+        targetFrequency = notes[noteSelect]; 
+        Pick();    
         Serial.printf("New target: %3.2f\n", targetFrequency);
         noteSelect++;
         if (noteSelect == numNotes)
         {
-            noteSelect = 0;
+             noteSelect = 0;
         }
     }
     */
 
     DebugLEDs();
 
-    chime.FrequencyToMotor(GetFrequency(), targetFrequency);
+    digitalWrite(PIN_MOTOR_PICK_PHASE, HIGH);
+    digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
+
+    static unsigned long startindex = millis();
+    static unsigned long startDebounce;
+    static bool indexFlag = false;
+    static bool indexResetFlag = false;
+    
+    if (digitalRead(PIN_SWITCH_INDEX_MOTOR) == MOTOR_PICK_INDEX_ACTIVATED)
+    {
+
+        if (indexResetFlag)
+        {
+            Serial.printf("Index elapsed %u\n", millis() - startindex);
+
+            indexResetFlag = false;
+            startDebounce = millis();
+            startindex = millis();
+            
+        }
+    }
+
+    if (millis() - startDebounce > 200)
+    {
+         if (digitalRead(PIN_SWITCH_INDEX_MOTOR) != MOTOR_PICK_INDEX_ACTIVATED)
+         {
+              indexResetFlag = true;
+         }
+       
+    }
+    
+ 
+
+    float detectedFrequency = GetFrequency();
+    float frequencyTolerance = 1.0;
 
     // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
-
-    // delay: 100 === Target hit: 10 | Elapsed time: 430 | Average time to hit targets: 434
-    // delay: 200 === Target hit: 10 | Elapsed time: 374 | Average time to hit targets: 397
-    // delay: 300 === Target hit: 9 | Elapsed time: 346 | Average time to hit targets: 467
-    // 400 Target hit: 9 | Elapsed time: 292 | Average time to hit targets: 424
-    // 500 Target hit: 8 | Elapsed time: 944 | Average time to hit targets: 404
-
-    //if (millis() - startPick > 500)
+    //if (millis() - noteStartMillis > 50)
     {
-        //FrequencyToMotor(targetFrequency);
+        chime.FrequencyToMotor(detectedFrequency, targetFrequency);
     }
 
     chime.Tick();
