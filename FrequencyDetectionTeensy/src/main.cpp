@@ -65,23 +65,21 @@ as I need only basic features (speeds and modest acceleration).
 
 */
 
-#define PIN_MOTOR_PHASE 0
-#define PIN_MOTOR_ENABLE 1
+#define PIN_MOTOR_TUNE_PHASE -1
+#define PIN_MOTOR_TUNE_ENABLE -1
+#define PIN_MOTOR_PICK_PHASE 5
+#define PIN_MOTOR_PICK_ENABLE 6
+#define PIN_SWITCH_INDEX_MOTOR 2
+#define PIN_MOTOR_MUTE_PHASE 0
+#define PIN_MOTOR_MUTE_ENABLE 1
 
 #define PIN_LED_1 20
 #define PIN_LED_2 21
 #define PIN_LED_3 22
 #define PIN_LED_4 23
-
-//#define PIN_SERVO_3 3
-
-#define PIN_MOTOR_PICK_PHASE 5
-#define PIN_MOTOR_PICK_ENABLE 6
-#define PIN_SWITCH_INDEX_MOTOR 2
-
 #define MOTOR_PICK_INDEX_ACTIVATED 1
 
-Chime chime(PIN_MOTOR_PHASE, PIN_MOTOR_ENABLE);
+Chime chime(PIN_MOTOR_TUNE_PHASE, PIN_MOTOR_TUNE_ENABLE,PIN_MOTOR_PICK_PHASE ,PIN_MOTOR_PICK_ENABLE ,PIN_SWITCH_INDEX_MOTOR ,PIN_MOTOR_MUTE_PHASE , PIN_MOTOR_MUTE_ENABLE);
 
 bool direction = false;
 signed long position = 0;
@@ -147,10 +145,10 @@ void Halt()
 void DebugLEDs()
 {
     // Debug LEDs: show motor direction when motor is in motion.
-    if (digitalRead(PIN_MOTOR_ENABLE))
+    if (digitalRead(PIN_MOTOR_TUNE_ENABLE))
     {
-        digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_PHASE));
-        digitalWrite(PIN_LED_2, !digitalRead(PIN_MOTOR_PHASE));
+        digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_TUNE_PHASE));
+        digitalWrite(PIN_LED_2, !digitalRead(PIN_MOTOR_TUNE_PHASE));
     }
     else
     {
@@ -160,43 +158,7 @@ void DebugLEDs()
 }
 ////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////
-void Pick(bool homeFlag = false)
-{
 
-    if (homeFlag)
-    {
-        pickSide = Left;
-        servo3.write(100);
-        return;
-    }
-
-    pickedFlag = true;
-
-    if (pickSide == Left)
-    {
-        pickSide = Right;
-        servo3.write(60);
-    }
-    else if (pickSide == Right)
-    {
-        pickSide = Left;
-        servo3.write(100);
-    }
-}
-
-void Mute()
-{
-    if (pickSide == Left)
-    {
-        servo3.write(80);
-    }
-    else if (pickSide == Right)
-    {
-        servo3.write(80);
-    }
-}
-////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////
 float GetFrequency()
@@ -315,16 +277,6 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
 
-    digitalWrite(PIN_MOTOR_PHASE, LOW);
-    digitalWrite(PIN_MOTOR_ENABLE, LOW);
-
-    pinMode(PIN_MOTOR_PHASE, OUTPUT);
-    pinMode(PIN_MOTOR_ENABLE, OUTPUT);
-
-    pinMode(PIN_MOTOR_PICK_PHASE, OUTPUT);
-    pinMode(PIN_MOTOR_PICK_ENABLE, OUTPUT);
-    pinMode(PIN_SWITCH_INDEX_MOTOR, INPUT_PULLUP);
-
     pinMode(PIN_LED_1, OUTPUT);
     pinMode(PIN_LED_2, OUTPUT);
     pinMode(PIN_LED_3, OUTPUT);
@@ -332,32 +284,7 @@ void setup()
 
     AudioMemory(120);
     notefreq1.begin(.15);
-    // notefreq2.begin(.25);
-
-    //servo3.attach(PIN_SERVO_3, 1000, 2000);
-
-    movingAverage.begin();
-
-    // Start in known position.
-    //Pick(true);
-    //delay(2000);
-
-    /*
-
-    digitalWrite(PIN_MOTOR_PICK_PHASE, HIGH);
-    digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
-
-    while (1)
-    {
-        if (digitalRead(PIN_SWITCH_INDEX_MOTOR) == MOTOR_PICK_INDEX_ACTIVATED)
-        {
-            digitalWrite(PIN_MOTOR_PICK_ENABLE, LOW);
-            delay(500);
-            digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
-            delay(150);
-        }
-    }
-    */
+    // notefreq2.begin(.25);    
 }
 
 void loop()
@@ -435,14 +362,12 @@ void loop()
 
     DebugLEDs();
 
-    digitalWrite(PIN_MOTOR_PICK_PHASE, HIGH);
-    digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
-
+    /*
     static unsigned long startindex = millis();
     static unsigned long startDebounce;
     static bool indexFlag = false;
     static bool indexResetFlag = false;
-    
+
     if (digitalRead(PIN_SWITCH_INDEX_MOTOR) == MOTOR_PICK_INDEX_ACTIVATED)
     {
 
@@ -453,20 +378,17 @@ void loop()
             indexResetFlag = false;
             startDebounce = millis();
             startindex = millis();
-            
         }
     }
 
     if (millis() - startDebounce > 200)
     {
-         if (digitalRead(PIN_SWITCH_INDEX_MOTOR) != MOTOR_PICK_INDEX_ACTIVATED)
-         {
-              indexResetFlag = true;
-         }
-       
+        if (digitalRead(PIN_SWITCH_INDEX_MOTOR) != MOTOR_PICK_INDEX_ACTIVATED)
+        {
+            indexResetFlag = true;
+        }
     }
-    
- 
+    */
 
     float detectedFrequency = GetFrequency();
     float frequencyTolerance = 1.0;
@@ -474,7 +396,7 @@ void loop()
     // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
     //if (millis() - noteStartMillis > 50)
     {
-        chime.FrequencyToMotor(detectedFrequency, targetFrequency);
+        // chime.FrequencyToMotor(detectedFrequency, targetFrequency);
     }
 
     chime.Tick();

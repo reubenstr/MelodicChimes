@@ -76,3 +76,81 @@
         }
     }
     */
+
+   /*
+////////////////////////////////////////////////////////////////////////
+void Pick(bool homeFlag = false)
+{
+
+    if (homeFlag)
+    {
+        pickSide = Left;
+        servo3.write(100);
+        return;
+    }
+
+    pickedFlag = true;
+
+    if (pickSide == Left)
+    {
+        pickSide = Right;
+        servo3.write(60);
+    }
+    else if (pickSide == Right)
+    {
+        pickSide = Left;
+        servo3.write(100);
+    }
+}
+
+void Mute()
+{
+    if (pickSide == Left)
+    {
+        servo3.write(80);
+    }
+    else if (pickSide == Right)
+    {
+        servo3.write(80);
+    }
+}
+////////////////////////////////////////////////////////////////////////
+   */
+
+
+  /*   
+    // Manual test plectum motor.
+    pinMode(PIN_MOTOR_PICK_PHASE, OUTPUT);
+    pinMode(PIN_MOTOR_PICK_ENABLE, OUTPUT);
+
+    digitalWrite(PIN_MOTOR_PICK_ENABLE, HIGH);
+    digitalWrite(PIN_MOTOR_PICK_PHASE, HIGH);
+
+    while (1)
+    {
+    } 
+    */
+
+    /*  
+    // Manual test mute motor.
+    pinMode(PIN_MOTOR_MUTE_PHASE, OUTPUT);
+    pinMode(PIN_MOTOR_MUTE_ENABLE, OUTPUT);
+
+    digitalWrite(PIN_MOTOR_MUTE_ENABLE, HIGH);
+        digitalWrite(PIN_MOTOR_MUTE_PHASE, HIGH);
+        delay(200);
+
+    while (1)
+    {
+        digitalWrite(PIN_MOTOR_MUTE_ENABLE, HIGH);
+        digitalWrite(PIN_MOTOR_MUTE_PHASE, LOW);
+        delay(300);
+        digitalWrite(PIN_MOTOR_MUTE_ENABLE, LOW);
+        delay(1000);
+        digitalWrite(PIN_MOTOR_MUTE_ENABLE, HIGH);
+        digitalWrite(PIN_MOTOR_MUTE_PHASE, HIGH);
+        delay(300);
+        digitalWrite(PIN_MOTOR_MUTE_ENABLE, LOW);
+        delay(1000);
+    }
+    */

@@ -2,8 +2,10 @@
 #include "Arduino.h"
 #include "Chime.h"
 
-Chime::Chime(uint8_t pinPhase, uint8_t pinEnable) : _dcMotor(pinPhase, pinEnable)
+Chime::Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinMotorMutePhase, uint8_t pinMotorMuteEnable)
+    : _tuneMotor(pinMotorTunePhase, pinMotorTuneEnable), _pickMotor(pinMotorPickPhase, pinMotorPickEnable), _muteMotor(pinMotorMutePhase, pinMotorMuteEnable)
 {
+    _pinMotorPickLimit = pinMotorPickLimit;
 }
 
 void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
@@ -33,21 +35,22 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     // float comparisonFrequency = movingAverage.getAvg(); //(5 readings)   // Target hit:  9 | Elapsed time: 604 | Average time to hit targets: 550
 
     runTime = abs(frequencyDelta * runTimeCoef);
-    if (runTime < 20) runTime = 20;
+    if (runTime < 20)
+        runTime = 20;
 
     if (detectedFrequency < targetFrequency - frequencyTolerance)
-    {        
-        _dcMotor.SetMotorRunTime(DCMotor::Direction::Up, runTime);
+    {
+        _tuneMotor.SetMotorRunTime(DCMotor::Direction::Up, runTime);
     }
     else if (detectedFrequency > targetFrequency + frequencyTolerance)
-    {      
-        _dcMotor.SetMotorRunTime(DCMotor::Direction::Down, runTime);
+    {
+        _tuneMotor.SetMotorRunTime(DCMotor::Direction::Down, runTime);
     }
     else
     {
-        startTimeNewTarget = millis();    
-        runTime = 0;  
-        _dcMotor.MotorStop();
+        startTimeNewTarget = millis();
+        runTime = 0;
+        _tuneMotor.MotorStop();
     }
 
     // Serial.printf("%4u | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, detectedFrequency, targetFrequency, frequencyDelta, runTime);
@@ -56,5 +59,19 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
 void Chime::Tick()
 {
 
-    _dcMotor.Tick();
+    _tuneMotor.Tick();
+    _pickMotor.Tick();
+    _muteMotor.Tick();
+
+    static unsigned long start;
+
+    if (millis() - start > 1000)
+    {
+        start = millis();
+
+        _pickMotor.SetMotorRunTime(DCMotor::Direction::Up, 500);
+
+    }
+
+
 }
