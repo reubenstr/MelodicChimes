@@ -67,11 +67,17 @@ void DCMotor::Tick()
 }
 
 void DCMotor::MotorStart()
-{
+{    
     digitalWrite(_pinEnable, HIGH);
 }
 
 void DCMotor::MotorStop()
 {
+     _motorEnableFlag = false;
     digitalWrite(_pinEnable, LOW);
+}
+
+bool DCMotor::IsRunning()
+{
+    return   _motorEnableFlag;
 }

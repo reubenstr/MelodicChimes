@@ -16,10 +16,13 @@ public:
     void MotorInversed(bool inverseFlag);
     void SetMotorRunTime(Direction direction, unsigned int runTime);
     void Tick();
-    void MotorStart();
-    void MotorStop();
+    bool IsRunning();    
+    void MotorStop();   
 
 private:
+
+     void MotorStart(); // If this goes public, needs flag and timeout prevention.
+
     uint8_t _pinPhase;
     uint8_t _pinEnable;
 

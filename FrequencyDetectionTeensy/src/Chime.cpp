@@ -6,6 +6,7 @@ Chime::Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinM
     : _tuneMotor(pinMotorTunePhase, pinMotorTuneEnable), _pickMotor(pinMotorPickPhase, pinMotorPickEnable), _muteMotor(pinMotorMutePhase, pinMotorMuteEnable)
 {
     _pinMotorPickLimit = pinMotorPickLimit;
+    pinMode(pinMotorPickLimit, INPUT_PULLUP);
 }
 
 void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
@@ -56,6 +57,29 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     // Serial.printf("%4u | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, detectedFrequency, targetFrequency, frequencyDelta, runTime);
 }
 
+void Chime::Pick()
+{
+    _pickMotor.SetMotorRunTime(DCMotor::Direction::Up, 500); // TODO: timing analysis for specific motor.
+    _startPick = millis();
+}
+
+void Chime::PickTick()
+{
+    if (millis() - _startPick > 100)
+    {
+        if (digitalRead(_pinMotorPickLimit) == _motorPickIndexActivated)
+        {
+            _pickMotor.MotorStop();
+        }
+    }
+}
+
+void Chime::Mute()
+{
+    _muteMotor.SetMotorRunTime(DCMotor::Direction::Up, 300); // TODO: timing analysis for specific motor.
+    _muteFlag = true;
+}
+
 void Chime::Tick()
 {
 
@@ -63,15 +87,20 @@ void Chime::Tick()
     _pickMotor.Tick();
     _muteMotor.Tick();
 
-    static unsigned long start;
+    PickTick();
 
+    if (_muteFlag && !_muteMotor.IsRunning())
+    {
+        _muteFlag = false;
+        _muteMotor.SetMotorRunTime(DCMotor::Direction::Down, 300); // TODO: timing analysis for specific motor.
+    }
+
+    /*
+    static unsigned long start;
     if (millis() - start > 1000)
     {
         start = millis();
-
         _pickMotor.SetMotorRunTime(DCMotor::Direction::Up, 500);
-
     }
-
-
+    */
 }

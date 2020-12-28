@@ -77,7 +77,7 @@ as I need only basic features (speeds and modest acceleration).
 #define PIN_LED_2 21
 #define PIN_LED_3 22
 #define PIN_LED_4 23
-#define MOTOR_PICK_INDEX_ACTIVATED 1
+
 
 Chime chime(PIN_MOTOR_TUNE_PHASE, PIN_MOTOR_TUNE_ENABLE,PIN_MOTOR_PICK_PHASE ,PIN_MOTOR_PICK_ENABLE ,PIN_SWITCH_INDEX_MOTOR ,PIN_MOTOR_MUTE_PHASE , PIN_MOTOR_MUTE_ENABLE);
 
@@ -392,6 +392,23 @@ void loop()
 
     float detectedFrequency = GetFrequency();
     float frequencyTolerance = 1.0;
+
+    static unsigned long startPick = millis();
+
+    if (millis() - startPick > 1000)
+    {
+        startPick = millis();
+        chime.Pick();
+    }
+
+   static unsigned long startMute = millis();
+
+    if (millis() - startMute > 1000)
+    {
+        startMute = millis();
+        chime.Mute();
+    }
+    
 
     // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
     //if (millis() - noteStartMillis > 50)
