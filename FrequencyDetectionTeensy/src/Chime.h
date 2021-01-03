@@ -10,7 +10,7 @@ class Chime
 
 
 public:
-    Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinMotorMutePhase, uint8_t pinMotorMuteEnable);
+    Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute);
     void FrequencyToMotor(float detectedFrequency, float targetFrequency);
     void Tick();
 
@@ -25,16 +25,18 @@ private:
 
     DCMotor _tuneMotor;
     DCMotor _pickMotor;
-    DCMotor _muteMotor;
 
     float _targetFrequency;
 
     uint8_t _pinMotorPickLimit;
     const int _motorPickIndexActivated = 1;
 
-    unsigned long _startPick;
+    uint8_t _pinSolenoidMute;
 
-    bool _muteFlag = false;
+    unsigned long _startPick;
+    unsigned long _startMute;
+
+  
 
   
 };

@@ -65,21 +65,22 @@ as I need only basic features (speeds and modest acceleration).
 
 */
 
-#define PIN_MOTOR_TUNE_PHASE -1
-#define PIN_MOTOR_TUNE_ENABLE -1
+#define PIN_MOTOR_TUNE_PWM1 14
+#define PIN_MOTOR_TUNE_PWM2 15
+
 #define PIN_MOTOR_PICK_PHASE 5
 #define PIN_MOTOR_PICK_ENABLE 6
+
 #define PIN_SWITCH_INDEX_MOTOR 2
-#define PIN_MOTOR_MUTE_PHASE 0
-#define PIN_MOTOR_MUTE_ENABLE 1
+
+#define PIN_SOLENOID_MUTE_1 7
 
 #define PIN_LED_1 20
 #define PIN_LED_2 21
 #define PIN_LED_3 22
 #define PIN_LED_4 23
 
-
-Chime chime(PIN_MOTOR_TUNE_PHASE, PIN_MOTOR_TUNE_ENABLE,PIN_MOTOR_PICK_PHASE ,PIN_MOTOR_PICK_ENABLE ,PIN_SWITCH_INDEX_MOTOR ,PIN_MOTOR_MUTE_PHASE , PIN_MOTOR_MUTE_ENABLE);
+Chime chime(PIN_MOTOR_TUNE_PWM1, PIN_MOTOR_TUNE_PWM2, PIN_MOTOR_PICK_PHASE, PIN_MOTOR_PICK_ENABLE, PIN_SWITCH_INDEX_MOTOR, PIN_SOLENOID_MUTE_1);
 
 bool direction = false;
 signed long position = 0;
@@ -144,21 +145,13 @@ void Halt()
 
 void DebugLEDs()
 {
+    /**/
     // Debug LEDs: show motor direction when motor is in motion.
-    if (digitalRead(PIN_MOTOR_TUNE_ENABLE))
-    {
-        digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_TUNE_PHASE));
-        digitalWrite(PIN_LED_2, !digitalRead(PIN_MOTOR_TUNE_PHASE));
-    }
-    else
-    {
-        digitalWrite(PIN_LED_1, LOW);
-        digitalWrite(PIN_LED_2, LOW);
-    }
+
+    digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_TUNE_PWM1));
+    digitalWrite(PIN_LED_2, digitalRead(PIN_MOTOR_TUNE_PWM2));
 }
 ////////////////////////////////////////////////////////////////////////
-
-
 
 ////////////////////////////////////////////////////////////////////////
 float GetFrequency()
@@ -284,7 +277,36 @@ void setup()
 
     AudioMemory(120);
     notefreq1.begin(.15);
-    // notefreq2.begin(.25);    
+    // notefreq2.begin(.25);
+
+    // Manual motor test: tune motor
+
+/*
+    while (1)
+    {
+   
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, HIGH);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
+        DebugLEDs();
+        delay(50);
+
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
+        DebugLEDs();
+        delay(500);
+
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, HIGH);
+        DebugLEDs();
+        delay(50);
+
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
+        DebugLEDs();
+        delay(500);
+
+    }
+    */
 }
 
 void loop()
@@ -333,7 +355,7 @@ void loop()
         // CalibrateTiming();
     }
 
-    static float targetFrequency = 329.6;
+    static float targetFrequency = 440;//329.6;
 
     /*  
     static int times[10];
@@ -394,32 +416,26 @@ void loop()
     float frequencyTolerance = 1.0;
 
     static unsigned long startPick = millis();
-
     if (millis() - startPick > 1000)
     {
         startPick = millis();
-        chime.Pick();
+        // chime.Pick();
     }
 
-   static unsigned long startMute = millis();
-
+    static unsigned long startMute = millis();
     if (millis() - startMute > 1000)
     {
         startMute = millis();
-        chime.Mute();
+        // chime.Mute();
     }
-    
 
     // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
     //if (millis() - noteStartMillis > 50)
     {
-        // chime.FrequencyToMotor(detectedFrequency, targetFrequency);
+         chime.FrequencyToMotor(detectedFrequency, targetFrequency);
     }
 
     chime.Tick();
-
-    ////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////
 
     FlashOnboardLED();
 }

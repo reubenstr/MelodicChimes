@@ -1,18 +1,30 @@
+//Mode: ENABLE_PHASE -> pin1 = Enable, pin2 = Phase.
+
 
 #include "Arduino.h"
+
 
 class DCMotor
 {
 
 public:
-    enum Direction
+
+ enum DriverMode
     {
-        Up,
-        Down
+        IN1_IN2,
+        ENABLE_PHASE
     };
 
-    DCMotor(uint8_t pinPhase, uint8_t pinEnable);
-    void SetMotorDirection(Direction direction);
+    enum Direction
+    {        
+        CW,
+        CCW,        
+    };
+
+
+
+    DCMotor(DriverMode driverMode, uint8_t pin1, uint8_t pin2);
+    //void SetMotorDirection(Direction direction);
     void MotorInversed(bool inverseFlag);
     void SetMotorRunTime(Direction direction, unsigned int runTime);
     void Tick();
@@ -23,12 +35,18 @@ private:
 
      void MotorStart(); // If this goes public, needs flag and timeout prevention.
 
-    uint8_t _pinPhase;
+     DriverMode _driverMode;
+     Direction _direction;
+
+    uint8_t _pin1;
+    uint8_t _pin2;
     uint8_t _pinEnable;
+    uint8_t _pinPhase;
 
     bool _motorEnableFlag;
 
-    bool _inverseFlag = false;
+    bool _motorInvered = false;
+
     unsigned long _runTime;
     unsigned long _startTime;
 };

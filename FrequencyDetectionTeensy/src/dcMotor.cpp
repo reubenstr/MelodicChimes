@@ -1,52 +1,57 @@
-// DC Motor Controller for H-bridge drivers such as the Pololu DRV8835.
+// DC Motor Controller for H-bridge drivers
 //
-// Expects the driver to use a phase and enable input mode.
+// Configurable for motor drivers with either PWM1/PWM2 or ENABLE/PHASE input types.
 
 #include "Arduino.h"
 #include "DCMotor.h"
 
-DCMotor::DCMotor(uint8_t pinPhase, uint8_t pinEnable)
+DCMotor::DCMotor(DriverMode driverMode, uint8_t pin1, uint8_t pin2)
 {
-    _pinPhase = pinPhase;
-    _pinEnable = pinEnable;
+    _driverMode = driverMode;
+    _pin1 = pin1;
+    _pin2 = pin2;
+    _pinEnable = pin1;
+    _pinPhase = pin2;
 
-    digitalWrite(_pinPhase, LOW);
-    digitalWrite(_pinEnable, LOW);
+    digitalWrite(pin1, LOW);
+    digitalWrite(pin2, LOW);
 
-    pinMode(_pinPhase, OUTPUT);
-    pinMode(_pinEnable, OUTPUT);
+    pinMode(pin1, OUTPUT);
+    pinMode(pin2, OUTPUT);
 }
 
-void DCMotor::MotorInversed(bool inverseFlag)
+void DCMotor::MotorInversed(bool motorInvered)
 {
-    _inverseFlag = inverseFlag;
+    _motorInvered = motorInvered;
 }
 
+/*
 void DCMotor::SetMotorDirection(Direction direction)
 {
-    if (direction == Direction::Up)
+    if (direction == Direction::CW)
     {
         if (_inverseFlag)
-            digitalWrite(_pinPhase, false);
+            digitalWrite(_pin1, false);
         else
-            digitalWrite(_pinPhase, true);
+            digitalWrite(_pin1, true);
     }
 
-    if (direction == Direction::Down)
+    if (direction == Direction::CCW)
     {
         if (_inverseFlag)
-            digitalWrite(_pinPhase, true);
+            digitalWrite(_pin1, true);
         else
-            digitalWrite(_pinPhase, false);
+            digitalWrite(_pin1, false);
     }
 }
+*/
 
 void DCMotor::SetMotorRunTime(Direction direction, unsigned int runTime)
 {
     _runTime = runTime;
-    _startTime = millis();    
+    _startTime = millis();
     _motorEnableFlag = true;
-    SetMotorDirection(direction);
+    _direction = direction;
 }
 
 void DCMotor::Tick()
@@ -67,17 +72,80 @@ void DCMotor::Tick()
 }
 
 void DCMotor::MotorStart()
-{    
-    digitalWrite(_pinEnable, HIGH);
+{
+    if (_driverMode == DriverMode::IN1_IN2)
+    {
+        if (_direction == Direction::CW)
+        {
+            if (_motorInvered)
+            {
+                digitalWrite(_pin1, LOW);
+                digitalWrite(_pin2, HIGH);
+            }
+            else
+            {
+                digitalWrite(_pin1, HIGH);
+                digitalWrite(_pin2, LOW);
+            }
+        }
+        else if (_direction == Direction::CCW)
+        {
+            if (_motorInvered)
+            {
+                digitalWrite(_pin1, HIGH);
+                digitalWrite(_pin2, LOW);
+            }
+            else
+            {
+                digitalWrite(_pin1, LOW);
+                digitalWrite(_pin2, HIGH);
+            }
+        }
+    }
+    else if (_driverMode == DriverMode::ENABLE_PHASE)
+    {
+        if (_direction == Direction::CW)
+        {
+            digitalWrite(_pinEnable, HIGH);
+            if (_motorInvered)
+            {
+                digitalWrite(_pinPhase, LOW);
+            }
+            else
+            {
+                digitalWrite(_pinPhase, HIGH);
+            }
+        }
+        else if (_direction == Direction::CCW)
+        {
+            digitalWrite(_pinEnable, HIGH);
+            if (_motorInvered)
+            {
+                digitalWrite(_pinPhase, HIGH);
+            }
+            else
+            {
+                digitalWrite(_pinPhase, LOW);
+            }
+        }
+    }
 }
 
 void DCMotor::MotorStop()
 {
-     _motorEnableFlag = false;
-    digitalWrite(_pinEnable, LOW);
+    _motorEnableFlag = false;
+    if (_driverMode == DriverMode::IN1_IN2)
+    {
+        digitalWrite(_pin1, HIGH);
+        digitalWrite(_pin2, HIGH);
+    }
+    else if (_driverMode == DriverMode::ENABLE_PHASE)
+    {
+        digitalWrite(_pinEnable, LOW);
+    }
 }
 
 bool DCMotor::IsRunning()
 {
-    return   _motorEnableFlag;
+    return _motorEnableFlag;
 }
