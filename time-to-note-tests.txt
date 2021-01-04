@@ -1,3 +1,5 @@
+// MOTOR: N20 ~50RPM 
+
 Note 1 from 261.60 to 277.20 with time 0.
 Note 2 from 277.20 to 293.70 with time 0.
 Note 3 from 293.70 to 311.10 with time 596.
@@ -60,3 +62,36 @@ Note 6 from 349.20 to 370.00 with time 297.
 Note 7 from 370.00 to 392.00 with time 413.
 Note 8 from 392.00 to 415.30 with time 908.
 Note 9 from 415.30 to 440.00 with time 823.
+
+Note 1 from 261.60 to 277.20 with time 1812.
+Note 2 from 277.20 to 293.70 with time 363.
+Note 3 from 293.70 to 311.10 with time 248.
+Note 4 from 311.10 to 329.60 with time 294.
+Note 5 from 329.60 to 349.20 with time 281.
+Note 6 from 349.20 to 370.00 with time 370.
+Note 7 from 370.00 to 392.00 with time 384.
+Note 8 from 392.00 to 415.30 with time 865.
+Note 9 from 415.30 to 440.00 with time 751.
+
+// NEW MOTOR N25 500RPM
+
+Note 1 from 261.60 to 277.20 with time  780
+Note 2 from 277.20 to 293.70 with time    0
+Note 3 from 293.70 to 311.10 with time  116
+Note 4 from 311.10 to 329.60 with time 1525
+Note 5 from 329.60 to 349.20 with time 1686
+Note 6 from 349.20 to 370.00 with time  121
+Note 7 from 370.00 to 392.00 with time  121
+Note 8 from 392.00 to 415.30 with time  210
+Note 9 from 415.30 to 440.00 with time 1010
+
+Note 1 from 261.60 to 277.20 with time  620
+Note 2 from 277.20 to 293.70 with time  114
+Note 3 from 293.70 to 311.10 with time 1233
+Note 4 from 311.10 to 329.60 with time  306
+Note 5 from 329.60 to 349.20 with time    0
+Note 6 from 349.20 to 370.00 with time 1311
+Note 7 from 370.00 to 392.00 with time  136
+Note 8 from 392.00 to 415.30 with time  152
+Note 9 from 415.30 to 440.00 with time  517
+

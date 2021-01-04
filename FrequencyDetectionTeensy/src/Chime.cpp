@@ -9,10 +9,8 @@ Chime::Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinM
     _pinMotorPickLimit = pinMotorPickLimit;
     pinMode(pinMotorPickLimit, INPUT_PULLUP);
 
-    _pinSolenoidMute = pinSolenoidMute; 
-    pinMode(pinSolenoidMute, OUTPUT);  
-
-    _tuneMotor.MotorInversed(true);
+    _pinSolenoidMute = pinSolenoidMute;
+    pinMode(pinSolenoidMute, OUTPUT);
 }
 
 void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
@@ -22,8 +20,10 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     static unsigned int hitTargetCount = 0;
     static unsigned int targetTimeAcc = 0;
     static bool newTargetHitFlag = false;
+    
     float frequencyTolerance = 1.0;
 
+    // Return if not frequency was detected.
     if (detectedFrequency == 0)
         return;
 
@@ -33,8 +33,7 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     detectionCount++;
     // Based on Hz/milliseconds(of motor turning)
     // (which is a function motor RPM/torque). TODO: might need an algorithm approch, y = mx+b
-    float runTimeCoef = 0.3;
-
+    float runTimeCoef = 0.9;
 
     // TBD: use either the directly detected frequency or use a moving average (or other type of average).
     // float comparisonFrequency = detectedFrequency;                       // Target hit: 10 | Elapsed time: 459 | Average time to hit targets: 521
@@ -53,7 +52,6 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
     {
         runTime = 20;
     }
-        
 
     if (detectedFrequency < targetFrequency - frequencyTolerance)
     {
@@ -70,7 +68,11 @@ void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
         _tuneMotor.MotorStop();
     }
 
-     Serial.printf("%4u | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, detectedFrequency, targetFrequency, frequencyDelta, runTime);
+    static unsigned long startTimeBetweenFreqDetections = millis();
+
+    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u\n", detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, frequencyDelta, runTime);
+
+    startTimeBetweenFreqDetections = millis();
 }
 
 void Chime::Pick()
@@ -92,15 +94,15 @@ void Chime::PickTick()
 }
 
 void Chime::Mute()
-{   
+{
     digitalWrite(_pinSolenoidMute, HIGH);
-   _startMute = millis();    
+    _startMute = millis();
 }
 
 void Chime::MuteTick()
-{   
+{
     if (millis() - _startMute > 100)
-    {       
+    {
         digitalWrite(_pinSolenoidMute, LOW);
     }
 }
@@ -108,7 +110,7 @@ void Chime::MuteTick()
 void Chime::Tick()
 {
     _tuneMotor.Tick();
-    _pickMotor.Tick();  
+    _pickMotor.Tick();
 
     PickTick();
     MuteTick();

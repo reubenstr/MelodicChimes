@@ -28,9 +28,9 @@
 #define Gs 415.3
 #define A 440.0
 
-const int numNotes = 10;
-//float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
-float notesChromatic[10] = {C, Cs, D, Eb, E, F, Fs, G, Gs, A};
+const int numNotes = 9;
+float notes[numNotes] = {E, F, G, E, F, D, E, C, D};
+//float notesChromatic[10] = {C, Cs, D, Eb, E, F, Fs, G, Gs, A};
 // int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
 // int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
@@ -307,6 +307,11 @@ void setup()
 
     }
     */
+
+   CalibrateTiming();
+   
+
+
 }
 
 void loop()
@@ -357,12 +362,12 @@ void loop()
 
     static float targetFrequency = 440;//329.6;
 
-    /*  
+    /*    
     static int times[10];
     for (int i = 0; i < 10; i++)
     {
         times[i] = 0;
-    }
+    }*/
 
     static int noteSelect = 0;
     static unsigned long noteStartMillis;
@@ -372,7 +377,7 @@ void loop()
     {
         noteStartMillis = millis();
         targetFrequency = notes[noteSelect]; 
-        Pick();    
+        //Pick();    
         Serial.printf("New target: %3.2f\n", targetFrequency);
         noteSelect++;
         if (noteSelect == numNotes)
@@ -380,7 +385,7 @@ void loop()
              noteSelect = 0;
         }
     }
-    */
+  
 
     DebugLEDs();
 

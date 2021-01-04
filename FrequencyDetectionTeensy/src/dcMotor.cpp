@@ -1,6 +1,8 @@
 // DC Motor Controller for H-bridge drivers
 //
-// Configurable for motor drivers with either PWM1/PWM2 or ENABLE/PHASE input types.
+// Supports drivers with pin schemas:
+//          PWM1/PWM2 
+//          ENABLE/PHASE 
 
 #include "Arduino.h"
 #include "DCMotor.h"
@@ -20,31 +22,10 @@ DCMotor::DCMotor(DriverMode driverMode, uint8_t pin1, uint8_t pin2)
     pinMode(pin2, OUTPUT);
 }
 
-void DCMotor::MotorInversed(bool motorInvered)
+void DCMotor::MotorInversed(bool motorInversed)
 {
-    _motorInvered = motorInvered;
+    _motorInversed = motorInversed;
 }
-
-/*
-void DCMotor::SetMotorDirection(Direction direction)
-{
-    if (direction == Direction::CW)
-    {
-        if (_inverseFlag)
-            digitalWrite(_pin1, false);
-        else
-            digitalWrite(_pin1, true);
-    }
-
-    if (direction == Direction::CCW)
-    {
-        if (_inverseFlag)
-            digitalWrite(_pin1, true);
-        else
-            digitalWrite(_pin1, false);
-    }
-}
-*/
 
 void DCMotor::SetMotorRunTime(Direction direction, unsigned int runTime)
 {
@@ -77,7 +58,7 @@ void DCMotor::MotorStart()
     {
         if (_direction == Direction::CW)
         {
-            if (_motorInvered)
+            if (_motorInversed)
             {
                 digitalWrite(_pin1, LOW);
                 digitalWrite(_pin2, HIGH);
@@ -90,7 +71,7 @@ void DCMotor::MotorStart()
         }
         else if (_direction == Direction::CCW)
         {
-            if (_motorInvered)
+            if (_motorInversed)
             {
                 digitalWrite(_pin1, HIGH);
                 digitalWrite(_pin2, LOW);
@@ -107,7 +88,7 @@ void DCMotor::MotorStart()
         if (_direction == Direction::CW)
         {
             digitalWrite(_pinEnable, HIGH);
-            if (_motorInvered)
+            if (_motorInversed)
             {
                 digitalWrite(_pinPhase, LOW);
             }
@@ -119,7 +100,7 @@ void DCMotor::MotorStart()
         else if (_direction == Direction::CCW)
         {
             digitalWrite(_pinEnable, HIGH);
-            if (_motorInvered)
+            if (_motorInversed)
             {
                 digitalWrite(_pinPhase, HIGH);
             }
