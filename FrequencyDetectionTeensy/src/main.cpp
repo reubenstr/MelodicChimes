@@ -17,6 +17,8 @@
 
 #include "Chime.h"
 
+#include "QuickStepper.h"
+
 #define C 261.6
 #define Cs 277.2
 #define D 293.7
@@ -63,10 +65,24 @@ AccelStepper library is awkward and not intuitive when attempting
 to get async movements working. Basically just roll my own driving code
 as I need only basic features (speeds and modest acceleration).
 
+
+DC-Motor
+
+Fast motor (N25 500RPM) : fast but not precise
+
+Slow motor (N20 50RPM) : slow but precise
+
+Precision due to the delay of frequency detections allow for more in sync timing tuning and motor turn off.
+
+
 */
 
-#define PIN_MOTOR_TUNE_PWM1 14
-#define PIN_MOTOR_TUNE_PWM2 15
+#define PIN_MOTOR_TUNE_PWM1 9
+#define PIN_MOTOR_TUNE_PWM2 11
+#define PIN_MOTOR_TUNE_ENABLE 10
+
+#define PIN_STEPPER_TUNE_STEP 14
+#define PIN_STEPPER_TUNE_DIRECTION 15
 
 #define PIN_MOTOR_PICK_PHASE 5
 #define PIN_MOTOR_PICK_ENABLE 6
@@ -87,6 +103,8 @@ signed long position = 0;
 int speed;
 
 PWMServo servo3;
+
+QuickStepper stepper(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
 
 /**/
 AudioInputAnalogStereo adcs1;
@@ -194,6 +212,7 @@ float GetFrequency()
 // Blocking routine to aquire timing parameters.
 void CalibrateTiming()
 {
+
     const int numNotes = 10;
     float freqCalibraion[numNotes] = {C, Cs, D, Eb, E, F, Fs, G, Gs, A};
 
@@ -201,11 +220,18 @@ void CalibrateTiming()
     int noteSelect = 0;
     unsigned long noteStartMillis = 5000;
     bool noteFinishedFlag = true;
+    int stepsPrevious = 0;
 
-    static int times[10];
+    int times[10];
     for (int i = 0; i < 10; i++)
     {
         times[i] = 0;
+    }
+
+    int steps[10];
+    for (int i = 0; i < 10; i++)
+    {
+        steps[i] = 0;
     }
 
     while (noteSelect < numNotes + 1)
@@ -233,7 +259,7 @@ void CalibrateTiming()
         // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
         if (millis() - noteStartMillis > 50)
         {
-            chime.FrequencyToMotor(detectedFrequency, targetFrequency);
+            chime.TuneFrequency(detectedFrequency, targetFrequency);
         }
 
         chime.Tick();
@@ -245,7 +271,12 @@ void CalibrateTiming()
                 noteFinishedFlag = true;
                 Serial.printf("Frequency (%u) within tolerance, elapsed time: %u\n", noteSelect, millis() - noteStartMillis);
 
+                Serial.printf("Steps between notes: %u\n", chime._stepper.TotalSteps() - stepsPrevious);
+
                 times[noteSelect] = millis() - noteStartMillis;
+                steps[noteSelect] = chime._stepper.TotalSteps() - stepsPrevious;
+
+                stepsPrevious = chime._stepper.TotalSteps();
             }
         }
     }
@@ -254,9 +285,10 @@ void CalibrateTiming()
     for (int i = 0; i < numNotes; i++)
     {
         if (i != 0)
-            Serial.printf("Note %u from %3.2f to %3.2f with time %4u\n", i, freqCalibraion[i - 1], freqCalibraion[i], times[i]);
+            Serial.printf("Note %u from %3.2f to %3.2f with time %4ums | Steps: %u\n", i, freqCalibraion[i - 1], freqCalibraion[i], times[i], steps[i]);
     }
 
+      Serial.printf("Total : %u\n", chime._stepper.TotalSteps());
     Serial.printf("Finished calibration routine.\n\n\n");
 }
 
@@ -279,22 +311,50 @@ void setup()
     notefreq1.begin(.15);
     // notefreq2.begin(.25);
 
+    /*
     // Manual motor test: tune motor
+    analogWriteFrequency(PIN_MOTOR_TUNE_ENABLE, 500);
+    //analogWriteFrequency(PIN_MOTOR_TUNE_PWM1, 1000);
+    //analogWriteFrequency(PIN_MOTOR_TUNE_PWM2, 1000);
+    pinMode(PIN_MOTOR_TUNE_PWM1, OUTPUT);
+     pinMode(PIN_MOTOR_TUNE_PWM2, OUTPUT);
 
-/*
+    // TESTING 3 pin configuration: EN (PWM) / IN(1 or 0) / IN(1  or 0)
+    while (1)
+    {
+
+        analogWrite(PIN_MOTOR_TUNE_ENABLE, 80);
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, HIGH);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
+        DebugLEDs();
+        delay(1000);
+
+        analogWrite(PIN_MOTOR_TUNE_ENABLE, 200);
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, HIGH);
+        DebugLEDs();
+        delay(1000);
+    }
+    */
+
+    /*
     while (1)
     {
    
         digitalWrite(PIN_MOTOR_TUNE_PWM1, HIGH);
         digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
-        DebugLEDs();
-        delay(50);
+        //digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
+        //digitalWrite(PIN_MOTOR_TUNE_PWM2, HIGH);
 
-        digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
-        digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
+        DebugLEDs();
+        delay(5);
+
+        digitalWrite(PIN_MOTOR_TUNE_PWM1, HIGH);
+        digitalWrite(PIN_MOTOR_TUNE_PWM2, HIGH);
         DebugLEDs();
         delay(500);
 
+    /*
         digitalWrite(PIN_MOTOR_TUNE_PWM1, LOW);
         digitalWrite(PIN_MOTOR_TUNE_PWM2, HIGH);
         DebugLEDs();
@@ -304,14 +364,128 @@ void setup()
         digitalWrite(PIN_MOTOR_TUNE_PWM2, LOW);
         DebugLEDs();
         delay(500);
-
+        
     }
     */
 
-   CalibrateTiming();
+    /*   
+    while (1)
+    {
+        CalibrateTiming();
+    }*/
+
+    //////////////////////////////////////////////////////
+    // STEPS TO FREQ TEST
+    /*
+90° - 221hz to 280hz = delta 59hz
+280 334 = 54
+332 373 = 41
+371 401 = 30
+starting to skips steps at 1/2 step 1000us step delay
+
+// 1/2 step with 100 steps
+262 - 309 = 47 hz -> 0.94 steps per hz
+309 - 365 = 56 hz -> 1.12 steps per hz
+364 - 315 = 49 hz -> 0.98 steps per hz
+314 - 353 = 39 hz -> 0.78 steps per hz
+
+about one hz per full step.
+
+*/
+
+    /* */
+    QuickStepper stepper(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+
+    stepper.SetCurrentPosition(0);
+    stepper.SetTargetPosition(0);
+    int count = 0;
+
+    while (1)
+    {
+        float detectedFrequency = GetFrequency();
+        if (detectedFrequency != 0)
+        {
+            Serial.printf("Frequency: %3.2f\n", detectedFrequency);
+
+            if (count++ == 10)
+            {
+                stepper.SetTargetPosition(100);
+                Serial.println("**** Stepper start");
+            }
+        }
+        // Prevent over tension.
+        if (detectedFrequency > 475)
+        {
+            stepper.Stop();
+        }
+        stepper.Tick();
+    }
    
+    //////////////////////////////////////////////////////
+    /* 
+    // SPEED TEST between two frequencies
+    bool flag = true;
+    while (flag)
+    {
+        float detectedFrequency = GetFrequency();
+        static float targetFrequency = 300;
 
+        static unsigned long start = millis();
+        static bool toggle = false;
+        if (millis() - start > 4000)
+        {
+            start = millis();
+            toggle = !toggle;
 
+            if (toggle)
+            {
+                targetFrequency = 340;
+            }
+            else
+            {
+                targetFrequency = 440;
+            }
+        }
+
+        chime.TuneFrequency(detectedFrequency, targetFrequency);
+        chime.Tick();
+    }
+    */
+
+    /////////////////////////////
+    // STEPPER TEST
+    /*
+    while (1)
+    {
+
+        static unsigned long start = millis();
+        static bool toggle = false;
+        if (millis() - start > 2000)
+        {
+            start = millis();
+            toggle = !toggle;
+
+            stepper.SetCurrentPosition(0);
+
+            if (toggle)
+            {
+                Serial.println("- position");
+                stepper.SetTargetPosition(-81);
+            }
+            else
+            {
+                Serial.println("+ position");
+                stepper.SetTargetPosition(81);
+            }
+        }
+
+        digitalWrite(PIN_LED_1, digitalRead(PIN_STEPPER_TUNE_STEP));
+        digitalWrite(PIN_LED_2, digitalRead(PIN_STEPPER_TUNE_DIRECTION));
+
+        stepper.Tick();
+    }
+*/
+    /////////////////////////////
 }
 
 void loop()
@@ -360,14 +534,14 @@ void loop()
         // CalibrateTiming();
     }
 
-    static float targetFrequency = 440;//329.6;
+    static float targetFrequency = 329.6;
 
-    /*    
+    /*      */
     static int times[10];
     for (int i = 0; i < 10; i++)
     {
         times[i] = 0;
-    }*/
+    }
 
     static int noteSelect = 0;
     static unsigned long noteStartMillis;
@@ -376,20 +550,21 @@ void loop()
     if (millis() - noteStartMillis >= 2000)
     {
         noteStartMillis = millis();
-        targetFrequency = notes[noteSelect]; 
-        //Pick();    
+        targetFrequency = notes[noteSelect];
+        //Pick();
         Serial.printf("New target: %3.2f\n", targetFrequency);
         noteSelect++;
         if (noteSelect == numNotes)
         {
-             noteSelect = 0;
+            noteSelect = 0;
         }
     }
-  
 
     DebugLEDs();
 
     /*
+// PICK MOTOR TEST
+
     static unsigned long startindex = millis();
     static unsigned long startDebounce;
     static bool indexFlag = false;
@@ -418,7 +593,6 @@ void loop()
     */
 
     float detectedFrequency = GetFrequency();
-    float frequencyTolerance = 1.0;
 
     static unsigned long startPick = millis();
     if (millis() - startPick > 1000)
@@ -437,7 +611,7 @@ void loop()
     // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
     //if (millis() - noteStartMillis > 50)
     {
-         chime.FrequencyToMotor(detectedFrequency, targetFrequency);
+        chime.TuneFrequency(detectedFrequency, targetFrequency);
     }
 
     chime.Tick();

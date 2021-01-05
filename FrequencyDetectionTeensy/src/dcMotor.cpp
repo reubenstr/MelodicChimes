@@ -60,6 +60,7 @@ void DCMotor::MotorStart()
         {
             if (_motorInversed)
             {
+                
                 digitalWrite(_pin1, LOW);
                 digitalWrite(_pin2, HIGH);
             }

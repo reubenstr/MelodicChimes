@@ -2,29 +2,30 @@
 #include "Arduino.h"
 #include "DCMotor.h"
 
-
+#include "QuickStepper.h"
 
 class Chime
 {
 
-
-
 public:
     Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute);
-    void FrequencyToMotor(float detectedFrequency, float targetFrequency);
+    void TuneFrequency(float detectedFrequency, float targetFrequency);
     void Tick();
 
     void Pick();
     void Mute();
-    
+
+
+     QuickStepper _stepper; //TEMP
 
 private:
-
     void PickTick();
     void MuteTick();
 
     DCMotor _tuneMotor;
     DCMotor _pickMotor;
+
+   
 
     float _targetFrequency;
 
@@ -35,8 +36,5 @@ private:
 
     unsigned long _startPick;
     unsigned long _startMute;
-
-  
-
-  
 };
+

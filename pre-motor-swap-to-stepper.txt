@@ -3,9 +3,9 @@
 #include "Chime.h"
 
 Chime::Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute)
-    : _tuneMotor(DCMotor::DriverMode::IN1_IN2, pinMotorTunePhase, pinMotorTuneEnable),
-      _pickMotor(DCMotor::DriverMode::ENABLE_PHASE, pinMotorPickPhase, pinMotorPickEnable),
-      _stepper(14, 15)
+    : _tuneMotor(DCMotor::DriverMode::IN1_IN2, pinMotorTunePhase, pinMotorTuneEnable), 
+    _pickMotor(DCMotor::DriverMode::ENABLE_PHASE, pinMotorPickPhase, pinMotorPickEnable),
+    _stepper(14, 15)
 {
 
     _pinMotorPickLimit = pinMotorPickLimit;
@@ -15,7 +15,7 @@ Chime::Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinM
     pinMode(pinSolenoidMute, OUTPUT);
 }
 
-void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
+void Chime::FrequencyToMotor(float detectedFrequency, float targetFrequency)
 {
     static unsigned int detectionCount = 0;
     static unsigned long startTimeNewTarget;
@@ -45,49 +45,44 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 
     char d[5];
 
-    float runTimeCoef = 0.80 ;
-    // runTimeCoef is the P in PID
-    // a value too high causes overshoot
-    // too low causes a delay.
-
-    float targetPosition = frequencyDelta * runTimeCoef;
-
-    if (targetPosition > 0 && targetPosition < 1)
-    targetPosition = 1;
-
-        if (targetPosition < 0 && targetPosition > -1)
-    targetPosition = -1;
-
-    if (targetPosition > 50)
-    targetPosition = 50;
-
-     if (targetPosition < -50)
-    targetPosition = -50;
-
-
 
     if (detectedFrequency < targetFrequency - frequencyTolerance)
     {
+        float runTimeCoef = 0.5;
+        runTime = abs(frequencyDelta * runTimeCoef);
+        if (runTime < 5)
+            runTime = 5;
+
+        if (runTime > 20)
+            runTime = 20;
+
+        _tuneMotor.SetMotorRunTime(DCMotor::Direction::CW, runTime);
         sprintf(d, "UP");
-        _stepper.SetCurrentPosition(0);
-        _stepper.SetTargetPosition(int(targetPosition));
     }
     else if (detectedFrequency > targetFrequency + frequencyTolerance)
     {
-        sprintf(d, "DOWN");
-        _stepper.SetCurrentPosition(0);
-        _stepper.SetTargetPosition(int(targetPosition));
+
+        float runTimeCoef = 0.25;
+        runTime = abs(frequencyDelta * runTimeCoef);
+        if (runTime < 4)
+            runTime = 4;
+
+        if (runTime > 20)
+            runTime = 20;
+
+        _tuneMotor.SetMotorRunTime(DCMotor::Direction::CCW, runTime);
+         sprintf(d, "DOWN");
     }
     else
     {
         startTimeNewTarget = millis();
         runTime = 0;
-        _stepper.Stop();       
+        _tuneMotor.MotorStop();
     }
 
     static unsigned long startTimeBetweenFreqDetections = millis();
 
-    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | targetPosition: %3.2f (%i) | %s\n", detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, frequencyDelta, targetPosition, int(targetPosition), d);
+    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | Run Time: %u | %s\n", detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, frequencyDelta, runTime, d );
 
     startTimeBetweenFreqDetections = millis();
 }
@@ -126,7 +121,7 @@ void Chime::MuteTick()
 
 void Chime::Tick()
 {
-    _stepper.Tick();
+    _tuneMotor.Tick();
     _pickMotor.Tick();
 
     PickTick();

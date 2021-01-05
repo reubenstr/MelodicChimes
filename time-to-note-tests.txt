@@ -95,3 +95,174 @@ Note 7 from 370.00 to 392.00 with time  136
 Note 8 from 392.00 to 415.30 with time  152
 Note 9 from 415.30 to 440.00 with time  517
 
+//Stepper : full step, 2ms between steps, 0.185 ma current draw at idle.
+Note 1 from 261.60 to 277.20 with time  533
+Note 2 from 277.20 to 293.70 with time  172
+Note 3 from 293.70 to 311.10 with time  493
+Note 4 from 311.10 to 329.60 with time  422
+Note 5 from 329.60 to 349.20 with time  221
+Note 6 from 349.20 to 370.00 with time  237
+Note 7 from 370.00 to 392.00 with time  266
+Note 8 from 392.00 to 415.30 with time  138
+Note 9 from 415.30 to 440.00 with time  139
+
+//	1.5ms between steps
+Note 1 from 261.60 to 277.20 with time  490
+Note 2 from 277.20 to 293.70 with time  143
+Note 3 from 293.70 to 311.10 with time  247
+Note 4 from 311.10 to 329.60 with time  234
+Note 5 from 329.60 to 349.20 with time  178
+Note 6 from 349.20 to 370.00 with time  266
+Note 7 from 370.00 to 392.00 with time  252
+Note 8 from 392.00 to 415.30 with time  254
+Note 9 from 415.30 to 440.00 with time  168
+
+//Stepper : full step, 1.5ms between steps, 0.52 ma current draw at idle. 23v motor voltage (vs 12 for previous tests)
+Note 1 from 261.60 to 277.20 with time  607
+Note 2 from 277.20 to 293.70 with time  289
+Note 3 from 293.70 to 311.10 with time  248
+Note 4 from 311.10 to 329.60 with time  177
+Note 5 from 329.60 to 349.20 with time  222
+Note 6 from 349.20 to 370.00 with time  253
+Note 7 from 370.00 to 392.00 with time  253
+Note 8 from 392.00 to 415.30 with time  168
+Note 9 from 415.30 to 440.00 with time  198
+
+//Stepper : full step, 1ms between steps, 0.335 ma current draw at idle. 12 motor voltage
+Note 1 from 261.60 to 277.20 with time  990
+Note 2 from 277.20 to 293.70 with time  324
+Note 3 from 293.70 to 311.10 with time  239
+Note 4 from 311.10 to 329.60 with time  255
+Note 5 from 329.60 to 349.20 with time  228
+Note 6 from 349.20 to 370.00 with time  172
+Note 7 from 370.00 to 392.00 with time  157
+Note 8 from 392.00 to 415.30 with time  289
+Note 9 from 415.30 to 440.00 with time  262
+
+//Stepper : full step, 2ms between steps, 0.335 ma current draw at idle. 12 motor voltage
+Note 1 from 261.60 to 277.20 with time 1781
+Note 2 from 277.20 to 293.70 with time  172
+Note 3 from 293.70 to 311.10 with time  261
+Note 4 from 311.10 to 329.60 with time  118
+Note 5 from 329.60 to 349.20 with time  250
+Note 6 from 349.20 to 370.00 with time  281
+Note 7 from 370.00 to 392.00 with time  310
+Note 8 from 392.00 to 415.30 with time  312
+Note 9 from 415.30 to 440.00 with time  314
+
+//Stepper : full step, 2ms between steps, 0.335 ma current draw at idle. 12 motor voltage
+Note 1 from 261.60 to 277.20 with time 1206
+Note 2 from 277.20 to 293.70 with time  206
+Note 3 from 293.70 to 311.10 with time  179
+Note 4 from 311.10 to 329.60 with time  123
+Note 5 from 329.60 to 349.20 with time  125
+Note 6 from 349.20 to 370.00 with time  243
+Note 7 from 370.00 to 392.00 with time  329
+Note 8 from 392.00 to 415.30 with time  346
+Note 9 from 415.30 to 440.00 with time  333
+
+//Stepper : full step, 2ms between steps, 0.221 ma current draw at idle. 12 motor voltage
+Note 1 from 261.60 to 277.20 with time    0
+Note 2 from 277.20 to 293.70 with time  198
+Note 3 from 293.70 to 311.10 with time  113
+Note 4 from 311.10 to 329.60 with time  129
+Note 5 from 329.60 to 349.20 with time  218
+Note 6 from 349.20 to 370.00 with time  394
+Note 7 from 370.00 to 392.00 with time  350
+Note 8 from 392.00 to 415.30 with time  134
+Note 9 from 415.30 to 440.00 with time  223
+
+Note 1 from 261.60 to 277.20 with time  519ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  578ms | Steps: 25
+Note 3 from 293.70 to 311.10 with time  145ms | Steps: 32
+Note 4 from 311.10 to 329.60 with time  277ms | Steps: 29
+Note 5 from 329.60 to 349.20 with time  265ms | Steps: 25
+Note 6 from 349.20 to 370.00 with time  310ms | Steps: 29
+Note 7 from 370.00 to 392.00 with time  310ms | Steps: 26
+Note 8 from 392.00 to 415.30 with time  181ms | Steps: 29
+Note 9 from 415.30 to 440.00 with time  444ms | Steps: 37
+
+Note 1 from 261.60 to 277.20 with time  272ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  346ms | Steps: 42
+Note 3 from 293.70 to 311.10 with time  246ms | Steps: 27
+Note 4 from 311.10 to 329.60 with time  161ms | Steps: 22
+Note 5 from 329.60 to 349.20 with time  351ms | Steps: 25
+Note 6 from 349.20 to 370.00 with time  281ms | Steps: 27
+Note 7 from 370.00 to 392.00 with time  658ms | Steps: 30
+Note 8 from 392.00 to 415.30 with time  311ms | Steps: 35
+Note 9 from 415.30 to 440.00 with time  270ms | Steps: 30
+
+Note 1 from 261.60 to 277.20 with time  553ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  235ms | Steps: 26
+Note 3 from 293.70 to 311.10 with time  251ms | Steps: 25
+Note 4 from 311.10 to 329.60 with time  181ms | Steps: 42
+Note 5 from 329.60 to 349.20 with time  270ms | Steps: 30
+Note 6 from 349.20 to 370.00 with time  518ms | Steps: 26
+Note 7 from 370.00 to 392.00 with time  315ms | Steps: 29
+Note 8 from 392.00 to 415.30 with time  331ms | Steps: 33
+Note 9 from 415.30 to 440.00 with time  347ms | Steps: 39
+
+Note 1 from 261.60 to 277.20 with time 1170ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  345ms | Steps: 19
+Note 3 from 293.70 to 311.10 with time  245ms | Steps: 25
+Note 4 from 311.10 to 329.60 with time  305ms | Steps: 32
+Note 5 from 329.60 to 349.20 with time  263ms | Steps: 27
+Note 6 from 349.20 to 370.00 with time  352ms | Steps: 26
+Note 7 from 370.00 to 392.00 with time  265ms | Steps: 27
+Note 8 from 392.00 to 415.30 with time  296ms | Steps: 31
+Note 9 from 415.30 to 440.00 with time  399ms | Steps: 29
+
+//  runTimeCoef = 0.25; ^^ 0.50
+Note 1 from 261.60 to 277.20 with time  345ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  259ms | Steps: 17
+Note 3 from 293.70 to 311.10 with time  247ms | Steps: 17
+Note 4 from 311.10 to 329.60 with time  306ms | Steps: 20
+Note 5 from 329.60 to 349.20 with time  279ms | Steps: 21
+Note 6 from 349.20 to 370.00 with time  266ms | Steps: 22
+Note 7 from 370.00 to 392.00 with time  281ms | Steps: 21
+Note 8 from 392.00 to 415.30 with time  355ms | Steps: 29
+Note 9 from 415.30 to 440.00 with time  386ms | Steps: 30
+
+Note 1 from 261.60 to 277.20 with time 1813ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  524ms | Steps: 27
+Note 3 from 293.70 to 311.10 with time  409ms | Steps: 18
+Note 4 from 311.10 to 329.60 with time  483ms | Steps: 21
+Note 5 from 329.60 to 349.20 with time  499ms | Steps: 22
+Note 6 from 349.20 to 370.00 with time  472ms | Steps: 21
+Note 7 from 370.00 to 392.00 with time  443ms | Steps: 21
+Note 8 from 392.00 to 415.30 with time  546ms | Steps: 27
+Note 9 from 415.30 to 440.00 with time  534ms | Steps: 26
+
+//  runTimeCoef = 0.50;  delayBetweenSteps = 10000;
+Note 1 from 261.60 to 277.20 with time  635ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  346ms | Steps: 33
+Note 3 from 293.70 to 311.10 with time  348ms | Steps: 17
+Note 4 from 311.10 to 329.60 with time  292ms | Steps: 24
+Note 5 from 329.60 to 349.20 with time  294ms | Steps: 21
+Note 6 from 349.20 to 370.00 with time  325ms | Steps: 20
+Note 7 from 370.00 to 392.00 with time  411ms | Steps: 26
+Note 8 from 392.00 to 415.30 with time  312ms | Steps: 27
+Note 9 from 415.30 to 440.00 with time  372ms | Steps: 29
+
+//  runTimeCoef = 0.50;  delayBetweenSteps = 2000; TMC2208 driver (VERY QUIET) 1/2 step
+Note 1 from 261.60 to 277.20 with time 1179ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  368ms | Steps: 77
+Note 3 from 293.70 to 311.10 with time  225ms | Steps: 32
+Note 4 from 311.10 to 329.60 with time  169ms | Steps: 35
+Note 5 from 329.60 to 349.20 with time  156ms | Steps: 33
+Note 6 from 349.20 to 370.00 with time  201ms | Steps: 41
+Note 7 from 370.00 to 392.00 with time  274ms | Steps: 40
+Note 8 from 392.00 to 415.30 with time  957ms | Steps: 48
+Note 9 from 415.30 to 440.00 with time  625ms | Steps: 51
+
+//  runTimeCoef = 0.25;  delayBetweenSteps = 1500; TMC2208 driver (VERY QUIET) 1/2 step
+
+Note 1 from 261.60 to 277.20 with time 1070ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  666ms | Steps: 91
+Note 3 from 293.70 to 311.10 with time  406ms | Steps: 33
+Note 4 from 311.10 to 329.60 with time  408ms | Steps: 34
+Note 5 from 329.60 to 349.20 with time  439ms | Steps: 36
+Note 6 from 349.20 to 370.00 with time  339ms | Steps: 34
+Note 7 from 370.00 to 392.00 with time  411ms | Steps: 42
+Note 8 from 392.00 to 415.30 with time  457ms | Steps: 44
+Note 9 from 415.30 to 440.00 with time  502ms | Steps: 47
