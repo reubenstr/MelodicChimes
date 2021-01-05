@@ -45,7 +45,7 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 
     char d[5];
 
-    float runTimeCoef = 0.80 ;
+    float runTimeCoef = 0.5;
     // runTimeCoef is the P in PID
     // a value too high causes overshoot
     // too low causes a delay.

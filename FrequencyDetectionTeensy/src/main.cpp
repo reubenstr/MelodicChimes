@@ -166,8 +166,8 @@ void DebugLEDs()
     /**/
     // Debug LEDs: show motor direction when motor is in motion.
 
-    digitalWrite(PIN_LED_1, digitalRead(PIN_MOTOR_TUNE_PWM1));
-    digitalWrite(PIN_LED_2, digitalRead(PIN_MOTOR_TUNE_PWM2));
+    digitalWrite(PIN_LED_1, digitalRead(PIN_STEPPER_TUNE_STEP));
+    digitalWrite(PIN_LED_2, digitalRead(PIN_STEPPER_TUNE_DIRECTION));
 }
 ////////////////////////////////////////////////////////////////////////
 
@@ -368,11 +368,11 @@ void setup()
     }
     */
 
-    /*   
+    /*   */
     while (1)
     {
         CalibrateTiming();
-    }*/
+    }
 
     //////////////////////////////////////////////////////
     // STEPS TO FREQ TEST
@@ -389,11 +389,11 @@ starting to skips steps at 1/2 step 1000us step delay
 364 - 315 = 49 hz -> 0.98 steps per hz
 314 - 353 = 39 hz -> 0.78 steps per hz
 
-about one hz per full step.
+About one hz per full step.
 
 */
 
-    /* */
+    /* 
     QuickStepper stepper(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
 
     stepper.SetCurrentPosition(0);
@@ -420,7 +420,8 @@ about one hz per full step.
         }
         stepper.Tick();
     }
-   
+   */
+
     //////////////////////////////////////////////////////
     /* 
     // SPEED TEST between two frequencies

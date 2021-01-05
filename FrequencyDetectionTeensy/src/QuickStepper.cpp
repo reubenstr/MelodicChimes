@@ -21,6 +21,13 @@ void QuickStepper::SetCurrentPosition(signed long currentPosition)
 
 void QuickStepper::SetTargetPosition(signed long targetPosition)
 {
+
+    if (!inMotionFlag)
+    {
+        // TODO: check if opposite direction, then reset accleration
+        acceleration = 0;
+    }
+
     _targetPosition = targetPosition;
 }
 
@@ -36,16 +43,24 @@ int QuickStepper::TotalSteps()
 
 void QuickStepper::Tick()
 {
-    static unsigned long start = micros();
+    //static unsigned long start = micros();
 
     if (_currentPosition < _targetPosition)
     {
-        if (micros() - start > delayBetweenSteps)
+        if (micros() - start > delayBetweenSteps - acceleration)
         {
             start = micros();
 
+            inMotionFlag = true;
+
             _currentPosition++;
             _totalSteps++;
+
+            acceleration += 250; // TEMP ACC TEST
+            if (acceleration > 3000)
+            {
+                acceleration = 3000;
+            }
 
             digitalWrite(_pinDirection, HIGH);
 
@@ -56,12 +71,14 @@ void QuickStepper::Tick()
     }
     else if (_currentPosition > _targetPosition)
     {
-        if (micros() - start > delayBetweenSteps)
+        if (micros() - start > delayBetweenSteps - acceleration)
         {
             start = micros();
 
             _currentPosition--;
             //_totalSteps++;
+
+            inMotionFlag = true;
 
             digitalWrite(_pinDirection, LOW);
 
@@ -69,5 +86,9 @@ void QuickStepper::Tick()
             delayMicroseconds(5);
             digitalWrite(_pinStep, LOW);
         }
+    }
+    else
+    {
+        inMotionFlag = false;
     }
 }

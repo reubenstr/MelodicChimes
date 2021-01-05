@@ -256,7 +256,6 @@ Note 8 from 392.00 to 415.30 with time  957ms | Steps: 48
 Note 9 from 415.30 to 440.00 with time  625ms | Steps: 51
 
 //  runTimeCoef = 0.25;  delayBetweenSteps = 1500; TMC2208 driver (VERY QUIET) 1/2 step
-
 Note 1 from 261.60 to 277.20 with time 1070ms | Steps: 0
 Note 2 from 277.20 to 293.70 with time  666ms | Steps: 91
 Note 3 from 293.70 to 311.10 with time  406ms | Steps: 33
@@ -266,3 +265,36 @@ Note 6 from 349.20 to 370.00 with time  339ms | Steps: 34
 Note 7 from 370.00 to 392.00 with time  411ms | Steps: 42
 Note 8 from 392.00 to 415.30 with time  457ms | Steps: 44
 Note 9 from 415.30 to 440.00 with time  502ms | Steps: 47
+
+//  runTimeCoef = 0.80;  delayBetweenSteps = 3000;  acceleration += 500;; TMC2208 driver (VERY QUIET) 1/2 step
+Note 1 from 261.60 to 277.20 with time 1012ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  361ms | Steps: 103
+Note 3 from 293.70 to 311.10 with time  348ms | Steps: 43
+Note 4 from 311.10 to 329.60 with time  147ms | Steps: 44
+Note 5 from 329.60 to 349.20 with time  279ms | Steps: 51
+Note 6 from 349.20 to 370.00 with time  223ms | Steps: 51
+Note 7 from 370.00 to 392.00 with time  223ms | Steps: 45
+Note 8 from 392.00 to 415.30 with time  167ms | Steps: 53
+Note 9 from 415.30 to 440.00 with time  168ms | Steps: 58
+
+//  runTimeCoef = 0.5;  delayBetweenSteps = 3000;  acceleration += 500;; TMC2208 driver (VERY QUIET) 1/2 step
+Note 1 from 261.60 to 277.20 with time 1041ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  346ms | Steps: 94
+Note 3 from 293.70 to 311.10 with time  189ms | Steps: 32
+Note 4 from 311.10 to 329.60 with time  161ms | Steps: 39
+Note 5 from 329.60 to 349.20 with time  163ms | Steps: 42
+Note 6 from 349.20 to 370.00 with time  223ms | Steps: 41
+Note 7 from 370.00 to 392.00 with time  179ms | Steps: 46
+Note 8 from 392.00 to 415.30 with time  167ms | Steps: 39
+Note 9 from 415.30 to 440.00 with time  314ms | Steps: 51
+
+// no reset accleration on update target position
+Note 1 from 261.60 to 277.20 with time 1394ms | Steps: 1
+Note 2 from 277.20 to 293.70 with time  294ms | Steps: 98
+Note 3 from 293.70 to 311.10 with time  238ms | Steps: 28
+Note 4 from 311.10 to 329.60 with time  239ms | Steps: 31
+Note 5 from 329.60 to 349.20 with time  125ms | Steps: 35
+Note 6 from 349.20 to 370.00 with time  156ms | Steps: 45
+Note 7 from 370.00 to 392.00 with time  156ms | Steps: 44
+Note 8 from 392.00 to 415.30 with time  143ms | Steps: 44
+Note 9 from 415.30 to 440.00 with time  217ms | Steps: 56
