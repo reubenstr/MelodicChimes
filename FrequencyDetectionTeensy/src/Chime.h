@@ -1,8 +1,14 @@
-
 #include "Arduino.h"
-#include "DCMotor.h"
+#include <AccelStepper.h>
 
-#include "QuickStepper.h"
+#include "ChimeStepper.h"
+
+
+#define PIN_STEPPER_TUNE_STEP 14
+#define PIN_STEPPER_TUNE_DIRECTION 15
+
+#define PIN_STEPPER_MUTE_STEP 18
+#define PIN_STEPPER_MUTE_DIRECTION 19
 
 class Chime
 {
@@ -13,19 +19,17 @@ public:
     void Tick();
 
     void Pick();
-    void Mute();
-
-
-     QuickStepper _stepper; //TEMP
+    void Mute();    
 
 private:
     void PickTick();
     void MuteTick();
 
-    DCMotor _tuneMotor;
-    DCMotor _pickMotor;
+    //DCMotor _tuneMotor;
+    //DCMotor _pickMotor;
 
-   
+     ChimeStepper _muteStepper;
+   AccelStepper _aStepper;
 
     float _targetFrequency;
 
@@ -37,4 +41,3 @@ private:
     unsigned long _startPick;
     unsigned long _startMute;
 };
-

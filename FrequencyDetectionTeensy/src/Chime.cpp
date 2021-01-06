@@ -2,26 +2,43 @@
 #include "Arduino.h"
 #include "Chime.h"
 
-Chime::Chime(uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute)
-    : _tuneMotor(DCMotor::DriverMode::IN1_IN2, pinMotorTunePhase, pinMotorTuneEnable),
-      _pickMotor(DCMotor::DriverMode::ENABLE_PHASE, pinMotorPickPhase, pinMotorPickEnable),
-      _stepper(14, 15)
+Chime::Chime(uint8_t pinTuneStepperStep, uint8_t pinTuneStepperDirection, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute)
+    //: _tuneStepper(pinTuneStepperStep, pinTuneStepperDirection),
+    : _muteStepper(PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION),
+      _aStepper(AccelStepper::DRIVER, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION)
 {
+    //_pinMotorPickPhase = pinMotorPickPhase;
+    // _pinMotorPickEnable = pinMotorPickEnable;
+    //_pinMotorPickLimit = pinMotorPickLimit;
+    //_pinSolenoidMute = pinSolenoidMute;
 
-    _pinMotorPickLimit = pinMotorPickLimit;
-    pinMode(pinMotorPickLimit, INPUT_PULLUP);
+    //digitalWrite(_pinMotorPickPhase, LOW);
+    //digitalWrite(_pinMotorPickEnable, LOW);
+    //digitalWrite(_pinSolenoidMute, LOW);
 
-    _pinSolenoidMute = pinSolenoidMute;
-    pinMode(pinSolenoidMute, OUTPUT);
+    //pinMode(_pinMotorPickPhase, OUTPUT);
+    //pinMode(_pinMotorPickEnable, OUTPUT);
+    //pinMode(_pinMotorPickLimit, INPUT_PULLUP);
+    //pinMode(_pinSolenoidMute, OUTPUT);
+
+    //digitalWrite(_pinMotorPickPhase, HIGH);
+
+    // _tuneStepper.SetSpeed(500);
+    //_muteStepper.SetSpeed(500);
+
+    _aStepper.setMaxSpeed(10000);
+    _aStepper.setAcceleration(2500);
+
+   //_aStepper.setPinsInverted();
 }
 
 void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 {
     static unsigned int detectionCount = 0;
     static unsigned long startTimeNewTarget;
-    static unsigned int hitTargetCount = 0;
-    static unsigned int targetTimeAcc = 0;
-    static bool newTargetHitFlag = false;
+    //static unsigned int hitTargetCount = 0;
+    //static unsigned int targetTimeAcc = 0;
+    //static bool newTargetHitFlag = false;
 
     float frequencyTolerance = 1.0;
 
@@ -45,7 +62,7 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 
     char d[5];
 
-    float runTimeCoef = 0.5;
+    float runTimeCoef = 0.95; //0.5
     // runTimeCoef is the P in PID
     // a value too high causes overshoot
     // too low causes a delay.
@@ -53,36 +70,43 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
     float targetPosition = frequencyDelta * runTimeCoef;
 
     if (targetPosition > 0 && targetPosition < 1)
-    targetPosition = 1;
+        targetPosition = 1;
 
-        if (targetPosition < 0 && targetPosition > -1)
-    targetPosition = -1;
+    if (targetPosition < 0 && targetPosition > -1)
+        targetPosition = -1;
 
-    if (targetPosition > 50)
-    targetPosition = 50;
+    if (targetPosition > 250)
+        targetPosition = 250;
 
-     if (targetPosition < -50)
-    targetPosition = -50;
-
-
+    if (targetPosition < -250)
+        targetPosition = -250;
 
     if (detectedFrequency < targetFrequency - frequencyTolerance)
     {
         sprintf(d, "UP");
-        _stepper.SetCurrentPosition(0);
-        _stepper.SetTargetPosition(int(targetPosition));
+        //_tuneStepper.SetCurrentPosition(0);
+        //_tuneStepper.SetTargetPosition(int(targetPosition));
+        _aStepper.setCurrentPosition(0);
+        _aStepper.moveTo(int(targetPosition));
+        //_aStepper.moveTo(_aStepper.currentPosition() + int(targetPosition));
     }
     else if (detectedFrequency > targetFrequency + frequencyTolerance)
     {
         sprintf(d, "DOWN");
-        _stepper.SetCurrentPosition(0);
-        _stepper.SetTargetPosition(int(targetPosition));
+        //_tuneStepper.SetCurrentPosition(0);
+        //_tuneStepper.SetTargetPosition(int(targetPosition));
+        _aStepper.setCurrentPosition(0);
+         _aStepper.moveTo(int(targetPosition));
+        //_aStepper.moveTo(_aStepper.currentPosition() - int(targetPosition));
     }
     else
     {
         startTimeNewTarget = millis();
         runTime = 0;
-        _stepper.Stop();       
+        //_tuneStepper.Stop();
+        _aStepper.stop();
+
+        sprintf(d, "STOP");
     }
 
     static unsigned long startTimeBetweenFreqDetections = millis();
@@ -94,50 +118,84 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 
 void Chime::Pick()
 {
-    _pickMotor.SetMotorRunTime(DCMotor::Direction::CW, 500); // TODO: timing analysis for specific motor.
+    //digitalWrite(_pinMotorPickEnable, HIGH);
     _startPick = millis();
 }
 
 void Chime::PickTick()
 {
     // Give pick motor time to clear limit switch;
-    if (millis() - _startPick > 100)
+    if (millis() - _startPick > 150)
     {
         if (digitalRead(_pinMotorPickLimit) == _motorPickIndexActivated)
         {
-            _pickMotor.MotorStop();
+            //digitalWrite(_pinMotorPickEnable, LOW);
         }
+    }
+
+    if (millis() - _startPick > 200)
+    {
+        //digitalWrite(_pinMotorPickEnable, LOW);
     }
 }
 
+/*
+// DC MOTOR MUTE
 void Chime::Mute()
 {
-    digitalWrite(_pinSolenoidMute, HIGH);
+
+    digitalWrite(12, HIGH);
+    digitalWrite(11, HIGH);
     _startMute = millis();
 }
 
 void Chime::MuteTick()
 {
-    if (millis() - _startMute > 100)
+
+    if (millis() - _startMute > 75)
     {
-        digitalWrite(_pinSolenoidMute, LOW);
+        digitalWrite(11, LOW);
     }
+    if (millis() - _startMute > 150)
+    {
+        digitalWrite(12, LOW);
+    }
+}
+*/
+
+/**/
+// STEPPER MUTE
+void Chime::Mute()
+{
+    /*
+    _muteStepper.SetCurrentPosition(0);
+    _muteStepper.SetTargetPosition(400);
+
+    _muteReturnToOpenFlag = true;
+
+    _startMute = millis();
+    */
+}
+
+void Chime::MuteTick()
+{
+    /*
+    _muteStepper.Tick();
+
+    if (_muteReturnToOpenFlag && _muteStepper.IsAtPosition())
+    {
+        _muteReturnToOpenFlag = false;
+        _muteStepper.SetCurrentPosition(0);
+        _muteStepper.SetTargetPosition(-400);
+    }
+    */
 }
 
 void Chime::Tick()
 {
-    _stepper.Tick();
-    _pickMotor.Tick();
+    //_tuneStepper.Tick();
+    _aStepper.run();
 
     PickTick();
     MuteTick();
-
-    /*
-    static unsigned long start;
-    if (millis() - start > 1000)
-    {
-        start = millis();
-        _pickMotor.SetMotorRunTime(DCMotor::Direction::Up, 500);
-    }
-    */
 }

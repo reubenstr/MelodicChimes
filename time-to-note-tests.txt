@@ -298,3 +298,25 @@ Note 6 from 349.20 to 370.00 with time  156ms | Steps: 45
 Note 7 from 370.00 to 392.00 with time  156ms | Steps: 44
 Note 8 from 392.00 to 415.30 with time  143ms | Steps: 44
 Note 9 from 415.30 to 440.00 with time  217ms | Steps: 56
+
+// very high current (nearly 1 amp total draw) No changein step count needed to hit A440
+Note 1 from 261.60 to 277.20 with time 1800ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  351ms | Steps: 81
+Note 3 from 293.70 to 311.10 with time  208ms | Steps: 30
+Note 4 from 311.10 to 329.60 with time  166ms | Steps: 40
+Note 5 from 329.60 to 349.20 with time  168ms | Steps: 37
+Note 6 from 349.20 to 370.00 with time  185ms | Steps: 39
+Note 7 from 370.00 to 392.00 with time  184ms | Steps: 39
+Note 8 from 392.00 to 415.30 with time  244ms | Steps: 44
+Note 9 from 415.30 to 440.00 with time  261ms | Steps: 58
+
+// New code and vars (noisey stepper) 1/8 microsteps
+Note 1 from 261.60 to 277.20 with time 1723ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  288ms | Steps: 160
+Note 3 from 293.70 to 311.10 with time  145ms | Steps: 229
+Note 4 from 311.10 to 329.60 with time  292ms | Steps: 183
+Note 5 from 329.60 to 349.20 with time  279ms | Steps: 199
+Note 6 from 349.20 to 370.00 with time  165ms | Steps: 194
+Note 7 from 370.00 to 392.00 with time  295ms | Steps: 207
+Note 8 from 392.00 to 415.30 with time  196ms | Steps: 211
+Note 9 from 415.30 to 440.00 with time  197ms | Steps: 275
