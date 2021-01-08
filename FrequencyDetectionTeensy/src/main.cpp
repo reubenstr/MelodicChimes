@@ -166,7 +166,7 @@ float GetFrequency()
 ////////////////////////////////////////////////////////////////////////
 
 // Blocking routine to aquire timing parameters.
-/*
+
 void CalibrateTiming()
 {
     const int numNotes = 10;
@@ -224,12 +224,12 @@ void CalibrateTiming()
                 noteFinishedFlag = true;
                 Serial.printf("Frequency (%u) within tolerance, elapsed time: %u\n", noteSelect, millis() - noteStartMillis);
 
-                Serial.printf("Steps between notes: %u\n", chime._tuneStepper.TotalSteps() - stepsPrevious);
+                //Serial.printf("Steps between notes: %u\n", chime._tuneStepper.TotalSteps() - stepsPrevious);
 
                 times[noteSelect] = millis() - noteStartMillis;
-                steps[noteSelect] = chime._tuneStepper.TotalSteps() - stepsPrevious;
+                //steps[noteSelect] = chime._tuneStepper.TotalSteps() - stepsPrevious;
 
-                stepsPrevious = chime._tuneStepper.TotalSteps();
+                //stepsPrevious = chime._tuneStepper.TotalSteps();
             }
         }
     }
@@ -241,10 +241,10 @@ void CalibrateTiming()
             Serial.printf("Note %u from %3.2f to %3.2f with time %4ums | Steps: %u\n", i, freqCalibraion[i - 1], freqCalibraion[i], times[i], steps[i]);
     }
 
-    Serial.printf("Total : %u\n", chime._tuneStepper.TotalSteps());
+    //Serial.printf("Total : %u\n", chime._tuneStepper.TotalSteps());
     Serial.printf("Finished calibration routine.\n\n\n");
 }
-*/
+/**/
 
 ////////////////////////////////////////////////////////////////////////
 void setup()
@@ -328,12 +328,12 @@ void setup()
     /*
     ///////////////////////////////////////
 
-/*
+/*   */
     while (1)
     {
         CalibrateTiming();
     }
-    */
+ 
 
     /*  
     // Mute STEPPER TEST.

@@ -2,6 +2,11 @@
 #include "Arduino.h"
 #include "ChimeStepper.h"
 
+ChimeStepper::ChimeStepper()
+{
+    
+}
+
 ChimeStepper::ChimeStepper(uint8_t pinStep, uint8_t pinDirection)
 {
 

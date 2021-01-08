@@ -7,6 +7,7 @@ class ChimeStepper
 {
 
 public:
+ChimeStepper();
   ChimeStepper(uint8_t pinStep, uint8_t pinDirection);
   void SetCurrentPosition(signed long targetPosition);
   void SetTargetPosition(signed long targetPosition);
