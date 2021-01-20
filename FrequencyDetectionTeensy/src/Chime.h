@@ -17,34 +17,28 @@ public:
     void TuneFrequency(float detectedFrequency, float targetFrequency);
     void Tick();
 
-
     void CalibratePick(bool runFlag);
-    
+
     void Pick();
     void Mute();
-
 
     unsigned long temp;
     int setTime;
 
 private:
-
-
-
-
     void SetStepperParameters();
 
-    void PickTick();
+  
     void MuteTick();
 
+    // Pick Stepper:  200 steps/rev, 1/4 steps, 10/20 gearbox, 6 plectrum/rev
+    // 200 * 4 * 0.5 / 6 = 66.666
 
-  // Pick Stepper:  200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev  = 132 steps per pick
-
-    const int _stepsPerPick = 132;
+    const int _stepsPerPick = 66;
 
     AccelStepper _tuneStepper;
     AccelStepper _pickStepper;
-        AccelStepper _muteStepper;
+    AccelStepper _muteStepper;
 
     float _targetFrequency;
 
@@ -57,6 +51,4 @@ private:
     unsigned long _startMute;
 
     bool calibrateDoOnceFlag = true;
-
 };
-

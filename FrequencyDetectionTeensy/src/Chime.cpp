@@ -16,15 +16,16 @@ void Chime::SetStepperParameters()
 {
     _tuneStepper.setMaxSpeed(50000);
     _tuneStepper.setAcceleration(2500);
-    _tuneStepper.setMinPulseWidth(3);
 
-    _pickStepper.setMaxSpeed(20000);
-    _pickStepper.setAcceleration(20000);
-    _pickStepper.setMinPulseWidth(3);
+    _pickStepper.setPinsInverted(true, false, false);
+    _pickStepper.setMaxSpeed(10000);
+    _pickStepper.setAcceleration(4000);
 
     _muteStepper.setMaxSpeed(20000);
     _muteStepper.setAcceleration(20000);
-    _muteStepper.setMinPulseWidth(3);
+
+
+
 }
 
 // PID IMPLEMENTATION
@@ -124,7 +125,7 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
     float posExponent = 1.25;
     float targetPosition = runTimeCoef * powf(fabs(frequencyDelta), posExponent);
     int minPos = 1;
-    int maxPos = 200;
+    int maxPos = 20;
 
     detectionCount++;
 
@@ -171,9 +172,9 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
     startTimeBetweenFreqDetections = millis();
 }
 
-// Pick the string if not currently in a picking motion.
+// Pick the string if the pick motor is not in motion.
 void Chime::Pick()
-{    
+{
     if (!_pickStepper.isRunning())
     {
         _pickStepper.setCurrentPosition(0);
@@ -181,17 +182,7 @@ void Chime::Pick()
     }
 }
 
-void Chime::PickTick()
-{
-    // Give pick motor time to clear limit switch;
-    if (millis() - _startPick > 150)
-    {
-        if (digitalRead(_pinMotorPickLimit) == _motorPickIndexActivated)
-        {
-            _pickStepper.stop();
-        }
-    }
-}
+
 
 void Chime::Mute()
 {
@@ -219,9 +210,10 @@ void Chime::MuteTick()
     */
 }
 
+// Calibrate pick position by calling this function in a loop
+// until a frequency is detected.
 void Chime::CalibratePick(bool freqencyDetectedFlag)
 {
-
     if (calibrateDoOnceFlag)
     {
         _pickStepper.setMaxSpeed(125);
@@ -235,7 +227,7 @@ void Chime::CalibratePick(bool freqencyDetectedFlag)
     {
         _pickStepper.stop();
         // _pickStepper.setCurrentPosition(0);
-        _pickStepper.moveTo(_pickStepper.currentPosition() + _stepsPerPick / 2);
+        _pickStepper.moveTo(_pickStepper.currentPosition() + _stepsPerPick / 4);
         _pickStepper.runToPosition();
         calibrateDoOnceFlag = true;
         SetStepperParameters();
@@ -248,11 +240,10 @@ void Chime::CalibratePick(bool freqencyDetectedFlag)
 
 void Chime::Tick()
 {
-
     _tuneStepper.run();
     _pickStepper.run();
     _muteStepper.run();
 
-    PickTick();
+   
     MuteTick();
 }

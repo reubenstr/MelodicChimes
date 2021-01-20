@@ -34,72 +34,33 @@ float notes[numNotes] = {E, f, G, E, f, D, E, C, D};
 // int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
 // int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
-bool pickedFlag = false;
 
 Button buttonStep(0);
 
-movingAvg avg(20);
 
 /*
+    DEVELOPMENT NOTES
 
-DEVELOPMENT NOTES
+	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
+	faster analysis at the sacrafice of less lower frequency detection
+	which is not required for this application.
 
-defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
-faster analysis at the sacrafice of less lower frequency detection
-which is not required for this application.
+	Blocks : lowest frequncy (rough estimate) : milliseconds per note
+	3 : 233hz : 9
+	4 : 174hz : 12
+	5 : 139hz : 15
 
-Blocks : lowest frequncy (rough estimate) : milliseconds per note
-3 : 233hz : 9
-4 : 174hz : 12
-5 : 139hz : 15
-
-
-
-A weak magnet for the coil is has a low signal to noise ratio.
-A stronger magnet provides a high signal to noise ration.
-An overly strong magnet over dampens the string vibrations reducing the length of the signal.
-
-
-TeensyStep async is not working, also forum indicates changing 
-parameters on the fly my not be supported
-
-AccelStepper library is awkward and not intuitive when attempting 
-to get async movements working. Basically just roll my own driving code
-as I need only basic features (speeds and modest acceleration).
-
-
-DC-Motor
-
-Fast motor (N25 500RPM) : fast but not precise
-
-Slow motor (N20 50RPM) : slow but precise
-
-Precision due to the delay of frequency detections allow for more in sync timing tuning and motor turn off.
-
-
+    A weak magnet for the coil is has a low signal to noise ratio.
+	A stronger magnet provides a high signal to noise ration.
+	An overly strong magnet over dampens the string vibrations reducing the length of the signal.
 */
 
 #define PIN_STEPPER_TUNE_STEP 14
 #define PIN_STEPPER_TUNE_DIRECTION 15
-
 #define PIN_STEPPER_PICK_STEP 18
 #define PIN_STEPPER_PICK_DIRECTION 19
-
 #define PIN_STEPPER_MUTE_STEP 9
 #define PIN_STEPPER_MUTE_DIRECTION 8
-
-//#define PIN_MOTOR_PICK_PHASE 5
-//#define PIN_MOTOR_PICK_ENABLE 6
-#define PIN_SWITCH_INDEX_MOTOR 2
-
-#define PIN_SOLENOID_MUTE_1 7
-
-#define PIN_LED_1 20
-#define PIN_LED_2 21
-#define PIN_LED_3 22
-#define PIN_LED_4 23
-
-#define MOTOR_PICK_INDEX_ACTIVATED LOW
 
 Chime chime(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION,
             PIN_STEPPER_PICK_STEP, PIN_STEPPER_PICK_DIRECTION,
@@ -130,12 +91,6 @@ void Halt()
     while (1)
     {
     }
-}
-
-void DebugLEDs()
-{
-    digitalWrite(PIN_LED_1, digitalRead(PIN_STEPPER_TUNE_STEP));
-    digitalWrite(PIN_LED_2, digitalRead(PIN_STEPPER_TUNE_DIRECTION));
 }
 ////////////////////////////////////////////////////////////////////////
 
@@ -178,7 +133,6 @@ float GetFrequency()
 ////////////////////////////////////////////////////////////////////////
 
 // Blocking routine to aquire timing parameters.
-
 void CalibrateTiming()
 {
     const int numNotes = 10;
@@ -254,6 +208,16 @@ void CalibrateTiming()
 }
 /**/
 
+void CalibratePick()
+{
+    bool freqencyDetectedFlag = false;
+    while (!freqencyDetectedFlag)
+    {
+        freqencyDetectedFlag = GetFrequency() > 0;
+        chime.CalibratePick(freqencyDetectedFlag);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////
 void setup()
 {
@@ -264,17 +228,13 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
 
-    pinMode(PIN_LED_1, OUTPUT);
-    pinMode(PIN_LED_2, OUTPUT);
-    pinMode(PIN_LED_3, OUTPUT);
-    pinMode(PIN_LED_4, OUTPUT);
-
     AudioMemory(120);
     notefreq1.begin(.15);
     // notefreq2.begin(.25);
 
     /*
- // SPEED TEST between two frequencies
+    ///////////////////////////////////////
+    // SPEED TEST between two frequencies
     bool flag = true;
     while (flag)
     {
@@ -302,20 +262,12 @@ void setup()
         chime.Tick();
     }
      */
+    ///////////////////////////////////////
 
     ///////////////////////////////////////
     // Calibrate pick
-
-    bool freqencyDetectedFlag = false;
-    while (!freqencyDetectedFlag)
-    {
-        freqencyDetectedFlag = GetFrequency() > 0;
-        chime.CalibratePick(freqencyDetectedFlag);
-
-        //Serial.println(freqencyDetectedFlag);
-        //delay(3);
-    }
-
+    /*
+    CalibratePick();
     Serial.println("Finished");
 
     unsigned long startx = millis();
@@ -330,35 +282,7 @@ void setup()
 
         chime.Tick();
     }
-
-    ///////////////////////////////////////
-
-    ///////////////////////////////////////
-    // Pick stepper test.
-    //AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION);
-
-    AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_PICK_STEP, PIN_STEPPER_PICK_DIRECTION);
-    //stepper.setPinsInverted(true, false, false);
-    stepper.setMaxSpeed(5000);
-    stepper.setAcceleration(1000);
-    stepper.setMinPulseWidth(3);
-
-    unsigned long start = millis();
-
-    // 200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev
-
-    while (1)
-    {
-        if (millis() - start > 3000)
-        {
-            start = millis();
-            stepper.moveTo(stepper.currentPosition() + 132);
-            Serial.println("Pick");
-        }
-        stepper.run();
-    }
-
-    ///////////////////////////////////////
+    */
 
     /*
     // Back and forth test.
@@ -421,7 +345,7 @@ void setup()
     */
 
     /*
-   // TARGET TEST
+   // HOLD TARGET TEST
     while (1)
     {
         float targetFrequency = f;
@@ -433,93 +357,17 @@ void setup()
 
     ///////////////////////////////////////
     // CALIBRATION TEST
-    /*
+
     while (1)
     {
         CalibrateTiming();
     }
-    */
-    ///////////////////////////////////////
 
     ///////////////////////////////////////
-    // Mute STEPPER TEST.
-    /*
-    ChimeStepper _stepper(PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION);
-    _stepper.SetCurrentPosition(0);
-    _stepper.SetTargetPosition(50);
-    _stepper.SetSpeed(2000);
-
-    bool toggle = false;
-
-    while (1)
-    {
-        if (_stepper.IsAtPosition())
-        {
-
-            toggle = !toggle;
-
-            if (toggle)
-            {
-                _stepper.SetTargetPosition(200);
-            }
-            else
-            {
-                _stepper.SetTargetPosition(-200);
-            }
-        }
-
-        _stepper.Tick();
-    }
-     */
 }
 
 void loop()
 {
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // NOTES AREA
-    //////////////////////////////////////////////////////////////////////////////////////////
-    /* 
-    Turn tests: start, turn, test, turn, end
-    400.03 - full - 246.60 - full - 399.67
-    427.02 - full - 272.89 - full - 429.36
-
-    A full rotation roughly spans 8 notes.
-
-    Estimated Hz per rotation: 153.78
-                    per degre: 0.4271
-
-    0.12815 hz / millisecond (estimated from full turn test)
-    0.05714 hz / millisecond (estimated from note to note test (with pickStall)) ~350ms motor time per note.
-
-
-    TEST MOTOR:
-    6v, 50RPM (no load), 24oz/in (crude test), 1200ms per revolution. 
-    Pololu's N20 6v (low power) 54RPM has a oz/in of 24 which is on par with out test motor.
-
-    The current torque is capable of turning the peg (of our current test string (high E)).
-
-    Test indicate time between notes ~350ms (average), but high notes (A440) take 900ms
-    meaning the current motor does not have enough torque.
-
-    ---
-    
-      // STEPPER TESTS, STEPS TO FREQ
-        90° - 221hz to 280hz = delta 59hz
-        280 334 = 54
-        332 373 = 41
-        371 401 = 30
-        starting to skips steps at 1/2 step 1000us step delay
-
-        // 1/2 step with 100 steps
-        262 - 309 = 47 hz -> 0.94 steps per hz
-        309 - 365 = 56 hz -> 1.12 steps per hz
-        364 - 315 = 49 hz -> 0.98 steps per hz
-        314 - 353 = 39 hz -> 0.78 steps per hz
-
-        About one hz per full step (in middle range notes).
-
-    */
 
     static unsigned long startMute = millis();
 
@@ -530,32 +378,6 @@ void loop()
     static unsigned long startPick = millis();
 
     static bool muteFlag = false;
-    /* 
- 
-    if (millis() - startPick > 2000)
-    {
-        startPick = millis();
-        Serial.printf("\nstartPick: *******\n");
-        chime.Pick();
-
-        startMute = millis();
-        muteFlag = true;
-    }
-
-    if (millis() - startMute > 500)
-    {
-        startMute = millis();
-        if (muteFlag)
-        {
-            muteFlag = false;
-            chime.Mute();
-        }
-    }
-  */
-    //if (detectedFrequency > 0)
-    {
-        //Serial.printf("startPick: %u \t", millis() - startPick);
-    }
 
     // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
     //if (millis() - startPick > 50)
@@ -565,8 +387,6 @@ void loop()
     }
 
     chime.TuneFrequency(detectedFrequency, targetFrequency);
-
-    DebugLEDs();
 
     FlashOnboardLED();
 
