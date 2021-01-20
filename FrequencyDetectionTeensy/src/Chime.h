@@ -1,16 +1,13 @@
 #include "Arduino.h"
 #include <AccelStepper.h>
+#include <Audio.h>
+/*
 
-#include "ChimeStepper.h"
+    Pick Stepper:
+    200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev
+    = 132 steps per pick
 
-#define PIN_STEPPER_TUNE_STEP 14
-#define PIN_STEPPER_TUNE_DIRECTION 15
-
-#define PIN_STEPPER_MUTE_STEP 18
-#define PIN_STEPPER_MUTE_DIRECTION 19
-
-#define PIN_STEPPER_PICK_STEP 10
-#define PIN_STEPPER_PICK_DIRECTION 9
+*/
 
 class Chime
 {
@@ -20,21 +17,34 @@ public:
     void TuneFrequency(float detectedFrequency, float targetFrequency);
     void Tick();
 
+
+    void CalibratePick(bool runFlag);
+    
     void Pick();
     void Mute();
 
 
-     
+    unsigned long temp;
+    int setTime;
+
 private:
+
+
+
+
+    void SetStepperParameters();
+
     void PickTick();
     void MuteTick();
 
-    //DCMotor _tuneMotor;
-    //DCMotor _pickMotor;
 
-    AccelStepper _muteStepper;
+  // Pick Stepper:  200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev  = 132 steps per pick
+
+    const int _stepsPerPick = 132;
+
     AccelStepper _tuneStepper;
     AccelStepper _pickStepper;
+        AccelStepper _muteStepper;
 
     float _targetFrequency;
 
@@ -45,4 +55,8 @@ private:
 
     unsigned long _startPick;
     unsigned long _startMute;
+
+    bool calibrateDoOnceFlag = true;
+
 };
+

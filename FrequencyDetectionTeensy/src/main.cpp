@@ -13,6 +13,9 @@
 #include "Chime.h"
 
 #include "ChimeStepper.h"
+#include <JC_Button.h> // https://github.com/JChristensen/JC_Button
+
+#include "movingAvg.h"
 
 #define C 261.6
 #define Cs 277.2
@@ -32,6 +35,10 @@ float notes[numNotes] = {E, f, G, E, f, D, E, C, D};
 // int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
 bool pickedFlag = false;
+
+Button buttonStep(0);
+
+movingAvg avg(20);
 
 /*
 
@@ -75,11 +82,14 @@ Precision due to the delay of frequency detections allow for more in sync timing
 #define PIN_STEPPER_TUNE_STEP 14
 #define PIN_STEPPER_TUNE_DIRECTION 15
 
-#define PIN_STEPPER_MUTE_STEP 18
-#define PIN_STEPPER_MUTE_DIRECTION 19
+#define PIN_STEPPER_PICK_STEP 18
+#define PIN_STEPPER_PICK_DIRECTION 19
 
-#define PIN_MOTOR_PICK_PHASE 5
-#define PIN_MOTOR_PICK_ENABLE 6
+#define PIN_STEPPER_MUTE_STEP 9
+#define PIN_STEPPER_MUTE_DIRECTION 8
+
+//#define PIN_MOTOR_PICK_PHASE 5
+//#define PIN_MOTOR_PICK_ENABLE 6
 #define PIN_SWITCH_INDEX_MOTOR 2
 
 #define PIN_SOLENOID_MUTE_1 7
@@ -91,7 +101,9 @@ Precision due to the delay of frequency detections allow for more in sync timing
 
 #define MOTOR_PICK_INDEX_ACTIVATED LOW
 
-Chime chime(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION, PIN_MOTOR_PICK_PHASE, PIN_MOTOR_PICK_ENABLE, PIN_SWITCH_INDEX_MOTOR, PIN_SOLENOID_MUTE_1);
+Chime chime(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION,
+            PIN_STEPPER_PICK_STEP, PIN_STEPPER_PICK_DIRECTION,
+            PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION);
 
 AudioInputAnalogStereo adcs1;
 AudioAnalyzeNoteFrequency notefreq2;
@@ -173,20 +185,16 @@ void CalibrateTiming()
     float freqCalibraion[numNotes] = {C, Cs, D, Eb, E, f, Fs, G, Gs, A};
 
     float targetFrequency = 0;
-    int noteSelect = 0;
+    signed int noteSelect = 0;
     unsigned long noteStartMillis = 5000;
     bool noteFinishedFlag = true;
     int stepsPrevious = 0;
 
     int times[10];
-    for (int i = 0; i < 10; i++)
-    {
-        times[i] = 0;
-    }
-
     int steps[10];
     for (int i = 0; i < 10; i++)
     {
+        times[i] = 0;
         steps[i] = 0;
     }
 
@@ -197,11 +205,11 @@ void CalibrateTiming()
         {
             noteStartMillis = millis();
             targetFrequency = freqCalibraion[noteSelect];
+            noteSelect++;
 
             chime.Pick();
             noteFinishedFlag = false;
             Serial.printf("New target note (%u) at %3.2f\n", noteSelect, targetFrequency);
-            noteSelect++;
         }
 
         DebugLEDs();
@@ -210,10 +218,10 @@ void CalibrateTiming()
         float frequencyTolerance = 1.0;
 
         // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
-        if (millis() - noteStartMillis > 50)
-        {
-            chime.TuneFrequency(detectedFrequency, targetFrequency);
-        }
+        //if (millis() - noteStartMillis > 50)
+        //{
+        chime.TuneFrequency(detectedFrequency, targetFrequency);
+        //}
 
         chime.Tick();
 
@@ -222,7 +230,7 @@ void CalibrateTiming()
             if (!noteFinishedFlag)
             {
                 noteFinishedFlag = true;
-                Serial.printf("Frequency (%u) within tolerance, elapsed time: %u\n", noteSelect, millis() - noteStartMillis);
+                Serial.printf("Frequency %3.2f to %3.2f within tolerance, elapsed time: %u\n", freqCalibraion[noteSelect - 1], freqCalibraion[noteSelect], millis() - noteStartMillis);
 
                 //Serial.printf("Steps between notes: %u\n", chime._tuneStepper.TotalSteps() - stepsPrevious);
 
@@ -293,13 +301,69 @@ void setup()
         chime.TuneFrequency(detectedFrequency, targetFrequency);
         chime.Tick();
     }
-    */
-
+     */
 
     ///////////////////////////////////////
-    /*
-    ChimeStepper stepper(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+    // Calibrate pick
 
+    bool freqencyDetectedFlag = false;
+    while (!freqencyDetectedFlag)
+    {
+        freqencyDetectedFlag = GetFrequency() > 0;
+        chime.CalibratePick(freqencyDetectedFlag);
+
+        //Serial.println(freqencyDetectedFlag);
+        //delay(3);
+    }
+
+    Serial.println("Finished");
+
+    unsigned long startx = millis();
+    while (1)
+    {
+
+        if (millis() - startx > 3000)
+        {
+            startx = millis();
+            chime.Pick();
+        }
+
+        chime.Tick();
+    }
+
+    ///////////////////////////////////////
+
+    ///////////////////////////////////////
+    // Pick stepper test.
+    //AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION);
+
+    AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_PICK_STEP, PIN_STEPPER_PICK_DIRECTION);
+    //stepper.setPinsInverted(true, false, false);
+    stepper.setMaxSpeed(5000);
+    stepper.setAcceleration(1000);
+    stepper.setMinPulseWidth(3);
+
+    unsigned long start = millis();
+
+    // 200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev
+
+    while (1)
+    {
+        if (millis() - start > 3000)
+        {
+            start = millis();
+            stepper.moveTo(stepper.currentPosition() + 132);
+            Serial.println("Pick");
+        }
+        stepper.run();
+    }
+
+    ///////////////////////////////////////
+
+    /*
+    // Back and forth test.
+    ChimeStepper stepper(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+    
     stepper.SetCurrentPosition(0);
     stepper.SetTargetPosition(0);
     int count = 0;
@@ -324,19 +388,62 @@ void setup()
         }
 
         stepper.Tick();
-    }
-    /*
-    ///////////////////////////////////////
+    }   
+    */
 
-/*   */
+    ///////////////////////////////////////
+    // Hz per n steps test.
+    // 1564 millis from 270hz to 440hz with 387 seconds (all approximate readings).
+    // avg of 37.5 rpm (includes accleration and deacceleration)
+    /*
+    avg.begin();
+    buttonStep.begin();
+    while (1)
+    {
+        buttonStep.read();
+
+        if (buttonStep.wasPressed())
+        {
+            chime.Step(387);
+            Serial.println("Step");
+        }
+
+        float detectedFrequency = GetFrequency();
+
+        if (detectedFrequency > 0)
+        {
+            avg.reading(detectedFrequency);
+            Serial.printf("Freq: %3.2f | Avg: %3.2f | %u\n", detectedFrequency, avg.getAvg(), millis());
+        }
+
+        chime.Tick();
+    }
+    */
+
+    /*
+   // TARGET TEST
+    while (1)
+    {
+        float targetFrequency = f;
+        float detectedFrequency = GetFrequency();
+        chime.TuneFrequency(detectedFrequency, targetFrequency); 
+        chime.Tick();
+    }
+    */
+
+    ///////////////////////////////////////
+    // CALIBRATION TEST
+    /*
     while (1)
     {
         CalibrateTiming();
     }
- 
+    */
+    ///////////////////////////////////////
 
-    /*  
+    ///////////////////////////////////////
     // Mute STEPPER TEST.
+    /*
     ChimeStepper _stepper(PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION);
     _stepper.SetCurrentPosition(0);
     _stepper.SetTargetPosition(50);

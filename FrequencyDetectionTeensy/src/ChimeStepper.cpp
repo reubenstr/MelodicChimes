@@ -4,7 +4,6 @@
 
 ChimeStepper::ChimeStepper()
 {
-    
 }
 
 ChimeStepper::ChimeStepper(uint8_t pinStep, uint8_t pinDirection)
@@ -32,9 +31,6 @@ void ChimeStepper::SetTargetPosition(signed long targetPosition)
 
     if (!inMotionFlag)
     {
-        
-
-
         // TODO: check if opposite direction, then reset accleration
         acclerationAcc = 0;
     }
@@ -65,7 +61,6 @@ int ChimeStepper::TotalSteps()
 
 void ChimeStepper::Tick()
 {
-
     unsigned int pulsesPerSecond = pullInOutSpeed + acclerationAcc;
     if (pulsesPerSecond > maxSpeed)
         pulsesPerSecond = maxSpeed;

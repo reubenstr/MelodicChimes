@@ -2,49 +2,113 @@
 #include "Arduino.h"
 #include "Chime.h"
 
-Chime::Chime(uint8_t pinTuneStepperStep, uint8_t pinTuneStepperDirection, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute)
-    //: _tuneStepper(pinTuneStepperStep, pinTuneStepperDirection),
-    : _muteStepper(AccelStepper::DRIVER,PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION),
-      _tuneStepper(AccelStepper::DRIVER, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION),
-      _pickStepper(AccelStepper::DRIVER, PIN_STEPPER_PICK_STEP, PIN_STEPPER_PICK_DIRECTION)
+Chime::Chime(uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection,
+             uint8_t pinStepperPickStep, uint8_t pinStepperPickDirection,
+             uint8_t pinStepperMuteStep, uint8_t pinStepperMuteDirection)
+    : _tuneStepper(AccelStepper::DRIVER, pinStepperTuneStep, pinStepperTuneDirection),
+      _pickStepper(AccelStepper::DRIVER, pinStepperPickStep, pinStepperPickDirection),
+      _muteStepper(AccelStepper::DRIVER, pinStepperMuteStep, pinStepperMuteDirection)
 {
-    //_pinMotorPickPhase = pinMotorPickPhase;
-    // _pinMotorPickEnable = pinMotorPickEnable;
-    //_pinMotorPickLimit = pinMotorPickLimit;
-    //_pinSolenoidMute = pinSolenoidMute;
+    SetStepperParameters();
+}
 
-    //digitalWrite(_pinMotorPickPhase, LOW);
-    //digitalWrite(_pinMotorPickEnable, LOW);
-    //digitalWrite(_pinSolenoidMute, LOW);
-
-    //pinMode(_pinMotorPickPhase, OUTPUT);
-    //pinMode(_pinMotorPickEnable, OUTPUT);
-    //pinMode(_pinMotorPickLimit, INPUT_PULLUP);
-    //pinMode(_pinSolenoidMute, OUTPUT);
-
-    //digitalWrite(_pinMotorPickPhase, HIGH);
-
-    // _tuneStepper.SetSpeed(500);
-    //_muteStepper.SetSpeed(500);
-
-    _tuneStepper.setMaxSpeed(10000);
+void Chime::SetStepperParameters()
+{
+    _tuneStepper.setMaxSpeed(50000);
     _tuneStepper.setAcceleration(2500);
     _tuneStepper.setMinPulseWidth(3);
 
-    _pickStepper.setMaxSpeed(10000);
-    _pickStepper.setAcceleration(5000);
+    _pickStepper.setMaxSpeed(20000);
+    _pickStepper.setAcceleration(20000);
     _pickStepper.setMinPulseWidth(3);
 
-    //_aStepper.setPinsInverted();
+    _muteStepper.setMaxSpeed(20000);
+    _muteStepper.setAcceleration(20000);
+    _muteStepper.setMinPulseWidth(3);
 }
 
+// PID IMPLEMENTATION
+/*
 void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 {
     static unsigned int detectionCount = 0;
     static unsigned long startTimeNewTarget;
-    //static unsigned int hitTargetCount = 0;
-    //static unsigned int targetTimeAcc = 0;
-    //static bool newTargetHitFlag = false;
+    char d[5];
+    float frequencyTolerance = 1.0;
+
+    // Return if not frequency was detected.
+    if (detectedFrequency == 0)
+        return;
+
+    detectionCount++;
+
+    float frequencyDelta = targetFrequency - detectedFrequency;
+
+    static float integral = 0;
+    float error, kp, ki;
+    float targetPosition;
+    kp = 1;
+    ki = .00;
+
+    error = frequencyDelta;
+    integral = integral + error;
+    targetPosition = (kp * error) + (ki * integral);
+
+    int minPos = 1;
+    int maxPos = 20;
+
+    if (targetPosition > 0 && targetPosition < minPos)
+        targetPosition = minPos;
+    if (targetPosition < 0 && targetPosition > -minPos)
+        targetPosition = -minPos;
+
+    if (targetPosition > maxPos)
+        targetPosition = maxPos;
+    if (targetPosition < -maxPos)
+        targetPosition = -maxPos;
+
+    if (detectedFrequency < targetFrequency - frequencyTolerance)
+    {
+        sprintf(d, "  UP");
+        _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
+        //_tuneMotor.SetPwmSpeed(abs(int(targetPosition)) * 5);
+        //_tuneMotor.SetMotorRunTime(DCMotor::Direction::CW, abs(int(targetPosition)));
+    }
+    else if (detectedFrequency > targetFrequency + frequencyTolerance)
+    {
+        sprintf(d, "DOWN");
+        _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
+        //_tuneMotor.SetPwmSpeed(abs(int(targetPosition)) * 5);
+        //_tuneMotor.SetMotorRunTime(DCMotor::Direction::CCW, abs(int(targetPosition)));
+    }
+    else
+    {
+        startTimeNewTarget = millis();
+        targetPosition = 0;
+        //_tuneStepper.stop();
+        _tuneMotor.MotorStop();
+
+        sprintf(d, "STOP");
+
+        integral = 0;
+    }
+
+    static unsigned long startTimeBetweenFreqDetections = millis();
+
+    if (millis() - startTimeBetweenFreqDetections > 100)
+        detectionCount = 0;
+
+    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | targetPosition: % 7.2f (%3i) | %s | Step Speed % 5.0f\n", detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, frequencyDelta, targetPosition, int(targetPosition), d, _tuneStepper.speed());
+
+    startTimeBetweenFreqDetections = millis();
+}
+*/
+
+// STEPPER IMPLEMENTION TEST
+void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
+{
+    static unsigned int detectionCount = 0;
+    static unsigned long startTimeNewTarget;
 
     float frequencyTolerance = 1.0;
 
@@ -54,83 +118,67 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 
     float frequencyDelta = targetFrequency - detectedFrequency;
     int runTime;
-
-    detectionCount++;
-    // Based on Hz/milliseconds(of motor turning)
-    // (which is a function motor RPM/torque). TODO: might need an algorithm approch, y = mx+b
-    //float runTimeCoef = 0.9;
-
-    // TBD: use either the directly detected frequency or use a moving average (or other type of average).
-    // float comparisonFrequency = detectedFrequency;                       // Target hit: 10 | Elapsed time: 459 | Average time to hit targets: 521
-    // float comparisonFrequency = movingAverage.getAvg(); (20 readings)    // Target hit:  8 | Elapsed time: 675 | Average time to hit targets: 657
-    // float comparisonFrequency = movingAverage.getAvg(); //(10 readings)  // Target hit: 10 | Elapsed time: 402 | Average time to hit targets: 640
-    // float comparisonFrequency = movingAverage.getAvg(); //(5 readings)   // Target hit:  9 | Elapsed time: 604 | Average time to hit targets: 550
-
     char d[5];
 
-    float runTimeCoef = 3; //0.5
+    float runTimeCoef = 0.5;
+    float posExponent = 1.25;
+    float targetPosition = runTimeCoef * powf(fabs(frequencyDelta), posExponent);
+    int minPos = 1;
+    int maxPos = 200;
 
-    // runTimeCoef is the P in PID
-    // a value too high causes overshoot
-    // too low causes a delay.
+    detectionCount++;
 
-    float targetPosition = frequencyDelta * runTimeCoef;
+    if (targetPosition > 0 && targetPosition < minPos)
+        targetPosition = minPos;
+    if (targetPosition < 0 && targetPosition > -minPos)
+        targetPosition = -minPos;
 
-    if (targetPosition > 0 && targetPosition < 1)
-        targetPosition = 1;
-
-    if (targetPosition < 0 && targetPosition > -1)
-        targetPosition = -1;
-
-    if (targetPosition > 250)
-        targetPosition = 250;
-
-    if (targetPosition < -250)
-        targetPosition = -250;
+    if (targetPosition > maxPos)
+        targetPosition = maxPos;
+    if (targetPosition < -maxPos)
+        targetPosition = -maxPos;
 
     if (detectedFrequency < targetFrequency - frequencyTolerance)
     {
-        sprintf(d, "UP");
-        //_tuneStepper.SetCurrentPosition(0);
-        //_tuneStepper.SetTargetPosition(int(targetPosition));
-        _tuneStepper.setCurrentPosition(0);
-        _tuneStepper.moveTo(int(targetPosition));
-        //_aStepper.moveTo(_aStepper.currentPosition() + int(targetPosition));
+        sprintf(d, "  UP");
+        //_tuneStepper.setCurrentPosition(0);
+        _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
     }
     else if (detectedFrequency > targetFrequency + frequencyTolerance)
     {
         sprintf(d, "DOWN");
-        //_tuneStepper.SetCurrentPosition(0);
-        //_tuneStepper.SetTargetPosition(int(targetPosition));
-        _tuneStepper.setCurrentPosition(0);
-        _tuneStepper.moveTo(int(targetPosition));
-        //_aStepper.moveTo(_aStepper.currentPosition() - int(targetPosition));
+
+        //_tuneStepper.setCurrentPosition(0);
+        _tuneStepper.moveTo(_tuneStepper.currentPosition() - int(targetPosition));
     }
     else
     {
         startTimeNewTarget = millis();
         runTime = 0;
-        //_tuneStepper.Stop();
-        _tuneStepper.stop();
+        targetPosition = 0;
+        //_tuneStepper.stop();
 
         sprintf(d, "STOP");
     }
 
     static unsigned long startTimeBetweenFreqDetections = millis();
+    if (millis() - startTimeBetweenFreqDetections > 100)
+        detectionCount = 0;
 
-    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: %3.2f | targetPosition: %3.2f (%i) | %s\n", detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, frequencyDelta, targetPosition, int(targetPosition), d);
+    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | targetPosition: % 7.2f (%3i) | %s | Step Speed % 5.0f\n",
+                  detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, frequencyDelta, targetPosition, int(targetPosition), d, _tuneStepper.speed());
 
     startTimeBetweenFreqDetections = millis();
 }
 
+// Pick the string if not currently in a picking motion.
 void Chime::Pick()
-{
-    _pickStepper.setCurrentPosition(0);
-    _pickStepper.moveTo(133);
-    /*
-    //digitalWrite(_pinMotorPickEnable, HIGH);
-    _startPick = millis();
-    */
+{    
+    if (!_pickStepper.isRunning())
+    {
+        _pickStepper.setCurrentPosition(0);
+        _pickStepper.moveTo(_stepsPerPick);
+    }
 }
 
 void Chime::PickTick()
@@ -145,32 +193,6 @@ void Chime::PickTick()
     }
 }
 
-/*
-// DC MOTOR MUTE
-void Chime::Mute()
-{
-
-    digitalWrite(12, HIGH);
-    digitalWrite(11, HIGH);
-    _startMute = millis();
-}
-
-void Chime::MuteTick()
-{
-
-    if (millis() - _startMute > 75)
-    {
-        digitalWrite(11, LOW);
-    }
-    if (millis() - _startMute > 150)
-    {
-        digitalWrite(12, LOW);
-    }
-}
-*/
-
-/**/
-// STEPPER MUTE
 void Chime::Mute()
 {
     /*
@@ -197,11 +219,39 @@ void Chime::MuteTick()
     */
 }
 
+void Chime::CalibratePick(bool freqencyDetectedFlag)
+{
+
+    if (calibrateDoOnceFlag)
+    {
+        _pickStepper.setMaxSpeed(125);
+        _pickStepper.setAcceleration(1000);
+        _pickStepper.setCurrentPosition(0);
+        _pickStepper.moveTo(300);
+        calibrateDoOnceFlag = false;
+    }
+
+    if (freqencyDetectedFlag)
+    {
+        _pickStepper.stop();
+        // _pickStepper.setCurrentPosition(0);
+        _pickStepper.moveTo(_pickStepper.currentPosition() + _stepsPerPick / 2);
+        _pickStepper.runToPosition();
+        calibrateDoOnceFlag = true;
+        SetStepperParameters();
+    }
+    else
+    {
+        _pickStepper.run();
+    }
+}
+
 void Chime::Tick()
 {
-    //_tuneStepper.Tick();
+
     _tuneStepper.run();
     _pickStepper.run();
+    _muteStepper.run();
 
     PickTick();
     MuteTick();

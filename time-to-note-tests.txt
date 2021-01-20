@@ -320,3 +320,73 @@ Note 6 from 349.20 to 370.00 with time  165ms | Steps: 194
 Note 7 from 370.00 to 392.00 with time  295ms | Steps: 207
 Note 8 from 392.00 to 415.30 with time  196ms | Steps: 211
 Note 9 from 415.30 to 440.00 with time  197ms | Steps: 275
+
+// Fix calibration output
+// nema 14 stepper
+    _tuneStepper.setMaxSpeed(10000);
+    _tuneStepper.setAcceleration(5000);
+Note 1 from 261.60 to 277.20 with time 1266ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  252ms | Steps: 0
+Note 3 from 293.70 to 311.10 with time  399ms | Steps: 0
+Note 4 from 311.10 to 329.60 with time  197ms | Steps: 0
+Note 5 from 329.60 to 349.20 with time  228ms | Steps: 0
+Note 6 from 349.20 to 370.00 with time  201ms | Steps: 0
+Note 7 from 370.00 to 392.00 with time  346ms | Steps: 0
+Note 8 from 392.00 to 415.30 with time  275ms | Steps: 0
+Note 9 from 415.30 to 440.00 with time  524ms | Steps: 0
+
+  _tuneStepper.setMaxSpeed(20000);
+    _tuneStepper.setAcceleration(10000);
+Note 1 from 261.60 to 277.20 with time  998ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  362ms | Steps: 0
+Note 3 from 293.70 to 311.10 with time  175ms | Steps: 0
+Note 4 from 311.10 to 329.60 with time  104ms | Steps: 0
+Note 5 from 329.60 to 349.20 with time  135ms | Steps: 0
+Note 6 from 349.20 to 370.00 with time  137ms | Steps: 0
+Note 7 from 370.00 to 392.00 with time  238ms | Steps: 0
+Note 8 from 392.00 to 415.30 with time  182ms | Steps: 0
+Note 9 from 415.30 to 440.00 with time  315ms | Steps: 0
+
+NEMA 14; 14HS17-0504S; 32.6oz.in
+1/2 STEP
+ float runTimeCoef = 2;
+_tuneStepper.setMaxSpeed(50000);
+_tuneStepper.setAcceleration(10000);
+_tuneStepper.setMinPulseWidth(3);
+
+Note 1 from 261.60 to 277.20 with time  700ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  339ms | Steps: 0
+Note 3 from 293.70 to 311.10 with time  385ms | Steps: 0
+Note 4 from 311.10 to 329.60 with time  197ms | Steps: 0
+Note 5 from 329.60 to 349.20 with time  170ms | Steps: 0
+Note 6 from 349.20 to 370.00 with time  186ms | Steps: 0
+Note 7 from 370.00 to 392.00 with time  171ms | Steps: 0
+Note 8 from 392.00 to 415.30 with time  231ms | Steps: 0
+Note 9 from 415.30 to 440.00 with time  276ms | Steps: 0
+
+NEMA 14; 14HS13-0804S; 25.5oz.in
+1/2 STEP
+ float runTimeCoef = 2;
+_tuneStepper.setMaxSpeed(50000);
+_tuneStepper.setAcceleration(10000);
+_tuneStepper.setMinPulseWidth(3);
+Note 1 from 261.60 to 277.20 with time 1903ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  614ms | Steps: 0
+Note 3 from 293.70 to 311.10 with time  152ms | Steps: 0
+Note 4 from 311.10 to 329.60 with time  139ms | Steps: 0
+Note 5 from 329.60 to 349.20 with time  489ms | Steps: 0
+Note 6 from 349.20 to 370.00 with time  186ms | Steps: 0
+Note 7 from 370.00 to 392.00 with time  360ms | Steps: 0
+Note 8 from 392.00 to 415.30 with time  260ms | Steps: 0
+Note 9 from 415.30 to 440.00 with time  262ms | Steps: 0
+
+n20 motor, 1:250 120RPM Pololu
+Note 1 from 261.60 to 277.20 with time  649ms | Steps: 0
+Note 2 from 277.20 to 293.70 with time  347ms | Steps: 0
+Note 3 from 293.70 to 311.10 with time  261ms | Steps: 0
+Note 4 from 311.10 to 329.60 with time  263ms | Steps: 0
+Note 5 from 329.60 to 349.20 with time  105ms | Steps: 0
+Note 6 from 349.20 to 370.00 with time  354ms | Steps: 0
+Note 7 from 370.00 to 392.00 with time  252ms | Steps: 0
+Note 8 from 392.00 to 415.30 with time  341ms | Steps: 0
+Note 9 from 415.30 to 440.00 with time  227ms | Steps: 0
