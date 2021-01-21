@@ -1,4 +1,96 @@
  
+
+// n steps between average freq readings to create a linear regression.
+/*
+void CalibrateSteps()
+{
+
+
+    200 steps/rev, 1/2 step, 2:1 pulley ratio 
+    200 * 2 * 0.5
+
+  
+
+    Serial.println("Calibrate Steps between notes...");
+
+    AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+    stepper.setPinsInverted(true, false, false);
+    stepper.setMaxSpeed(50000);
+    stepper.setAcceleration(10000);
+
+    // Tune starting frequency.
+    Serial.println("Tune starting frequency.");
+    float targetFrequency = C;
+    float detectedFrequency = 0;
+    float frequencyTolerance = 1;
+    unsigned long start = millis() + 1000;
+
+    while (1)
+    {
+        if (millis() - start > 2000)
+        {
+            start = millis();
+            chime.Pick();
+        }
+
+        detectedFrequency = GetFrequency();
+
+        if ((detectedFrequency > (targetFrequency - frequencyTolerance)) &&
+            (detectedFrequency < (targetFrequency + frequencyTolerance)))
+        {
+            break;
+        }
+
+        chime.TuneFrequency(detectedFrequency, targetFrequency);
+        chime.Tick();
+    }
+
+    // Progress through the sequence.
+    Serial.println("Progress through the sequence.");
+    const int numReadings = 30;
+    const int numStepsBetweenMeasurements = 20;
+
+    movingAvg avg(30);
+    avg.begin();
+    int freqCount = 0;
+    bool nextReadingFlag = true;
+
+    while (detectedFrequency < 450)
+    {      
+        if (nextReadingFlag)
+        {
+            nextReadingFlag = false;
+            freqCount = 0;
+
+            stepper.setCurrentPosition(0);
+            stepper.moveTo(numStepsBetweenMeasurements);
+            stepper.runToPosition();
+
+            chime.Pick();
+            delay(250); // give time for the string to settle
+        }
+
+        detectedFrequency = GetFrequency();
+
+        if (detectedFrequency > 0)
+        {
+            avg.reading(detectedFrequency);
+
+            if (freqCount++ > numReadings)
+            {
+                nextReadingFlag = true;
+                Serial.printf("%3.2f\n", avg.getAvg());
+                delay(500);
+            }
+        }
+
+        chime.Tick();
+    }
+}
+
+*/  
+
+
  
     /*
     // Manual motor test: tune motor

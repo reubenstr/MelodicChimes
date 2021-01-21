@@ -34,9 +34,9 @@ float notes[numNotes] = {E, f, G, E, f, D, E, C, D};
 // int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
 // int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
+Button buttonStep(2);
 
-Button buttonStep(0);
-
+movingAvg avg(20);
 
 /*
     DEVELOPMENT NOTES
@@ -136,7 +136,7 @@ float GetFrequency()
 void CalibrateTiming()
 {
     const int numNotes = 10;
-    float freqCalibraion[numNotes] = {C, Cs, D, Eb, E, f, Fs, G, Gs, A};
+    float notes[numNotes] = {C, Cs, D, Eb, E, f, Fs, G, Gs, A};
 
     float targetFrequency = 0;
     signed int noteSelect = 0;
@@ -158,24 +158,22 @@ void CalibrateTiming()
         if (millis() - noteStartMillis >= 2000)
         {
             noteStartMillis = millis();
-            targetFrequency = freqCalibraion[noteSelect];
+            targetFrequency = notes[noteSelect];
             noteSelect++;
 
-            chime.Pick();
+            //chime.Pick();
             noteFinishedFlag = false;
             Serial.printf("New target note (%u) at %3.2f\n", noteSelect, targetFrequency);
         }
-
-        DebugLEDs();
 
         float detectedFrequency = GetFrequency();
         float frequencyTolerance = 1.0;
 
         // Give time to string to cool down from pick as harsh picking causing spikes in frequency.
         //if (millis() - noteStartMillis > 50)
-        //{
-        chime.TuneFrequency(detectedFrequency, targetFrequency);
-        //}
+        {
+            chime.TuneFrequency(detectedFrequency, targetFrequency);
+        }
 
         chime.Tick();
 
@@ -184,7 +182,7 @@ void CalibrateTiming()
             if (!noteFinishedFlag)
             {
                 noteFinishedFlag = true;
-                Serial.printf("Frequency %3.2f to %3.2f within tolerance, elapsed time: %u\n", freqCalibraion[noteSelect - 1], freqCalibraion[noteSelect], millis() - noteStartMillis);
+                Serial.printf("Frequency %3.2f to %3.2f within tolerance, elapsed time: %u\n", notes[noteSelect - 1], notes[noteSelect], millis() - noteStartMillis);
 
                 //Serial.printf("Steps between notes: %u\n", chime._tuneStepper.TotalSteps() - stepsPrevious);
 
@@ -200,7 +198,7 @@ void CalibrateTiming()
     for (int i = 0; i < numNotes; i++)
     {
         if (i != 0)
-            Serial.printf("Note %u from %3.2f to %3.2f with time %4ums | Steps: %u\n", i, freqCalibraion[i - 1], freqCalibraion[i], times[i], steps[i]);
+            Serial.printf("Note %u from %3.2f to %3.2f with time %4ums | Steps: %u\n", i, notes[i - 1], notes[i], times[i], steps[i]);
     }
 
     //Serial.printf("Total : %u\n", chime._tuneStepper.TotalSteps());
@@ -215,6 +213,93 @@ void CalibratePick()
     {
         freqencyDetectedFlag = GetFrequency() > 0;
         chime.CalibratePick(freqencyDetectedFlag);
+    }
+}
+
+bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolerance)
+{
+    return fabs(frequency1 - frequency1) < tolerance;
+}
+
+void CalibrateSteps()
+{
+
+    /*
+    200 steps/rev, 1/2 step, 2:1 pulley ratio 
+    200 * 2 * 0.5
+
+*/
+
+    Serial.println("Calibrate Steps between notes...");
+
+    AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+    stepper.setPinsInverted(true, false, false);
+    stepper.setMaxSpeed(100);
+    stepper.setAcceleration(100);
+
+    // Tune starting frequency.
+    Serial.println("Tune starting frequency.");
+    float targetFrequency = C;
+    float detectedFrequency = 0;
+    float frequencyTolerance = 1;
+
+    const int msBetweenSteps = 50;
+    unsigned long start = millis() + 1000;
+    unsigned long frequencyDetectionTimeoutMillis = 0;
+    unsigned long stepMillis = 0;
+
+    movingAvg averageFreq(5);
+    averageFreq.begin();
+
+    int noteCount = 0;
+    while (noteCount < numNotes)
+    {
+
+        targetFrequency = notes[noteCount];
+        Serial.printf("Target frequency: %3.2f.\n", targetFrequency);
+
+        while (fabs(detectedFrequency - targetFrequency) > frequencyTolerance)
+        {
+
+            if (millis() - frequencyDetectionTimeoutMillis > 1000)
+            {
+                frequencyDetectionTimeoutMillis = millis();
+                //chime.Pick();
+            }
+
+            /*
+            if (millis() - stepMillis > msBetweenSteps)
+            {
+                stepMillis = millis();
+
+                stepper.setCurrentPosition(0);
+                stepper.moveTo(1);
+                stepper.runToPosition();
+
+                Serial.printf("Detected frequency: %3.2f\n", detectedFrequency);
+            }
+            */
+
+            detectedFrequency = GetFrequency();
+
+            if (detectedFrequency > 0)
+            {
+                frequencyDetectionTimeoutMillis = millis();
+            }
+
+            chime.TuneFrequency(detectedFrequency, targetFrequency);
+            chime.Tick();
+        }
+
+        Serial.printf("Target frequency of %3.2f met with detected frequency of %3.2f\n", targetFrequency, detectedFrequency);
+
+        noteCount++;
+    }
+
+    Serial.printf("Test complete\n");
+
+    while (1)
+    {
     }
 }
 
@@ -284,52 +369,80 @@ void setup()
     }
     */
 
+    ///////////////////////////////////////
+    // CALIBRATION TEST
     /*
-    // Back and forth test.
-    ChimeStepper stepper(PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+    while (1)
+    {
+        CalibrateTiming();
+    }
+*/
+
+    /*    ///////////////////////////////////////
+        // MOVE TO POSITION 
+    AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
     
-    stepper.SetCurrentPosition(0);
-    stepper.SetTargetPosition(0);
+    stepper.setMaxSpeed(50000);
+    stepper.setAcceleration(10000);
+
     int count = 0;
     bool toggle = false;
 
-    while (1)
-    {
+    stepper.setCurrentPosition(0);
+    stepper.moveTo(40);
 
-        if (stepper.IsAtPosition())
+    unsigned long start = millis();
+    int position = 0;
+
+    while (stepper.isRunning())
+    {       
+
+        if (position != stepper.currentPosition())
         {
-            toggle = !toggle;
-            if (toggle)
-            {
-                stepper.SetCurrentPosition(0);
-                stepper.SetTargetPosition(100);
-            }
-            else
-            {
-                stepper.SetCurrentPosition(0);
-                stepper.SetTargetPosition(-100);
-            }
+            position = stepper.currentPosition();
+            Serial.println(stepper.speed());
         }
 
-        stepper.Tick();
+
+        stepper.run();
     }   
-    */
+   
+   Serial.print("Elasped time: ");
+   Serial.println(millis() - start);
+
+   while(1)
+   {
+         float detectedFrequency = GetFrequency();
+         if (detectedFrequency > 0)
+         {
+             Serial.println(detectedFrequency);
+         } 
+   }
+   */
 
     ///////////////////////////////////////
     // Hz per n steps test.
     // 1564 millis from 270hz to 440hz with 387 seconds (all approximate readings).
     // avg of 37.5 rpm (includes accleration and deacceleration)
     /*
+    AccelStepper stepper(AccelStepper::DRIVER, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION);
+
+    stepper.setMaxSpeed(50000);
+    stepper.setAcceleration(10000);
+
     avg.begin();
     buttonStep.begin();
+    int stepsTaken = 0;
     while (1)
     {
         buttonStep.read();
 
         if (buttonStep.wasPressed())
         {
-            chime.Step(387);
-            Serial.println("Step");
+            const int stepsToTake = 1;
+            stepsTaken += stepsToTake;
+            stepper.moveTo(stepper.currentPosition() + stepsToTake);
+            Serial.printf("Steps taken: %u | Steps to take: %u\n", stepsTaken, stepsToTake);
         }
 
         float detectedFrequency = GetFrequency();
@@ -340,7 +453,7 @@ void setup()
             Serial.printf("Freq: %3.2f | Avg: %3.2f | %u\n", detectedFrequency, avg.getAvg(), millis());
         }
 
-        chime.Tick();
+        stepper.run();
     }
     */
 
@@ -355,15 +468,7 @@ void setup()
     }
     */
 
-    ///////////////////////////////////////
-    // CALIBRATION TEST
-
-    while (1)
-    {
-        CalibrateTiming();
-    }
-
-    ///////////////////////////////////////
+    CalibrateSteps();
 }
 
 void loop()

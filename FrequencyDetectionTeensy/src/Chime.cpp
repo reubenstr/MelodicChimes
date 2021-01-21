@@ -14,8 +14,9 @@ Chime::Chime(uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection,
 
 void Chime::SetStepperParameters()
 {
-    _tuneStepper.setMaxSpeed(50000);
-    _tuneStepper.setAcceleration(2500);
+    _tuneStepper.setPinsInverted(true, false, false);
+    _tuneStepper.setMaxSpeed(1000);
+    _tuneStepper.setAcceleration(1500);
 
     _pickStepper.setPinsInverted(true, false, false);
     _pickStepper.setMaxSpeed(10000);
@@ -23,9 +24,6 @@ void Chime::SetStepperParameters()
 
     _muteStepper.setMaxSpeed(20000);
     _muteStepper.setAcceleration(20000);
-
-
-
 }
 
 // PID IMPLEMENTATION
@@ -113,7 +111,7 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 
     float frequencyTolerance = 1.0;
 
-    // Return if not frequency was detected.
+    // Return if frequency was not detected.
     if (detectedFrequency == 0)
         return;
 
@@ -121,11 +119,13 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
     int runTime;
     char d[5];
 
-    float runTimeCoef = 0.5;
-    float posExponent = 1.25;
-    float targetPosition = runTimeCoef * powf(fabs(frequencyDelta), posExponent);
-    int minPos = 1;
-    int maxPos = 20;
+    float runTimeCoef = 2;
+    //float posExponent = 1.25;
+    //float targetPosition = runTimeCoef * powf(fabs(frequencyDelta), posExponent);
+    float targetPosition = runTimeCoef * frequencyDelta;
+    
+    int minPos = 2;
+    int maxPos = 100;
 
     detectionCount++;
 
@@ -143,6 +143,7 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
     {
         sprintf(d, "  UP");
         //_tuneStepper.setCurrentPosition(0);
+  
         _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
     }
     else if (detectedFrequency > targetFrequency + frequencyTolerance)
@@ -150,14 +151,14 @@ void Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
         sprintf(d, "DOWN");
 
         //_tuneStepper.setCurrentPosition(0);
-        _tuneStepper.moveTo(_tuneStepper.currentPosition() - int(targetPosition));
+        _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
     }
     else
     {
         startTimeNewTarget = millis();
         runTime = 0;
         targetPosition = 0;
-        //_tuneStepper.stop();
+        _tuneStepper.stop();
 
         sprintf(d, "STOP");
     }
