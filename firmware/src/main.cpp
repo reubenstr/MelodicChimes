@@ -9,9 +9,9 @@
 #include <SPI.h>
 #include <SD.h>
 #include <SerialFlash.h>
-#include "Chime.h"      // Local class.
+#include "Chime.h"     // Local class.
 #include <JC_Button.h> // https://github.com/JChristensen/JC_Button
-#include "movingAvg.h"  // Local class.
+#include "movingAvg.h" // Local class.
 
 #define C 261.6
 #define Cs 277.2
@@ -140,9 +140,9 @@ float GetDetectedFrequency(int sourceId)
 {
     if (sourceId == 0)
     {
-         return GetFrequency(0);
+        return GetFrequency(0);
     }
-   
+
     // detectedFrequencies[1] = GetFrequency(1);
     //cli(); // Disable interrupts;
     //detectedFrequencies[3] = frequencyFromSerial[0];
@@ -182,21 +182,65 @@ void setup()
     notefreq1.begin(.15);
     // notefreq2.begin(.25);
 
+    //////////////////////////
+    // Calibration tests
+
     int c = 0;
     bool completeFlag = false;
-    while(!completeFlag)
-    {  
-        completeFlag = chimes[c].CalibrateStepsToNotes(GetDetectedFrequency(c));
+
+    chimes[c].PrepareCalibratePick();
+    while (!completeFlag)
+    {
+        completeFlag = chimes[c].CalibratePick(GetDetectedFrequency(c));
     }
 
+    completeFlag = false;
+
+    chimes[c].PrepareCalibrateStepsToNotes();
+    while (!completeFlag)
+    {
+        completeFlag = chimes[c].CalibrateStepsToNotes(GetDetectedFrequency(c));
+    }
+    //////////////////////////
+
+    //////////////////////////
+    /*
+    unsigned long start = millis();
+    int c = 0;
+    int n = 62;
+    while (true)
+    {
+
+        chimes[c].TuneNote(GetDetectedFrequency(c), n);
+        chimes[c].Tick();
+
+        if (millis() - start > 2000)
+        {
+            start = millis();
+            n++;
+            if (n == 70)
+            {
+                Serial.println("STOPPED");
+                while (true)
+                {
+                }
+            }
+
+            Serial.printf("New note: %u\n", n);
+            chimes[c].Pick();
+        }
+    }
+    //////////////////////////
+*/
 }
 
 void loop()
 {
     FlashOnboardLED();
 
+    /*
     float targetFrequency = C;
-   
+
     for (int c = 0; c < numChimes; c++)
     {
         chimes[c].TuneFrequency(GetDetectedFrequency(c), targetFrequency);
@@ -205,5 +249,6 @@ void loop()
     for (int c = 0; c < numChimes; c++)
     {
         chimes[c].Tick();
-    }   
+    }
+    */
 }

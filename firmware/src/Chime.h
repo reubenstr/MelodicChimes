@@ -15,13 +15,16 @@ class Chime
 public:
     Chime(int chimeId, uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute);
 
-    float NoteIdToFrequency(int n);
+    float NoteIdToFrequency(float noteId);
+
+    bool TuneNote(float detectedFrequency, int noteId);
     bool TuneFrequency(float detectedFrequency, float targetFrequency);
 
-    bool CalibratePick(float detectedFrequency);
-
-    bool ResetCalibrateStepsToNotes();
+    void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
+
+    void PrepareCalibratePick();
+    bool CalibratePick(float detectedFrequency);
 
     void Pick();
     void Mute();
@@ -41,6 +44,7 @@ private:
     unsigned long frequencyDetectionTimeoutMillis = millis();
     const int frequencyDetectionTimeoutMs = 1000;
     int noteId;
+    int betweenNotesMillis;
 
     int _lowestNote = 60;
     int _highestNote = 69;
@@ -64,5 +68,13 @@ private:
     unsigned long _startPick;
     unsigned long _startMute;
 
-    bool calibrateDoOnceFlag = true;
+    // Tuning variables.
+    enum TuneStates
+    {
+        StepTune,
+        FreeTune,
+        WaitForStepTune,
+    };
+    TuneStates _tuneState = FreeTune;
+    int _currentNoteId = 0;
 };

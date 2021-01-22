@@ -1,0 +1,245 @@
+> Executing task: C:\Users\Dr. Zoidburg\.platformio\penv\Scripts\pio.exe device monitor <
+
+--- Available filters and text transformations: colorize, debug, default, direct, hexlify, log2file, nocontrol, printable, send_on_enter, time
+--- More details at http://bit.ly/pio-monitor-filters
+--- Miniterm on COM9  115200,8,N,1 ---
+--- Quit: Ctrl+C | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
+Teensy starting up.
+   1 (   0ms) | Detected: 436.75 | Target: 246.94 | Delta: -189.81 | Target Position: -100 | DOWN | Step Speed:   -66 | Current Position: 0
+   2 (  14ms) | Detected: 437.99 | Target: 246.94 | Delta: -191.05 | Target Position: -100 | DOWN | Step Speed:  -168 | Current Position: -2
+   3 (  14ms) | Detected: 438.93 | Target: 246.94 | Delta: -191.99 | Target Position: -100 | DOWN | Step Speed:  -245 | Current Position: -5
+   4 (  14ms) | Detected: 437.81 | Target: 246.94 | Delta: -190.87 | Target Position: -100 | DOWN | Step Speed:  -316 | Current Position: -9
+   0 ( 130ms) | Detected: 432.99 | Target: 246.94 | Delta: -186.04 | Target Position: -100 | DOWN | Step Speed:  -562 | Current Position: -71
+   1 (  14ms) | Detected: 431.15 | Target: 246.94 | Delta: -184.20 | Target Position: -100 | DOWN | Step Speed:  -625 | Current Position: -79
+   2 (  14ms) | Detected: 426.90 | Target: 246.94 | Delta: -179.96 | Target Position: -100 | DOWN | Step Speed:  -681 | Current Position: -87
+   3 (  14ms) | Detected: 427.29 | Target: 246.94 | Delta: -180.35 | Target Position: -100 | DOWN | Step Speed:  -739 | Current Position: -96
+   4 (  14ms) | Detected: 426.92 | Target: 246.94 | Delta: -179.98 | Target Position: -100 | DOWN | Step Speed:  -803 | Current Position: -107
+   5 (  14ms) | Detected: 425.64 | Target: 246.94 | Delta: -178.69 | Target Position: -100 | DOWN | Step Speed:  -853 | Current Position: -118
+   6 (  14ms) | Detected: 422.65 | Target: 246.94 | Delta: -175.71 | Target Position: -100 | DOWN | Step Speed:  -853 | Current Position: -129
+   7 (  29ms) | Detected: 416.90 | Target: 246.94 | Delta: -169.96 | Target Position: -100 | DOWN | Step Speed:  -801 | Current Position: -151
+   8 (  14ms) | Detected: 413.26 | Target: 246.94 | Delta: -166.32 | Target Position: -100 | DOWN | Step Speed:  -849 | Current Position: -162
+   9 (  14ms) | Detected: 410.23 | Target: 246.94 | Delta: -163.29 | Target Position: -100 | DOWN | Step Speed:  -850 | Current Position: -173
+  10 (  15ms) | Detected: 407.31 | Target: 246.94 | Delta: -160.37 | Target Position: -100 | DOWN | Step Speed:  -850 | Current Position: -184
+  11 (  14ms) | Detected: 404.73 | Target: 246.94 | Delta: -157.79 | Target Position: -100 | DOWN | Step Speed:  -850 | Current Position: -195
+  12 (  29ms) | Detected: 400.27 | Target: 246.94 | Delta: -153.32 | Target Position: -100 | DOWN | Step Speed:  -797 | Current Position: -217
+  13 (  14ms) | Detected: 397.19 | Target: 246.94 | Delta: -150.25 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -228
+  14 (  14ms) | Detected: 393.51 | Target: 246.94 | Delta: -146.57 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -239
+  15 (  14ms) | Detected: 391.72 | Target: 246.94 | Delta: -144.78 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -250
+  16 (  14ms) | Detected: 389.36 | Target: 246.94 | Delta: -142.42 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -261
+  17 (  14ms) | Detected: 387.48 | Target: 246.94 | Delta: -140.54 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -272
+  18 (  29ms) | Detected: 382.57 | Target: 246.94 | Delta: -135.63 | Target Position: -100 | DOWN | Step Speed:  -794 | Current Position: -294
+  19 (  14ms) | Detected: 380.57 | Target: 246.94 | Delta: -133.63 | Target Position: -100 | DOWN | Step Speed:  -844 | Current Position: -305
+  20 (  14ms) | Detected: 378.36 | Target: 246.94 | Delta: -131.42 | Target Position: -100 | DOWN | Step Speed:  -844 | Current Position: -316
+  21 (  14ms) | Detected: 374.89 | Target: 246.94 | Delta: -127.94 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -327
+  22 (  14ms) | Detected: 371.27 | Target: 246.94 | Delta: -124.32 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -338
+  23 (  14ms) | Detected: 367.29 | Target: 246.94 | Delta: -120.35 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -349
+  24 (  14ms) | Detected: 361.57 | Target: 246.94 | Delta: -114.63 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -360
+  25 (  14ms) | Detected: 358.73 | Target: 246.94 | Delta: -111.79 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -371
+  26 (  14ms) | Detected: 356.23 | Target: 246.94 | Delta: -109.29 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -382
+  27 (  16ms) | Detected: 352.68 | Target: 246.94 | Delta: -105.74 | Target Position: -100 | DOWN | Step Speed:  -842 | Current Position: -394
+  28 (  14ms) | Detected: 349.85 | Target: 246.94 | Delta: -102.91 | Target Position: -100 | DOWN | Step Speed:  -852 | Current Position: -405
+  29 (  14ms) | Detected: 346.57 | Target: 246.94 | Delta:  -99.63 | Target Position: -100 | DOWN | Step Speed:  -852 | Current Position: -416
+  30 (  14ms) | Detected: 343.98 | Target: 246.94 | Delta:  -97.04 | Target Position: -100 | DOWN | Step Speed:  -852 | Current Position: -427
+  31 (  14ms) | Detected: 340.99 | Target: 246.94 | Delta:  -94.05 | Target Position: -100 | DOWN | Step Speed:  -853 | Current Position: -438
+  32 (  14ms) | Detected: 338.68 | Target: 246.94 | Delta:  -91.74 | Target Position: -100 | DOWN | Step Speed:  -853 | Current Position: -449
+  33 (  14ms) | Detected: 336.46 | Target: 246.94 | Delta:  -89.52 | Target Position: -100 | DOWN | Step Speed:  -853 | Current Position: -460
+  34 (  14ms) | Detected: 334.84 | Target: 246.94 | Delta:  -87.90 | Target Position: -100 | DOWN | Step Speed:  -844 | Current Position: -471
+  35 (  14ms) | Detected: 332.57 | Target: 246.94 | Delta:  -85.62 | Target Position: -100 | DOWN | Step Speed:  -844 | Current Position: -482
+  36 (  14ms) | Detected: 329.63 | Target: 246.94 | Delta:  -82.69 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -493
+  37 (  15ms) | Detected: 328.05 | Target: 246.94 | Delta:  -81.11 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -504
+  38 (  14ms) | Detected: 326.45 | Target: 246.94 | Delta:  -79.51 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -515
+  39 (  15ms) | Detected: 324.50 | Target: 246.94 | Delta:  -77.56 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -526
+  40 (  14ms) | Detected: 321.33 | Target: 246.94 | Delta:  -74.39 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -537
+  41 (  14ms) | Detected: 320.24 | Target: 246.94 | Delta:  -73.30 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -548
+  42 (  14ms) | Detected: 317.86 | Target: 246.94 | Delta:  -70.92 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -559
+  43 (  14ms) | Detected: 314.92 | Target: 246.94 | Delta:  -67.98 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -570
+  44 (  14ms) | Detected: 311.06 | Target: 246.94 | Delta:  -64.12 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -581
+  45 (  14ms) | Detected: 308.70 | Target: 246.94 | Delta:  -61.76 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -592
+  46 (  14ms) | Detected: 306.63 | Target: 246.94 | Delta:  -59.68 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -603
+  47 (  14ms) | Detected: 303.94 | Target: 246.94 | Delta:  -57.00 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -614
+  48 (  14ms) | Detected: 300.72 | Target: 246.94 | Delta:  -53.78 | Target Position: -100 | DOWN | Step Speed:  -849 | Current Position: -625
+  49 (  14ms) | Detected: 298.00 | Target: 246.94 | Delta:  -51.06 | Target Position: -100 | DOWN | Step Speed:  -849 | Current Position: -636
+  50 (  14ms) | Detected: 295.68 | Target: 246.94 | Delta:  -48.73 | Target Position: -100 | DOWN | Step Speed:  -849 | Current Position: -647
+  51 (  14ms) | Detected: 292.97 | Target: 246.94 | Delta:  -46.03 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -659
+  52 (  14ms) | Detected: 290.11 | Target: 246.94 | Delta:  -43.17 | Target Position: -100 | DOWN | Step Speed:  -845 | Current Position: -670
+  53 (  14ms) | Detected: 286.81 | Target: 246.94 | Delta:  -39.87 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -681
+  54 (  15ms) | Detected: 284.76 | Target: 246.94 | Delta:  -37.82 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -692
+  55 (  14ms) | Detected: 283.01 | Target: 246.94 | Delta:  -36.06 | Target Position: -100 | DOWN | Step Speed:  -846 | Current Position: -703
+  56 (  14ms) | Detected: 281.21 | Target: 246.94 | Delta:  -34.27 | Target Position: -100 | DOWN | Step Speed:  -851 | Current Position: -713
+  57 (  14ms) | Detected: 280.27 | Target: 246.94 | Delta:  -33.33 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -725
+  58 (  15ms) | Detected: 278.86 | Target: 246.94 | Delta:  -31.92 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -736
+  59 (  14ms) | Detected: 277.35 | Target: 246.94 | Delta:  -30.41 | Target Position: -100 | DOWN | Step Speed:  -847 | Current Position: -747
+  60 (  14ms) | Detected: 276.81 | Target: 246.94 | Delta:  -29.87 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -758
+  61 (  14ms) | Detected: 274.61 | Target: 246.94 | Delta:  -27.67 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -769
+  62 (  14ms) | Detected: 272.94 | Target: 246.94 | Delta:  -26.00 | Target Position: -100 | DOWN | Step Speed:  -848 | Current Position: -780
+  63 (  14ms) | Detected: 270.35 | Target: 246.94 | Delta:  -23.41 | Target Position: -100 | DOWN | Step Speed:  -849 | Current Position: -791
+  64 (  14ms) | Detected: 268.22 | Target: 246.94 | Delta:  -21.28 | Target Position: -96 | DOWN | Step Speed:  -849 | Current Position: -802
+  65 (  14ms) | Detected: 266.69 | Target: 246.94 | Delta:  -19.74 | Target Position: -89 | DOWN | Step Speed:  -830 | Current Position: -813
+  66 (  14ms) | Detected: 264.32 | Target: 246.94 | Delta:  -17.38 | Target Position: -78 | DOWN | Step Speed:  -786 | Current Position: -823
+  67 (  14ms) | Detected: 260.92 | Target: 246.94 | Delta:  -13.98 | Target Position: -63 | DOWN | Step Speed:  -734 | Current Position: -832
+  68 (  14ms) | Detected: 258.08 | Target: 246.94 | Delta:  -11.13 | Target Position: -50 | DOWN | Step Speed:  -677 | Current Position: -841
+  69 (  14ms) | Detected: 254.02 | Target: 246.94 | Delta:   -7.08 | Target Position: -32 | DOWN | Step Speed:  -615 | Current Position: -850
+  70 (  14ms) | Detected: 251.57 | Target: 246.94 | Delta:   -4.63 | Target Position: -20 | DOWN | Step Speed:  -554 | Current Position: -858
+  71 (  14ms) | Detected: 248.32 | Target: 246.94 | Delta:   -1.38 | Target Position:  -6 | DOWN | Step Speed:  -493 | Current Position: -865
+  72 (  14ms) | Detected: 245.95 | Target: 246.94 | Delta:    0.99 | Target Position:   0 | STOP | Step Speed:  -442 | Current Position: -871
+Target of 246.94 found with -871 steps over 1278 milliseconds.
+  73 (  15ms) | Detected: 243.30 | Target: 261.63 | Delta:   18.33 | Target Position:  83 |   UP | Step Speed:    66 | Current Position: 0
+  74 (  14ms) | Detected: 241.69 | Target: 261.63 | Delta:   19.93 | Target Position:  90 |   UP | Step Speed:   168 | Current Position: 2
+  75 (  15ms) | Detected: 241.56 | Target: 261.63 | Delta:   20.06 | Target Position:  91 |   UP | Step Speed:   245 | Current Position: 5
+  76 (  14ms) | Detected: 241.92 | Target: 261.63 | Delta:   19.70 | Target Position:  89 |   UP | Step Speed:   316 | Current Position: 9
+  77 (  15ms) | Detected: 242.13 | Target: 261.63 | Delta:   19.49 | Target Position:  88 |   UP | Step Speed:   385 | Current Position: 14
+  78 (  14ms) | Detected: 241.61 | Target: 261.63 | Delta:   20.01 | Target Position:  90 |   UP | Step Speed:   452 | Current Position: 20
+  79 (  15ms) | Detected: 242.71 | Target: 261.63 | Delta:   18.91 | Target Position:  85 |   UP | Step Speed:   510 | Current Position: 26
+  80 (  14ms) | Detected: 243.51 | Target: 261.63 | Delta:   18.11 | Target Position:  82 |   UP | Step Speed:   562 | Current Position: 32
+  81 (  15ms) | Detected: 243.23 | Target: 261.63 | Delta:   18.40 | Target Position:  83 |   UP | Step Speed:   616 | Current Position: 39
+  82 (  14ms) | Detected: 243.03 | Target: 261.63 | Delta:   18.59 | Target Position:  84 |   UP | Step Speed:   678 | Current Position: 48
+  83 (  14ms) | Detected: 246.43 | Target: 261.63 | Delta:   15.20 | Target Position:  68 |   UP | Step Speed:   735 | Current Position: 57
+  84 (  14ms) | Detected: 249.50 | Target: 261.63 | Delta:   12.12 | Target Position:  55 |   UP | Step Speed:   678 | Current Position: 66
+  85 (  14ms) | Detected: 259.00 | Target: 261.63 | Delta:    2.63 | Target Position:  11 |   UP | Step Speed:   616 | Current Position: 75
+  86 (  14ms) | Detected: 254.20 | Target: 261.63 | Delta:    7.42 | Target Position:  33 |   UP | Step Speed:   555 | Current Position: 83
+  87 (  14ms) | Detected: 256.40 | Target: 261.63 | Delta:    5.22 | Target Position:  23 |   UP | Step Speed:   494 | Current Position: 90
+  88 (  14ms) | Detected: 258.98 | Target: 261.63 | Delta:    2.64 | Target Position:  11 |   UP | Step Speed:   434 | Current Position: 96
+  89 (  14ms) | Detected: 261.85 | Target: 261.63 | Delta:   -0.22 | Target Position:   0 | STOP | Step Speed:   374 | Current Position: 101
+Target of 261.63 found with 101 steps over 246 milliseconds.
+  90 (  14ms) | Detected: 261.41 | Target: 277.18 | Delta:   15.78 | Target Position:  71 |   UP | Step Speed:    66 | Current Position: 0
+  91 (  14ms) | Detected: 262.14 | Target: 277.18 | Delta:   15.04 | Target Position:  68 |   UP | Step Speed:   168 | Current Position: 2
+  92 (  14ms) | Detected: 262.77 | Target: 277.18 | Delta:   14.42 | Target Position:  65 |   UP | Step Speed:   228 | Current Position: 5
+  93 (  14ms) | Detected: 263.51 | Target: 277.18 | Delta:   13.68 | Target Position:  62 |   UP | Step Speed:   303 | Current Position: 9
+  94 (  14ms) | Detected: 263.92 | Target: 277.18 | Delta:   13.26 | Target Position:  60 |   UP | Step Speed:   363 | Current Position: 13
+  95 (  14ms) | Detected: 264.59 | Target: 277.18 | Delta:   12.59 | Target Position:  57 |   UP | Step Speed:   434 | Current Position: 19
+  96 (  14ms) | Detected: 266.04 | Target: 277.18 | Delta:   11.14 | Target Position:  50 |   UP | Step Speed:   494 | Current Position: 25
+  97 (  14ms) | Detected: 267.37 | Target: 277.18 | Delta:    9.81 | Target Position:  44 |   UP | Step Speed:   540 | Current Position: 31
+  98 (  14ms) | Detected: 269.78 | Target: 277.18 | Delta:    7.40 | Target Position:  33 |   UP | Step Speed:   540 | Current Position: 38
+  99 (  14ms) | Detected: 270.99 | Target: 277.18 | Delta:    6.19 | Target Position:  28 |   UP | Step Speed:   477 | Current Position: 45
+ 100 (  14ms) | Detected: 272.82 | Target: 277.18 | Delta:    4.36 | Target Position:  19 |   UP | Step Speed:   415 | Current Position: 51
+ 101 (  14ms) | Detected: 274.21 | Target: 277.18 | Delta:    2.97 | Target Position:  13 |   UP | Step Speed:   352 | Current Position: 56
+ 102 (  14ms) | Detected: 274.74 | Target: 277.18 | Delta:    2.44 | Target Position:  11 |   UP | Step Speed:   290 | Current Position: 60
+ 103 (  14ms) | Detected: 277.15 | Target: 277.18 | Delta:    0.03 | Target Position:   0 | STOP | Step Speed:   210 | Current Position: 64
+Target of 277.18 found with 64 steps over 203 milliseconds.
+ 104 (  14ms) | Detected: 277.79 | Target: 293.66 | Delta:   15.88 | Target Position:  72 |   UP | Step Speed:    66 | Current Position: 0
+ 105 (  14ms) | Detected: 278.85 | Target: 293.66 | Delta:   14.81 | Target Position:  67 |   UP | Step Speed:   168 | Current Position: 2
+ 106 (  14ms) | Detected: 278.21 | Target: 293.66 | Delta:   15.45 | Target Position:  70 |   UP | Step Speed:   245 | Current Position: 5
+ 107 (  14ms) | Detected: 279.20 | Target: 293.66 | Delta:   14.47 | Target Position:  65 |   UP | Step Speed:   316 | Current Position: 9
+ 108 (  14ms) | Detected: 280.58 | Target: 293.66 | Delta:   13.09 | Target Position:  59 |   UP | Step Speed:   385 | Current Position: 14
+ 109 (  14ms) | Detected: 282.17 | Target: 293.66 | Delta:   11.49 | Target Position:  52 |   UP | Step Speed:   452 | Current Position: 20
+ 110 (  14ms) | Detected: 282.66 | Target: 293.66 | Delta:   11.01 | Target Position:  49 |   UP | Step Speed:   510 | Current Position: 26
+ 111 (  14ms) | Detected: 283.69 | Target: 293.66 | Delta:    9.98 | Target Position:  45 |   UP | Step Speed:   569 | Current Position: 33
+ 112 (  14ms) | Detected: 285.61 | Target: 293.66 | Delta:    8.05 | Target Position:  36 |   UP | Step Speed:   540 | Current Position: 40
+ 113 (  14ms) | Detected: 288.36 | Target: 293.66 | Delta:    5.30 | Target Position:  24 |   UP | Step Speed:   477 | Current Position: 47
+ 114 (  14ms) | Detected: 290.06 | Target: 293.66 | Delta:    3.60 | Target Position:  16 |   UP | Step Speed:   424 | Current Position: 52
+ 115 (  14ms) | Detected: 291.16 | Target: 293.66 | Delta:    2.50 | Target Position:  11 |   UP | Step Speed:   352 | Current Position: 58
+ 116 (  14ms) | Detected: 292.88 | Target: 293.66 | Delta:    0.79 | Target Position:   0 | STOP | Step Speed:   290 | Current Position: 62
+Target of 293.66 found with 62 steps over 188 milliseconds.
+ 117 (  14ms) | Detected: 290.98 | Target: 311.13 | Delta:   20.15 | Target Position:  91 |   UP | Step Speed:    66 | Current Position: 0
+ 118 (  14ms) | Detected: 292.48 | Target: 311.13 | Delta:   18.64 | Target Position:  84 |   UP | Step Speed:   168 | Current Position: 2
+ 119 (  14ms) | Detected: 293.78 | Target: 311.13 | Delta:   17.35 | Target Position:  78 |   UP | Step Speed:   245 | Current Position: 5
+ 120 (  14ms) | Detected: 317.03 | Target: 311.13 | Delta:   -5.90 | Target Position: -26 | DOWN | Step Speed:   290 | Current Position: 9
+ 121 (  14ms) | Detected: 295.10 | Target: 311.13 | Delta:   16.03 | Target Position:  72 |   UP | Step Speed:   248 | Current Position: 13
+ 122 (  14ms) | Detected: 297.40 | Target: 311.13 | Delta:   13.73 | Target Position:  62 |   UP | Step Speed:   330 | Current Position: 17
+ 123 (  14ms) | Detected: 296.66 | Target: 311.13 | Delta:   14.46 | Target Position:  65 |   UP | Step Speed:   395 | Current Position: 21
+ 124 (  14ms) | Detected: 298.14 | Target: 311.13 | Delta:   12.98 | Target Position:  58 |   UP | Step Speed:   471 | Current Position: 27
+ 125 (  14ms) | Detected: 298.54 | Target: 311.13 | Delta:   12.59 | Target Position:  57 |   UP | Step Speed:   546 | Current Position: 34
+ 126 (  14ms) | Detected: 300.03 | Target: 311.13 | Delta:   11.10 | Target Position:  50 |   UP | Step Speed:   619 | Current Position: 42
+ 127 (  14ms) | Detected: 301.45 | Target: 311.13 | Delta:    9.68 | Target Position:  43 |   UP | Step Speed:   587 | Current Position: 50
+ 128 (  14ms) | Detected: 304.20 | Target: 311.13 | Delta:    6.93 | Target Position:  31 |   UP | Step Speed:   531 | Current Position: 57
+ 129 (  29ms) | Detected: 305.44 | Target: 311.13 | Delta:    5.69 | Target Position:  25 |   UP | Step Speed:   432 | Current Position: 70
+ 130 (  14ms) | Detected: 305.95 | Target: 311.13 | Delta:    5.18 | Target Position:  23 |   UP | Step Speed:   414 | Current Position: 75
+ 131 (  14ms) | Detected: 306.81 | Target: 311.13 | Delta:    4.32 | Target Position:  19 |   UP | Step Speed:   385 | Current Position: 81
+ 132 (  14ms) | Detected: 307.87 | Target: 311.13 | Delta:    3.26 | Target Position:  14 |   UP | Step Speed:   329 | Current Position: 86
+ 133 (  14ms) | Detected: 308.56 | Target: 311.13 | Delta:    2.57 | Target Position:  11 |   UP | Step Speed:   292 | Current Position: 90
+ 134 (  14ms) | Detected: 309.10 | Target: 311.13 | Delta:    2.03 | Target Position:   9 |   UP | Step Speed:   250 | Current Position: 94
+ 135 (  14ms) | Detected: 309.21 | Target: 311.13 | Delta:    1.91 | Target Position:   8 |   UP | Step Speed:   255 | Current Position: 97
+ 136 (  14ms) | Detected: 309.52 | Target: 311.13 | Delta:    1.61 | Target Position:   7 |   UP | Step Speed:   210 | Current Position: 101
+ 137 (  14ms) | Detected: 311.84 | Target: 311.13 | Delta:   -0.71 | Target Position:   0 | STOP | Step Speed:   171 | Current Position: 104
+Target of 311.13 found with 104 steps over 319 milliseconds.
+ 138 (  14ms) | Detected: 311.44 | Target: 329.63 | Delta:   18.19 | Target Position:  82 |   UP | Step Speed:    66 | Current Position: 0
+ 139 (  14ms) | Detected: 311.22 | Target: 329.63 | Delta:   18.41 | Target Position:  83 |   UP | Step Speed:   168 | Current Position: 2
+ 140 (  14ms) | Detected: 311.11 | Target: 329.63 | Delta:   18.52 | Target Position:  84 |   UP | Step Speed:   245 | Current Position: 5
+ 141 (  14ms) | Detected: 312.95 | Target: 329.63 | Delta:   16.67 | Target Position:  75 |   UP | Step Speed:   316 | Current Position: 9
+ 142 (  58ms) | Detected: 316.46 | Target: 329.63 | Delta:   13.17 | Target Position:  59 |   UP | Step Speed:   540 | Current Position: 32
+ 143 (  14ms) | Detected: 318.25 | Target: 329.63 | Delta:   11.38 | Target Position:  51 |   UP | Step Speed:   597 | Current Position: 39
+ 144 (  43ms) | Detected: 320.66 | Target: 329.63 | Delta:    8.97 | Target Position:  40 |   UP | Step Speed:   478 | Current Position: 62
+ 145 (  14ms) | Detected: 323.79 | Target: 329.63 | Delta:    5.84 | Target Position:  26 |   UP | Step Speed:   512 | Current Position: 69
+ 146 (  28ms) | Detected: 325.72 | Target: 329.63 | Delta:    3.91 | Target Position:  17 |   UP | Step Speed:   396 | Current Position: 81
+ 147 (  28ms) | Detected: 329.76 | Target: 329.63 | Delta:   -0.13 | Target Position:   0 | STOP | Step Speed:   262 | Current Position: 91
+Target of 329.63 found with 91 steps over 247 milliseconds.
+ 148 (  57ms) | Detected: 331.11 | Target: 349.23 | Delta:   18.12 | Target Position:  82 |   UP | Step Speed:    66 | Current Position: 0
+ 149 (  86ms) | Detected: 334.37 | Target: 349.23 | Delta:   14.85 | Target Position:  67 |   UP | Step Speed:   424 | Current Position: 21
+   0 ( 144ms) | Detected: 350.21 | Target: 349.23 | Delta:   -0.98 | Target Position:   0 | STOP | Step Speed:   210 | Current Position: 81
+Target of 349.23 found with 81 steps over 290 milliseconds.
+   0 (1160ms) | Detected: 350.70 | Target: 369.99 | Delta:   19.29 | Target Position:  87 |   UP | Step Speed:    66 | Current Position: 0
+   1 (  14ms) | Detected: 351.22 | Target: 369.99 | Delta:   18.77 | Target Position:  85 |   UP | Step Speed:   142 | Current Position: 2
+   2 (  99ms) | Detected: 357.26 | Target: 369.99 | Delta:   12.73 | Target Position:  57 |   UP | Step Speed:   533 | Current Position: 34
+   3 (  14ms) | Detected: 359.44 | Target: 369.99 | Delta:   10.55 | Target Position:  47 |   UP | Step Speed:   590 | Current Position: 41
+   4 (  14ms) | Detected: 360.97 | Target: 369.99 | Delta:    9.03 | Target Position:  40 |   UP | Step Speed:   569 | Current Position: 49
+   5 (  14ms) | Detected: 363.80 | Target: 369.99 | Delta:    6.19 | Target Position:  28 |   UP | Step Speed:   502 | Current Position: 57
+   6 (  14ms) | Detected: 366.01 | Target: 369.99 | Delta:    3.99 | Target Position:  18 |   UP | Step Speed:   443 | Current Position: 63
+   7 (  43ms) | Detected: 370.11 | Target: 369.99 | Delta:   -0.11 | Target Position:   0 | STOP | Step Speed:   261 | Current Position: 78
+Target of 369.99 found with 78 steps over 1376 milliseconds.
+   8 (  14ms) | Detected: 371.63 | Target: 392.00 | Delta:   20.36 | Target Position:  92 |   UP | Step Speed:    66 | Current Position: 0
+   9 (  14ms) | Detected: 372.41 | Target: 392.00 | Delta:   19.58 | Target Position:  88 |   UP | Step Speed:   168 | Current Position: 2
+  10 (  14ms) | Detected: 372.26 | Target: 392.00 | Delta:   19.73 | Target Position:  89 |   UP | Step Speed:   245 | Current Position: 5
+  11 (  14ms) | Detected: 372.74 | Target: 392.00 | Delta:   19.26 | Target Position:  87 |   UP | Step Speed:   316 | Current Position: 9
+  12 (  14ms) | Detected: 373.55 | Target: 392.00 | Delta:   18.45 | Target Position:  83 |   UP | Step Speed:   385 | Current Position: 14
+  13 (  14ms) | Detected: 374.88 | Target: 392.00 | Delta:   17.12 | Target Position:  77 |   UP | Step Speed:   443 | Current Position: 20
+  14 (  14ms) | Detected: 375.80 | Target: 392.00 | Delta:   16.19 | Target Position:  73 |   UP | Step Speed:   502 | Current Position: 26
+  15 (  15ms) | Detected: 377.61 | Target: 392.00 | Delta:   14.38 | Target Position:  65 |   UP | Step Speed:   562 | Current Position: 33
+  16 (  14ms) | Detected: 378.66 | Target: 392.00 | Delta:   13.34 | Target Position:  60 |   UP | Step Speed:   616 | Current Position: 40
+  17 (  14ms) | Detected: 380.81 | Target: 392.00 | Delta:   11.18 | Target Position:  50 |   UP | Step Speed:   629 | Current Position: 49
+  18 (  14ms) | Detected: 382.66 | Target: 392.00 | Delta:    9.33 | Target Position:  42 |   UP | Step Speed:   576 | Current Position: 57
+  19 (  14ms) | Detected: 384.53 | Target: 392.00 | Delta:    7.47 | Target Position:  33 |   UP | Step Speed:   518 | Current Position: 64
+  20 (  14ms) | Detected: 386.48 | Target: 392.00 | Delta:    5.52 | Target Position:  25 |   UP | Step Speed:   460 | Current Position: 70
+  21 (  14ms) | Detected: 388.87 | Target: 392.00 | Delta:    3.12 | Target Position:  14 |   UP | Step Speed:   395 | Current Position: 76
+  22 (  14ms) | Detected: 389.62 | Target: 392.00 | Delta:    2.38 | Target Position:  10 |   UP | Step Speed:   329 | Current Position: 81
+  23 (  14ms) | Detected: 391.57 | Target: 392.00 | Delta:    0.42 | Target Position:   0 | STOP | Step Speed:   261 | Current Position: 85
+Target of 392.00 found with 85 steps over 232 milliseconds.
+  24 (  14ms) | Detected: 392.19 | Target: 415.30 | Delta:   23.11 | Target Position: 100 |   UP | Step Speed:    66 | Current Position: 0
+  25 (  14ms) | Detected: 392.81 | Target: 415.30 | Delta:   22.50 | Target Position: 100 |   UP | Step Speed:   168 | Current Position: 2
+  26 (  14ms) | Detected: 392.08 | Target: 415.30 | Delta:   23.22 | Target Position: 100 |   UP | Step Speed:   245 | Current Position: 5
+  27 (  14ms) | Detected: 392.93 | Target: 415.30 | Delta:   22.37 | Target Position: 100 |   UP | Step Speed:   316 | Current Position: 9
+  28 (  14ms) | Detected: 393.92 | Target: 415.30 | Delta:   21.38 | Target Position:  97 |   UP | Step Speed:   385 | Current Position: 14
+  29 (  14ms) | Detected: 395.44 | Target: 415.30 | Delta:   19.86 | Target Position:  90 |   UP | Step Speed:   452 | Current Position: 20
+  30 (  14ms) | Detected: 397.30 | Target: 415.30 | Delta:   18.01 | Target Position:  81 |   UP | Step Speed:   510 | Current Position: 26
+  31 (  14ms) | Detected: 399.45 | Target: 415.30 | Delta:   15.85 | Target Position:  71 |   UP | Step Speed:   569 | Current Position: 33
+  32 (  14ms) | Detected: 399.49 | Target: 415.30 | Delta:   15.81 | Target Position:  71 |   UP | Step Speed:   629 | Current Position: 41
+  33 (  14ms) | Detected: 400.63 | Target: 415.30 | Delta:   14.68 | Target Position:  66 |   UP | Step Speed:   684 | Current Position: 49
+  34 (  14ms) | Detected: 404.89 | Target: 415.30 | Delta:   10.42 | Target Position:  47 |   UP | Step Speed:   672 | Current Position: 58
+  35 (  14ms) | Detected: 406.56 | Target: 415.30 | Delta:    8.75 | Target Position:  39 |   UP | Step Speed:   610 | Current Position: 67
+  36 (  14ms) | Detected: 408.94 | Target: 415.30 | Delta:    6.37 | Target Position:  28 |   UP | Step Speed:   548 | Current Position: 75
+  37 (  14ms) | Detected: 411.36 | Target: 415.30 | Delta:    3.94 | Target Position:  17 |   UP | Step Speed:   486 | Current Position: 82
+  38 (  14ms) | Detected: 414.02 | Target: 415.30 | Delta:    1.28 | Target Position:   5 |   UP | Step Speed:   424 | Current Position: 88
+  39 (  14ms) | Detected: 414.88 | Target: 415.30 | Delta:    0.43 | Target Position:   0 | STOP | Step Speed:   374 | Current Position: 93
+Target of 415.30 found with 93 steps over 232 milliseconds.
+  40 (  14ms) | Detected: 416.37 | Target: 440.00 | Delta:   23.63 | Target Position: 100 |   UP | Step Speed:    66 | Current Position: 0
+  41 (  14ms) | Detected: 416.05 | Target: 440.00 | Delta:   23.95 | Target Position: 100 |   UP | Step Speed:   168 | Current Position: 2
+  42 (  14ms) | Detected: 416.05 | Target: 440.00 | Delta:   23.95 | Target Position: 100 |   UP | Step Speed:   245 | Current Position: 5
+  43 (  14ms) | Detected: 416.43 | Target: 440.00 | Delta:   23.57 | Target Position: 100 |   UP | Step Speed:   316 | Current Position: 9
+  44 (  14ms) | Detected: 418.52 | Target: 440.00 | Delta:   21.48 | Target Position:  97 |   UP | Step Speed:   385 | Current Position: 14
+  45 (  14ms) | Detected: 419.73 | Target: 440.00 | Delta:   20.27 | Target Position:  92 |   UP | Step Speed:   452 | Current Position: 20
+  46 (  14ms) | Detected: 420.03 | Target: 440.00 | Delta:   19.97 | Target Position:  90 |   UP | Step Speed:   518 | Current Position: 27
+  47 (  14ms) | Detected: 422.44 | Target: 440.00 | Delta:   17.56 | Target Position:  79 |   UP | Step Speed:   576 | Current Position: 34
+  48 (  14ms) | Detected: 424.31 | Target: 440.00 | Delta:   15.69 | Target Position:  71 |   UP | Step Speed:   629 | Current Position: 42
+  49 (  14ms) | Detected: 426.37 | Target: 440.00 | Delta:   13.63 | Target Position:  61 |   UP | Step Speed:   690 | Current Position: 51
+  50 (  14ms) | Detected: 428.70 | Target: 440.00 | Delta:   11.30 | Target Position:  51 |   UP | Step Speed:   642 | Current Position: 60
+  51 (  14ms) | Detected: 430.68 | Target: 440.00 | Delta:    9.32 | Target Position:  42 |   UP | Step Speed:   583 | Current Position: 69
+  52 (  14ms) | Detected: 432.52 | Target: 440.00 | Delta:    7.48 | Target Position:  33 |   UP | Step Speed:   518 | Current Position: 77
+  53 (  14ms) | Detected: 433.97 | Target: 440.00 | Delta:    6.03 | Target Position:  27 |   UP | Step Speed:   469 | Current Position: 84
+  54 (  14ms) | Detected: 436.12 | Target: 440.00 | Delta:    3.88 | Target Position:  17 |   UP | Step Speed:   405 | Current Position: 90
+  55 (  14ms) | Detected: 436.83 | Target: 440.00 | Delta:    3.17 | Target Position:  14 |   UP | Step Speed:   341 | Current Position: 95
+  56 (  14ms) | Detected: 438.01 | Target: 440.00 | Delta:    1.99 | Target Position:   9 |   UP | Step Speed:   276 | Current Position: 99
+  57 (  14ms) | Detected: 437.94 | Target: 440.00 | Delta:    2.06 | Target Position:   9 |   UP | Step Speed:   232 | Current Position: 103
+  58 (  14ms) | Detected: 438.90 | Target: 440.00 | Delta:    1.10 | Target Position:   4 |   UP | Step Speed:   196 | Current Position: 106
+  59 (  14ms) | Detected: 439.47 | Target: 440.00 | Delta:    0.53 | Target Position:   0 | STOP | Step Speed:   114 | Current Position: 108
+Target of 440.00 found with 108 steps over 290 milliseconds.
+CalibrateStepsToNotes complete.
+-871
+101
+64
+62
+104
+91
+81
+78
+85
+93
+108
