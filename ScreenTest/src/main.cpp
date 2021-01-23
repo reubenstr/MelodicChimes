@@ -7,11 +7,12 @@
 #include "Free_Fonts.h"
 #include "msTimer.h"
 
-TFT_eSPI tft = TFT_eSPI(240, 320);
+#include <list>
+
+// TFT configuration contained in User_Setup.h in the local library.
+TFT_eSPI tft = TFT_eSPI();
 
 #define CALIBRATION_FILE "/calibrationData"
-
-String names[] = {"Fozy", "Piper", "Zoey", "Pickles", "Fish"};
 
 struct Boundry
 {
@@ -30,9 +31,33 @@ struct Boundry
   }
 };
 
+/*
+struct ButtonType
+{
+  Text,
+  LeftArrow,
+  RightArrow
+};
+*/
+enum ButtonId
+{
+  Default,
+  Prev,
+  Menu,
+  Next,
+  Play,
+  Pause,
+  Start,
+  Hourly,
+  StartHour,
+  EndHour
+
+};
+
 struct Button
 {
   String name;
+  ButtonId buttonId;
   Boundry boundry;
 
   uint32_t textColor = TFT_BLACK;
@@ -40,9 +65,10 @@ struct Button
   uint32_t activeColor = TFT_WHITE;
   uint32_t borderColor = TFT_DARKGREEN;
 
-  Button(String name, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
+  Button(ButtonId buttonId, String name, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
   {
     this->name = name;
+    this->buttonId = buttonId;
     this->boundry = boundry;
     this->textColor = textColor;
     this->fillColor = fillColor;
@@ -54,6 +80,7 @@ struct Button
 struct Label
 {
   String name;
+  ButtonId buttonId;
   Boundry boundry;
 
   uint32_t textColor = TFT_BLACK;
@@ -72,15 +99,163 @@ struct Label
   }
 };
 
-Button buttons[5] = {Button("PLAY", Boundry(65, 220, 100, 50), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
-                     Button("PAUSE", Boundry(190, 220, 100, 50), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
-                     Button("STOP", Boundry(315, 220, 100, 50), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
-                     Button("PREV", Boundry(15, 150, 75, 40), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-                     Button("NEXT", Boundry(385, 150, 75, 40), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
+Button buttons[6] = {Button(ButtonId::Default, "PLAY", Boundry(40, 220, 100, 50), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
+                     Button(ButtonId::Default, "PAUSE", Boundry(190, 220, 100, 50), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_LIGHTGREY),
+                     Button(ButtonId::Default, "STOP", Boundry(340, 220, 100, 50), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_LIGHTGREY),
+                     Button(ButtonId::Default, "PREV", Boundry(40, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY),
+                     Button(ButtonId::Default, "MENU", Boundry(190, 60, 100, 50), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_LIGHTGREY),
+                     Button(ButtonId::Default, "NEXT", Boundry(340, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY)};
 
-Label labels[3] = {Label("SD", Boundry(140, 290, 55, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
-                   Label("WIFI", Boundry(240, 290, 55, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
-                   Label("API", Boundry(340, 290, 55, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE)};
+Label labels[3] = {Label("SD", Boundry(120, 293, 50, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
+                   Label("WIFI", Boundry(190, 293, 50, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
+                   Label("API", Boundry(260, 293, 50, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY)};
+
+/*
+Button buttonsChime[6] = {Button("Hourly", Boundry(40, 220, 100, 50), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
+                     Button("PAUSE", Boundry(190, 220, 100, 50), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_LIGHTGREY),
+                     Button("STOP", Boundry(340, 220, 100, 50), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_LIGHTGREY),
+                     Button("PREV", Boundry(40, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY),
+                     Button("MENU", Boundry(190, 60, 100, 50), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_LIGHTGREY),
+                     Button("NEXT", Boundry(340, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY)};
+                     */
+
+std::list<Button> _buttonsChime;
+
+/*
+enum MenuId
+{
+  Chime,
+  Play,
+  Calibration,
+  ChimeHourly
+};
+
+struct MenuItem
+{
+  String name;
+  MenuId id;
+  std::list<MenuItem> menuItems;
+
+  MenuItem(MenuId id, String name)
+  {
+    this->id = id;
+    this->name = name;
+  }
+};
+
+std::list<MenuItem> _menuItems;
+
+void AddMenuItem(MenuId id, MenuItem mi)
+{
+  for (auto &m : _menuItems)
+  {
+    if (m.id == id)
+    {
+      m.menuItems.push_back(mi);
+    }
+  }
+}
+
+void DisplayMenu()
+{
+
+  _menuItems.push_back(MenuItem(Chime, "Chime"));
+  _menuItems.push_back(MenuItem(Play, "Play"));
+  _menuItems.push_back(MenuItem(Calibration, "Calibration"));
+
+  AddMenuItem(Chime, MenuItem(ChimeHourly, "Chime Hourly"));
+
+  int w = tft.width() - 1;
+  int h = tft.height() - 1;
+  int t = 3;
+
+  tft.fillScreen(TFT_BLACK);
+
+  // Perimeter.
+  tft.fillRect(0, 0, w, t, TFT_BLUE);
+  tft.fillRect(w - t, 0, w, h, TFT_BLUE);
+  tft.fillRect(0, h - t, tft.width(), t, TFT_BLUE);
+  tft.fillRect(0, 0, 0 + t, h, TFT_BLUE);
+
+  int y = 50;
+
+  for (auto const &m : _menuItems)
+  {
+    Serial.println(m.name);
+
+    tft.setFreeFont(FF22);
+    tft.setTextColor(TFT_BLACK);
+    tft.setTextSize(1);
+
+    tft.fillRect(150, y, 200, 40, TFT_GREEN);
+
+    //int textWidth = tft.textWidth(m.name);
+    //int textHeight = tft.fontHeight();
+    tft.drawString(m.name, 150 + 20, y);
+
+    if (m.menuItems.size() != 0)
+    {
+      tft.fillRect(150 + 20, y + 20, 10, 10, TFT_BLACK);
+    }
+
+    y += 50;
+  }
+}
+*/
+
+enum PageId
+{
+  Home,
+  Chime,
+  Calibration
+};
+
+void DisplayPage(PageId pageId)
+{
+
+  int w = tft.width() - 1;
+  int h = tft.height() - 1;
+  tft.fillScreen(TFT_BLACK);
+
+  int buttonHeight = 30;
+
+  tft.setFreeFont(FF22);
+  tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(1);
+
+  std::list<String> labels = {"Hourly :", "Start Hour :", "End Hour :", "Time Zone :", "Song :", "Play On Startup :"};
+
+  int labelY = 60;
+  for (auto const &l : labels)
+  {
+    tft.drawString(l, 30, labelY);
+    labelY += 40;
+  }
+
+  _buttonsChime.push_back(Button(ButtonId::Hourly, "Yes", Boundry(170, 75, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
+  _buttonsChime.push_back(Button(ButtonId::StartHour, "900", Boundry(170, 75, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
+  _buttonsChime.push_back(Button(ButtonId::EndHour, "2200", Boundry(170, 75, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
+  _buttonsChime.push_back(Button(ButtonId::EndHour, "EST (GMT - 4)", Boundry(170, 155, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
+  _buttonsChime.push_back(Button(ButtonId::EndHour, "Random", Boundry(170, 235, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
+  _buttonsChime.push_back(Button(ButtonId::EndHour, "Yes", Boundry(170, 235, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
+
+  int buttonY = 60;
+  for (auto const &b : _buttonsChime)
+  {
+    tft.setFreeFont(FF22);
+    tft.setTextColor(b.textColor);
+    tft.setTextSize(1);
+    int borderThickness = 3;
+    tft.fillRoundRect(b.boundry.x, buttonY, b.boundry.w, b.boundry.h, 10, b.borderColor);
+    tft.fillRoundRect(b.boundry.x + borderThickness, buttonY + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
+
+    int textWidth = tft.textWidth(b.name);
+    int textHeight = tft.fontHeight();
+    tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, buttonY + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
+
+    buttonY += 40;
+  }
+}
 
 void DisplayLayout()
 {
@@ -97,61 +272,83 @@ void DisplayLayout()
   tft.fillRect(0, 0, 0 + t, h, TFT_BLUE);
 
   // Cross lines.
-  tft.fillRect(0, 40, tft.width(), t, TFT_BLUE);
+  tft.fillRect(0, 43, tft.width(), t, TFT_BLUE);
   tft.fillRect(0, 285, tft.width(), t, TFT_BLUE);
 
   //
   tft.setFreeFont(FF23);
   tft.setTextColor(TFT_BLUE);
-  tft.drawString("Melodic Chimes", 100, 10);
+  int textWidth = tft.textWidth("MELODIC CHIMES");
+  tft.drawString("MELODIC CHIMES", (tft.width() - textWidth) / 2, 10);
 
+  tft.setFreeFont(FF21);
+  tft.setTextColor(TFT_BLUE);
+  tft.setTextSize(1);
+  tft.drawString("STATUS:", 20, 295);
+
+  /*
   tft.setTextColor(TFT_GREEN);
   tft.setTextFont(GLCD);
   tft.setTextSize(2);
   tft.drawString("Song:", 70, 80, GFXFF);
+  */
 
+  // Song title.
+  String songTitle = "Castle on the River";
   tft.setTextColor(TFT_GREEN);
   tft.setTextFont(GLCD);
   tft.setTextSize(3);
-  tft.drawString("Fly Away Time By", 100, 130, GFXFF);
+  textWidth = tft.textWidth(songTitle);
+  tft.drawString(songTitle, (tft.width() - textWidth) / 2, 155, GFXFF);
 
+  // Song border.
+  tft.drawRect(40, 145, 400, 40, TFT_LIGHTGREY);
+
+  // Progress bar.
+  tft.drawRect(40, 195, 400, 15, TFT_LIGHTGREY);
+
+  // Song time.
   tft.setTextSize(2);
-  tft.drawString("2:33", 50, 110, GFXFF);
+  tft.drawString("2:33", 45, 127, GFXFF);
 
-  tft.drawRect(110, 180, 160, 20, TFT_CYAN);
+  // Song time.
+  tft.setTextSize(2);
+  tft.drawString("1 of 5", 365, 127, GFXFF);
 
+  // Control buttons
   for (Button b : buttons)
   {
+    tft.setFreeFont(FF22);
+    tft.setTextColor(b.textColor);
+    tft.setTextSize(1);
     int borderThickness = 3;
     tft.fillRoundRect(b.boundry.x, b.boundry.y, b.boundry.w, b.boundry.h, 10, b.borderColor);
     tft.fillRoundRect(b.boundry.x + borderThickness, b.boundry.y + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
 
-    tft.setTextColor(b.textColor);
-    tft.setTextSize(3);
     int textWidth = tft.textWidth(b.name);
     int textHeight = tft.fontHeight();
-    tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness, GFXFF);
+    tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
   }
 
-  tft.drawTriangle(10, 130, 40, 160, 10, 190, TFT_CYAN);
+  //tft.drawTriangle(10, 130, 40, 160, 10, 190, TFT_CYAN);
 
+  // Status labels.
   for (Label l : labels)
   {
-    tft.fillRect(l.boundry.x, l.boundry.y, l.boundry.w, l.boundry.h, l.fillColor);
+    tft.setFreeFont(FF21);
     tft.setTextColor(l.textColor);
-    tft.setTextSize(2);
+    tft.setTextSize(1);
+    tft.fillRect(l.boundry.x, l.boundry.y, l.boundry.w, l.boundry.h, l.fillColor);
     int textWidth = tft.textWidth(l.name);
     int textHeight = tft.fontHeight();
-    tft.drawString(l.name, l.boundry.x + (l.boundry.w - textWidth) / 2, l.boundry.y + (l.boundry.h - textHeight) / 2, GFXFF);
+    tft.drawString(l.name, l.boundry.x + (l.boundry.w - textWidth) / 2, l.boundry.y + 2); // Manual verticle spacing fix.
   }
 
-  tft.setTextColor(TFT_BLUE);
-  tft.setTextSize(2);
-  tft.drawString("STATUS:", 20, 295, GFXFF);
-
+  // Time.
+  tft.setFreeFont(FF21);
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
-  tft.drawString("15:01:01", 380, 295, GFXFF);
+  tft.drawString("15:01:01", 360, 295);
 }
 
 void setup(void)
@@ -216,6 +413,9 @@ void setup(void)
   }
 
   DisplayLayout();
+  // DisplayMenu();
+
+  //DisplayPage(PageId::Chime);
 }
 
 void loop()
