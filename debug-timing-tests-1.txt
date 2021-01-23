@@ -232,14 +232,3 @@ Target of 415.30 found with 93 steps over 232 milliseconds.
   59 (  14ms) | Detected: 439.47 | Target: 440.00 | Delta:    0.53 | Target Position:   0 | STOP | Step Speed:   114 | Current Position: 108
 Target of 440.00 found with 108 steps over 290 milliseconds.
 CalibrateStepsToNotes complete.
--871
-101
-64
-62
-104
-91
-81
-78
-85
-93
-108

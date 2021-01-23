@@ -14,23 +14,25 @@ Chime::Chime(int chimeId, uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDire
 
     // TEMP
     // Manual add steps
-    stepsToNotes[60] = 68;
-    stepsToNotes[61] = 41;
-    stepsToNotes[62] = 45;
-    stepsToNotes[63] = 62;
-    stepsToNotes[64] = 73;
-    stepsToNotes[65] = 109;
-    stepsToNotes[66] = 109;
-    stepsToNotes[67] = 95;
-    stepsToNotes[68] = 97;
-    stepsToNotes[69] = 105;
+    stepsToNotes[60] = 96;
+    stepsToNotes[61] = 46;
+    stepsToNotes[62] = 39;
+    stepsToNotes[63] = 63;
+    stepsToNotes[64] = 59;
+    stepsToNotes[65] = 68;
+    stepsToNotes[66] = 63;
+    stepsToNotes[67] = 81;
+    stepsToNotes[68] = 108;
+    stepsToNotes[69] = 139;
+
+    _freqAverage.begin();
 }
 
 void Chime::SetStepperParameters()
 {
     _tuneStepper.setPinsInverted(true, false, false);
     _tuneStepper.setMaxSpeed(4000);
-    _tuneStepper.setAcceleration(4000);
+    _tuneStepper.setAcceleration(8000);
 
     _pickStepper.setPinsInverted(true, false, false);
     _pickStepper.setMaxSpeed(10000);
@@ -40,6 +42,7 @@ void Chime::SetStepperParameters()
     _muteStepper.setAcceleration(20000);
 }
 
+// Convert MIDI note number to frequency.
 float Chime::NoteIdToFrequency(float noteId)
 {
     // https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
@@ -60,7 +63,7 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
         if (_tuneState == TuneStates::FreeTune)
         {
             _tuneState = TuneStates::StepTune;
-        }      
+        }
         else if (_tuneState == TuneStates::WaitForStepTune)
         {
             _tuneState = TuneStates::FreeTune;
@@ -101,7 +104,7 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
         _currentNoteId = newNoteId;
         _tuneState = TuneStates::WaitForStepTune;
 
-        Serial.printf("StepTune: Target position: %i (noteID: %u | freq: %3.2f)\n", targetPosition,newNoteId,  NoteIdToFrequency(newNoteId));
+        Serial.printf("StepTune: Target position: %i (noteID: %u | freq: %3.2f)\n", targetPosition, newNoteId, NoteIdToFrequency(newNoteId));
     }
     // Wait for steps to complete triggered by TuneStates::StepTune
     else if (_tuneState == TuneStates::WaitForStepTune)
@@ -265,6 +268,89 @@ bool Chime::CalibrateStepsToNotes(float detectedFrequency)
     }
 
     Tick();
+}
+
+void Chime::PrepareFrequencyPerStep()
+{
+    _freqPerStepState = FreqPerStepStates::Home;
+    _totalReadingsCount = 0;
+     _tuneStepper.setMaxSpeed(500);
+    _tuneStepper.setAcceleration(250);
+}
+
+bool Chime::CalibrateFrequencyPerStep(float detectedFrequency)
+{
+
+    if (_freqPerStepState == FreqPerStepStates::Home)
+    {
+        float targetFrequency = NoteIdToFrequency(_lowestNote);
+        if (TuneFrequency(detectedFrequency, targetFrequency))
+        {
+            _freqPerStepState = FreqPerStepStates::Move;
+        }
+    }
+    else if (_freqPerStepState == FreqPerStepStates::Move)
+    {
+        _tuneStepper.setCurrentPosition(0);
+        _tuneStepper.moveTo(_stepsBetweenReadings);
+        _freqPerStepState = FreqPerStepStates::WaitForMove;
+    }
+    else if (_freqPerStepState == FreqPerStepStates::WaitForMove)
+    {
+        if (_tuneStepper.distanceToGo() == 0)
+        {
+            _readingsCount = 0;
+            _freqPerStepState = FreqPerStepStates::WaitForReading;
+        }
+    }
+    else if (_freqPerStepState == FreqPerStepStates::WaitForReading)
+    {
+
+        if (detectedFrequency > 0)
+        {
+            _freqAverage.reading(detectedFrequency);
+
+            _readingsCount++;
+        }
+
+        if (_readingsCount == _numReadingsToAverage)
+        {
+            frequencyReadings[_totalReadingsCount] = _freqAverage.getAvg();
+            _totalReadingsCount++;
+
+            if (detectedFrequency > NoteIdToFrequency(_highestNote))
+            {
+
+                Serial.printf("Chime %u finished with FrequencyPerStep.\n", _chimeId);
+
+                for(int i = 0; i < _totalReadingsCount; i++)
+                {
+                    Serial.printf("%3.2f\n", frequencyReadings[i]);
+                }
+                return true;
+            }
+
+            _freqPerStepState = FreqPerStepStates::Move;
+        }
+    }
+
+    // Check if string needs picked.
+    if (detectedFrequency > 0)
+    {
+        frequencyDetectionTimeoutMillis = millis();
+    }
+    else
+    {
+        if (millis() - frequencyDetectionTimeoutMillis > frequencyDetectionTimeoutMs)
+        {
+            frequencyDetectionTimeoutMillis = millis();
+            Pick();
+        }
+    }
+
+    Tick();
+
+    return false;
 }
 
 void Chime::PrepareCalibratePick()

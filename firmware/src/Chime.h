@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include <AccelStepper.h>
 #include <Audio.h>
+#include "movingAvg.h"
 /*
 
     Pick Stepper:
@@ -22,6 +23,9 @@ public:
 
     void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
+
+    void PrepareFrequencyPerStep();
+    bool CalibrateFrequencyPerStep(float detectedFrequency);
 
     void PrepareCalibratePick();
     bool CalibratePick(float detectedFrequency);
@@ -77,4 +81,20 @@ private:
     };
     TuneStates _tuneState = FreeTune;
     int _currentNoteId = 0;
+
+    // FrequenctPerStep variables
+    enum FreqPerStepStates
+    {
+        Home,
+        Move,
+        WaitForMove,
+        WaitForReading
+    };
+    FreqPerStepStates _freqPerStepState = FreqPerStepStates::Home;
+    int _readingsCount;
+    int _totalReadingsCount;
+    const int _numReadingsToAverage = 5;
+    const int _stepsBetweenReadings = 20;
+    movingAvg _freqAverage = movingAvg(_numReadingsToAverage);
+    float frequencyReadings[200];
 };

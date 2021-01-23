@@ -48,6 +48,16 @@ movingAvg avg(20);
     A weak magnet for the coil is has a low signal to noise ratio.
 	A stronger magnet provides a high signal to noise ration.
 	An overly strong magnet over dampens the string vibrations reducing the length of the signal.
+
+    Tuning:
+    Two types of tuning tested: free tuning, direct steps tuning
+        Direct step tuning (using a look up table for steps between notes) was tested to allow for maximuim
+        stepper speed due to free tuning tending to deaccelerate early. Testing revealed the steps between
+        notes varied between 20% to 50% between each test run (testing the amount of steps between frequencies within tolerance).
+        The variation was further confirmed when attemping to tune using the steps to note lookup table. Some occasions, 
+        while tuning, only a few steps were needed for final tune correction while on most occasions the steps required
+        where relatively many.
+
 */
 
 #define PIN_STEPPER_TUNE_STEP 14
@@ -182,9 +192,23 @@ void setup()
     notefreq1.begin(.15);
     // notefreq2.begin(.25);
 
+    //////////////////////////    
+    int c = 0;
+    bool completeFlag = false;
+    chimes[c].PrepareFrequencyPerStep();
+    while (!completeFlag)
+    {
+        completeFlag = chimes[c].CalibrateFrequencyPerStep(GetDetectedFrequency(c));
+    }
+
+    while (true)
+    {
+    }
+    //////////////////////////
+
     //////////////////////////
     // Calibration tests
-
+    /*
     int c = 0;
     bool completeFlag = false;
 
@@ -201,13 +225,16 @@ void setup()
     {
         completeFlag = chimes[c].CalibrateStepsToNotes(GetDetectedFrequency(c));
     }
+    */
     //////////////////////////
 
     //////////////////////////
-    /*
+/*
     unsigned long start = millis();
     int c = 0;
     int n = 62;
+    bool pickFlag = false;
+    unsigned long pickMillis = millis();
     while (true)
     {
 
@@ -227,11 +254,19 @@ void setup()
             }
 
             Serial.printf("New note: %u\n", n);
+            pickFlag = true;
+            pickMillis = millis();
+        }
+
+        // Delay pick for n milliseconds.
+        if (pickFlag && millis() - pickMillis > 100)
+        {
             chimes[c].Pick();
+            pickFlag = false;
         }
     }
     //////////////////////////
-*/
+    */
 }
 
 void loop()
