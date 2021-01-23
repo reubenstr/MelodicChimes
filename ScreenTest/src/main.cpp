@@ -41,17 +41,21 @@ struct ButtonType
 */
 enum ButtonId
 {
+  Home,
+  Calibration,
+  Configuration,
   Default,
-  Prev,
-  Menu,
+  Previous,
   Next,
   Play,
   Pause,
-  Start,
+  Stop,
   Hourly,
   StartHour,
-  EndHour
-
+  EndHour,
+  TimeZone,
+  Song,
+  Startup
 };
 
 struct Button
@@ -79,299 +83,284 @@ struct Button
 
 struct Label
 {
-  String name;
-  ButtonId buttonId;
-  Boundry boundry;
-
+  String text;
   uint32_t textColor = TFT_BLACK;
-  uint32_t fillColor = TFT_GREEN;
-  uint32_t activeColor = TFT_WHITE;
-  uint32_t borderColor = TFT_DARKGREEN;
+  int x;
+  int y;
 
-  Label(String name, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
+  Label(String text, int x, int y, uint32_t textColor)
   {
-    this->name = name;
-    this->boundry = boundry;
+    this->text = text;
+    this->x = x;
+    this->y = y;
     this->textColor = textColor;
-    this->fillColor = fillColor;
-    this->activeColor = activeColor;
-    this->borderColor = borderColor;
   }
 };
 
-Button buttons[6] = {Button(ButtonId::Default, "PLAY", Boundry(40, 220, 100, 50), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
-                     Button(ButtonId::Default, "PAUSE", Boundry(190, 220, 100, 50), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_LIGHTGREY),
-                     Button(ButtonId::Default, "STOP", Boundry(340, 220, 100, 50), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_LIGHTGREY),
-                     Button(ButtonId::Default, "PREV", Boundry(40, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY),
-                     Button(ButtonId::Default, "MENU", Boundry(190, 60, 100, 50), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_LIGHTGREY),
-                     Button(ButtonId::Default, "NEXT", Boundry(340, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY)};
+const int buttonMainW = 110;
+const int buttonMainH = 55;
 
-Label labels[3] = {Label("SD", Boundry(120, 293, 50, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
-                   Label("WIFI", Boundry(190, 293, 50, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
-                   Label("API", Boundry(260, 293, 50, 18), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY)};
+Button buttonsHome[] = {Button(ButtonId::Play, "PLAY", Boundry(30, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Pause, "PAUSE", Boundry(180, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Stop, "STOP", Boundry(330, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Previous, "PREV.", Boundry(30, 150, buttonMainW, buttonMainH), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Next, "NEXT", Boundry(330, 150, buttonMainW, buttonMainH), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
 
-/*
-Button buttonsChime[6] = {Button("Hourly", Boundry(40, 220, 100, 50), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY),
-                     Button("PAUSE", Boundry(190, 220, 100, 50), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_LIGHTGREY),
-                     Button("STOP", Boundry(340, 220, 100, 50), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_LIGHTGREY),
-                     Button("PREV", Boundry(40, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY),
-                     Button("MENU", Boundry(190, 60, 100, 50), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_LIGHTGREY),
-                     Button("NEXT", Boundry(340, 60, 100, 50), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_LIGHTGREY)};
-                     */
+Button buttonsMain[] = {Button(ButtonId::Home, "HOME", Boundry(30, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Configuration, "CONFIG.", Boundry(180, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Calibration, "CALIB.", Boundry(330, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE)};
 
-std::list<Button> _buttonsChime;
+Button buttonsConfiguration[] = {Button(ButtonId::Hourly, "Yes", Boundry(20, 90, buttonMainW, 35), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
+                                 Button(ButtonId::StartHour, "900", Boundry(180, 90, buttonMainW, 35), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
+                                 Button(ButtonId::EndHour, "1300", Boundry(340, 90, buttonMainW, 35), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
 
-/*
-enum MenuId
+                                 Button(ButtonId::TimeZone, "EST -4 GMT", Boundry(20, 170, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
+                                 Button(ButtonId::Startup, "Yes", Boundry(180, 170, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
+
+                                 Button(ButtonId::Song, "Random", Boundry(20, 240, buttonMainW * 3, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
+
+Label labelsConfiguration[] = {Label("Hourly", 20, 60, TFT_WHITE),
+                               Label("Start Hour", 180, 60, TFT_WHITE),
+                               Label("End Hour", 340, 60, TFT_WHITE),
+                              
+                               Label("Time Zone", 20, 140, TFT_WHITE),                               
+                               Label("On Startup", 180, 140, TFT_WHITE),
+                               
+                               Label("Song", 20, 210, TFT_WHITE)};
+
+struct StatusItem
 {
-  Chime,
-  Play,
-  Calibration,
-  ChimeHourly
-};
+  String text;
+  bool status;
 
-struct MenuItem
-{
-  String name;
-  MenuId id;
-  std::list<MenuItem> menuItems;
-
-  MenuItem(MenuId id, String name)
+  StatusItem(String text, bool status)
   {
-    this->id = id;
-    this->name = name;
+    this->text = text;
+    this->status = status;
   }
 };
-
-std::list<MenuItem> _menuItems;
-
-void AddMenuItem(MenuId id, MenuItem mi)
-{
-  for (auto &m : _menuItems)
-  {
-    if (m.id == id)
-    {
-      m.menuItems.push_back(mi);
-    }
-  }
-}
-
-void DisplayMenu()
-{
-
-  _menuItems.push_back(MenuItem(Chime, "Chime"));
-  _menuItems.push_back(MenuItem(Play, "Play"));
-  _menuItems.push_back(MenuItem(Calibration, "Calibration"));
-
-  AddMenuItem(Chime, MenuItem(ChimeHourly, "Chime Hourly"));
-
-  int w = tft.width() - 1;
-  int h = tft.height() - 1;
-  int t = 3;
-
-  tft.fillScreen(TFT_BLACK);
-
-  // Perimeter.
-  tft.fillRect(0, 0, w, t, TFT_BLUE);
-  tft.fillRect(w - t, 0, w, h, TFT_BLUE);
-  tft.fillRect(0, h - t, tft.width(), t, TFT_BLUE);
-  tft.fillRect(0, 0, 0 + t, h, TFT_BLUE);
-
-  int y = 50;
-
-  for (auto const &m : _menuItems)
-  {
-    Serial.println(m.name);
-
-    tft.setFreeFont(FF22);
-    tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(1);
-
-    tft.fillRect(150, y, 200, 40, TFT_GREEN);
-
-    //int textWidth = tft.textWidth(m.name);
-    //int textHeight = tft.fontHeight();
-    tft.drawString(m.name, 150 + 20, y);
-
-    if (m.menuItems.size() != 0)
-    {
-      tft.fillRect(150 + 20, y + 20, 10, 10, TFT_BLACK);
-    }
-
-    y += 50;
-  }
-}
-*/
 
 enum PageId
 {
-  Home,
-  Chime,
-  Calibration
+  HomePage,
+  CalibrationPage,
+  ConfigurationPage
 };
 
-void DisplayPage(PageId pageId)
+PageId pageId = PageId::HomePage;
+
+// Touch screen variables
+bool takeTouchReadings = true;
+unsigned long touchDebounceMillis = millis();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool IsButtonPressed(Button b, int x, int y)
 {
-
-  int w = tft.width() - 1;
-  int h = tft.height() - 1;
-  tft.fillScreen(TFT_BLACK);
-
-  int buttonHeight = 30;
-
-  tft.setFreeFont(FF22);
-  tft.setTextColor(TFT_WHITE);
-  tft.setTextSize(1);
-
-  std::list<String> labels = {"Hourly :", "Start Hour :", "End Hour :", "Time Zone :", "Song :", "Play On Startup :"};
-
-  int labelY = 60;
-  for (auto const &l : labels)
+  if (x >= b.boundry.x && x <= (b.boundry.x + b.boundry.w))
   {
-    tft.drawString(l, 30, labelY);
-    labelY += 40;
+    if (y >= b.boundry.y && y <= (b.boundry.y + b.boundry.h))
+    {
+      takeTouchReadings = false;
+      touchDebounceMillis = millis();
+      return true;
+    }
   }
 
-  _buttonsChime.push_back(Button(ButtonId::Hourly, "Yes", Boundry(170, 75, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
-  _buttonsChime.push_back(Button(ButtonId::StartHour, "900", Boundry(170, 75, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
-  _buttonsChime.push_back(Button(ButtonId::EndHour, "2200", Boundry(170, 75, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
-  _buttonsChime.push_back(Button(ButtonId::EndHour, "EST (GMT - 4)", Boundry(170, 155, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
-  _buttonsChime.push_back(Button(ButtonId::EndHour, "Random", Boundry(170, 235, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
-  _buttonsChime.push_back(Button(ButtonId::EndHour, "Yes", Boundry(170, 235, 300, buttonHeight), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_LIGHTGREY));
-
-  int buttonY = 60;
-  for (auto const &b : _buttonsChime)
-  {
-    tft.setFreeFont(FF22);
-    tft.setTextColor(b.textColor);
-    tft.setTextSize(1);
-    int borderThickness = 3;
-    tft.fillRoundRect(b.boundry.x, buttonY, b.boundry.w, b.boundry.h, 10, b.borderColor);
-    tft.fillRoundRect(b.boundry.x + borderThickness, buttonY + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
-
-    int textWidth = tft.textWidth(b.name);
-    int textHeight = tft.fontHeight();
-    tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, buttonY + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
-
-    buttonY += 40;
-  }
+  return false;
 }
 
-void DisplayLayout()
+void DisplayButton(Button b)
 {
-  int w = tft.width() - 1;
-  int h = tft.height() - 1;
-  int t = 3;
+  tft.setFreeFont(FF22);
+  tft.setTextColor(b.textColor);
+  tft.setTextSize(1);
+  int borderThickness = 3;
+  tft.fillRoundRect(b.boundry.x, b.boundry.y, b.boundry.w, b.boundry.h, 6, b.borderColor);
+  tft.fillRoundRect(b.boundry.x + borderThickness, b.boundry.y + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
 
+  int textWidth = tft.textWidth(b.name);
+  int textHeight = tft.fontHeight();
+  tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
+}
+
+void DisplayClearPartial()
+{
+  tft.fillRect(5, 60, 470, 225, TFT_BLACK);
+}
+
+void DisplaySetup()
+{
   tft.fillScreen(TFT_BLACK);
 
   // Perimeter.
+  int w = tft.width() - 1;
+  int h = tft.height() - 1;
+  int t = 3;
   tft.fillRect(0, 0, w, t, TFT_BLUE);
   tft.fillRect(w - t, 0, w, h, TFT_BLUE);
   tft.fillRect(0, h - t, tft.width(), t, TFT_BLUE);
   tft.fillRect(0, 0, 0 + t, h, TFT_BLUE);
 
   // Cross lines.
-  tft.fillRect(0, 43, tft.width(), t, TFT_BLUE);
+  tft.fillRect(0, 50, tft.width(), t, TFT_BLUE);
   tft.fillRect(0, 285, tft.width(), t, TFT_BLUE);
 
-  //
-  tft.setFreeFont(FF23);
-  tft.setTextColor(TFT_BLUE);
-  int textWidth = tft.textWidth("MELODIC CHIMES");
-  tft.drawString("MELODIC CHIMES", (tft.width() - textWidth) / 2, 10);
-
+  // Status items.
+  StatusItem _statusItems[3] = {StatusItem("SD", 0), StatusItem("WIFI", 0), StatusItem("TIME", 0)};
   tft.setFreeFont(FF21);
-  tft.setTextColor(TFT_BLUE);
+  tft.setTextColor(TFT_BLACK);
   tft.setTextSize(1);
-  tft.drawString("STATUS:", 20, 295);
-
-  /*
-  tft.setTextColor(TFT_GREEN);
-  tft.setTextFont(GLCD);
-  tft.setTextSize(2);
-  tft.drawString("Song:", 70, 80, GFXFF);
-  */
-
-  // Song title.
-  String songTitle = "Castle on the River";
-  tft.setTextColor(TFT_GREEN);
-  tft.setTextFont(GLCD);
-  tft.setTextSize(3);
-  textWidth = tft.textWidth(songTitle);
-  tft.drawString(songTitle, (tft.width() - textWidth) / 2, 155, GFXFF);
-
-  // Song border.
-  tft.drawRect(40, 145, 400, 40, TFT_LIGHTGREY);
-
-  // Progress bar.
-  tft.drawRect(40, 195, 400, 15, TFT_LIGHTGREY);
-
-  // Song time.
-  tft.setTextSize(2);
-  tft.drawString("2:33", 45, 127, GFXFF);
-
-  // Song time.
-  tft.setTextSize(2);
-  tft.drawString("1 of 5", 365, 127, GFXFF);
-
-  // Control buttons
-  for (Button b : buttons)
+  int sX = 20;
+  int sY = 292;
+  const int sW = 50;
+  const int sH = 20;
+  for (auto &s : _statusItems)
   {
-    tft.setFreeFont(FF22);
-    tft.setTextColor(b.textColor);
-    tft.setTextSize(1);
-    int borderThickness = 3;
-    tft.fillRoundRect(b.boundry.x, b.boundry.y, b.boundry.w, b.boundry.h, 10, b.borderColor);
-    tft.fillRoundRect(b.boundry.x + borderThickness, b.boundry.y + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
-
-    int textWidth = tft.textWidth(b.name);
-    int textHeight = tft.fontHeight();
-    tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
-  }
-
-  //tft.drawTriangle(10, 130, 40, 160, 10, 190, TFT_CYAN);
-
-  // Status labels.
-  for (Label l : labels)
-  {
-    tft.setFreeFont(FF21);
-    tft.setTextColor(l.textColor);
-    tft.setTextSize(1);
-    tft.fillRect(l.boundry.x, l.boundry.y, l.boundry.w, l.boundry.h, l.fillColor);
-    int textWidth = tft.textWidth(l.name);
-    int textHeight = tft.fontHeight();
-    tft.drawString(l.name, l.boundry.x + (l.boundry.w - textWidth) / 2, l.boundry.y + 2); // Manual verticle spacing fix.
+    tft.fillRect(sX, sY, sW, sH, s.status ? TFT_GREEN : TFT_RED);
+    int textWidth = tft.textWidth(s.text);
+    tft.drawString(s.text, sX + (sW - textWidth) / 2, sY + 2); // Manual verticle spacing fix.
+    sX += sW + 20;
   }
 
   // Time.
+  tft.setTextFont(GLCD);
+  tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(2);
+  tft.drawString("15:01:01", 360, 294);
+
+  for (Button b : buttonsMain)
+  {
+    DisplayButton(b);
+  }
+}
+
+void DisplayHomePage()
+{
+  // Song title.
+  String songTitle = "Castle on the River";
+  tft.setTextFont(GLCD);
+  tft.setTextColor(TFT_GREEN);
+  tft.setTextSize(3);
+  int textWidth = tft.textWidth(songTitle);
+  tft.drawString(songTitle, (tft.width() - textWidth) / 2, 80, GFXFF);
+
+  // Song border.
+  tft.drawRect(20, 70, 440, 40, TFT_LIGHTGREY);
+
+  // Progress bar.
+  tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
+
+  // Song time.
+  tft.setTextSize(2);
+  tft.drawString("2:33", 200, 155, GFXFF);
+  // Song time.
+  tft.setTextSize(2);
+  tft.drawString("1 of 5", 200, 175, GFXFF);
+
+  // Control buttons
+  for (Button b : buttonsHome)
+  {
+    DisplayButton(b);
+  }
+}
+
+void DisplayConfigurationPage()
+{
+
   tft.setFreeFont(FF21);
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
-  tft.drawString("15:01:01", 360, 295);
+
+  for (auto const &l : labelsConfiguration)
+  {
+    tft.setTextColor(l.textColor);
+    tft.drawString(l.text, l.x, l.y);
+  }
+
+  for (auto const &b : buttonsConfiguration)
+  {
+    DisplayButton(b);
+  }
+}
+
+void UpdateScreen()
+{
+  static PageId previousPageId = pageId;
+
+  if (previousPageId != pageId)
+  {
+    previousPageId = pageId;
+
+    if (pageId == PageId::HomePage)
+    {
+      DisplayClearPartial();
+      DisplayHomePage();
+    }
+    else if (pageId == PageId::ConfigurationPage)
+    {
+      DisplayClearPartial();
+      DisplayConfigurationPage();
+    }
+    else if (pageId == PageId::CalibrationPage)
+    {
+      DisplayClearPartial();
+    }
+  }
+}
+
+void CheckTouchScreen()
+{
+  uint16_t x, y;
+
+  if (millis() - touchDebounceMillis > 250)
+  {
+    takeTouchReadings = true;
+  }
+
+  if (takeTouchReadings)
+  {
+    if (tft.getTouch(&x, &y))
+    {
+      for (auto &b : buttonsMain)
+      {
+        if (IsButtonPressed(b, x, y))
+        {
+          if (b.buttonId == ButtonId::Home)
+          {
+            pageId = PageId::HomePage;
+          }
+          else if (b.buttonId == ButtonId::Calibration)
+          {
+            pageId = PageId::CalibrationPage;
+          }
+          else if (b.buttonId == ButtonId::Configuration)
+          {
+            pageId = PageId::ConfigurationPage;
+          }
+        }
+      }
+    }
+  }
 }
 
 void setup(void)
 {
-  uint16_t calibrationData[5];
-  uint8_t calDataOK = 0;
-
   Serial.begin(115200);
   Serial.println("starting");
 
+  uint16_t calibrationData[5];
+  uint8_t calDataOK = 0;
+
   tft.init();
   tft.setRotation(3);
-  tft.fillScreen((0xFFFF));
-
-  tft.setCursor(20, 0, 2);
-  tft.setTextColor(TFT_BLACK, TFT_WHITE);
-  tft.setTextSize(1);
-  tft.println("calibration run");
 
   // check file system
   if (!SPIFFS.begin())
   {
-    Serial.println("formating file system");
+    Serial.println("Formating file system.");
 
     SPIFFS.format();
     SPIFFS.begin();
@@ -390,20 +379,17 @@ void setup(void)
     }
   }
 
-  //calDataOK = false;
+  // calDataOK = false;
 
   if (calDataOK)
   {
-    // calibration data valid
-    Serial.println("calDataOK");
+    Serial.println("GLCD calibration data OK.");
     tft.setTouch(calibrationData);
   }
   else
   {
-    // data not valid. recalibrate
-    Serial.println("calData NOT OK");
+    Serial.println("GLCD calibration data NOT OK.");
     tft.calibrateTouch(calibrationData, TFT_WHITE, TFT_RED, 15);
-    // store data
     File f = SPIFFS.open(CALIBRATION_FILE, "w");
     if (f)
     {
@@ -412,45 +398,13 @@ void setup(void)
     }
   }
 
-  DisplayLayout();
-  // DisplayMenu();
-
-  //DisplayPage(PageId::Chime);
+  DisplaySetup();
+  DisplayHomePage();
 }
 
 void loop()
 {
-  uint16_t x, y;
-  static uint16_t color;
+  CheckTouchScreen();
 
-  static bool takeTouchReadings = true;
-  static msTimer touchDebouncTimer(100);
-
-  if (touchDebouncTimer.elapsed())
-  {
-    takeTouchReadings = true;
-  }
-  /*
-  if (takeTouchReadings)
-  {
-    if (tft.getTouch(&x, &y))
-    {
-
-
-      for (int i = 0; i < 5; i++)
-      {
-        if (pets[i].boundry.x1 <= x && pets[i].boundry.x2 >= x)
-        {
-          if (pets[i].boundry.y1 <= y && pets[i].boundry.y2 >= y)
-          {
-            pets[i].isFed = !pets[i].isFed;
-           
-            takeTouchReadings = false;
-            touchDebouncTimer.resetDelay();
-          }
-        }
-      }
-    }
-  }
-  */
+  UpdateScreen();
 }
