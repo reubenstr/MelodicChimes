@@ -39,7 +39,7 @@
 // Arduino Ethernet shield, pin 4.
 // Default SD chip select is the SPI SS pin (10).
 // Other hardware will be different as documented for that hardware.
-const uint8_t SD_SELECT = 10;
+const uint8_t SD_SELECT = 8;
 
 // LED definitions for status and user indicators
 const uint8_t READY_LED = 20;      // when finished

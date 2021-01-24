@@ -1,93 +1,45 @@
 // Crude proof of concept.
 
 #include <Arduino.h>
-#include <FS.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
 #include "Free_Fonts.h"
 #include "msTimer.h"
-
+#include <SdFat.h>
 #include <list>
+#include <vector>
+#include "main.h"
 
+// TFT Screen.
 // TFT configuration contained in User_Setup.h in the local library.
 TFT_eSPI tft = TFT_eSPI();
+bool takeTouchReadings = true;
+unsigned long touchDebounceMillis = millis();
 
-#define CALIBRATION_FILE "/calibrationData"
+// SD Card.
+const uint8_t SD_SELECT = 8;
+SdFat32 SD;
+File32 dir;
+File32 file;
 
-struct Boundry
+// General system.
+PageId pageId = PageId::HomePage;
+PlayState playState = PlayState::Stop;
+
+// MIDI system.
+std::vector<String> midiFiles;
+int selectedFileId = 0;
+
+// Configuration.
+struct Configuration
 {
-  int x, y, w, h;
-
-  Boundry()
-  {
-  }
-
-  Boundry(int x, int y, int w, int h)
-  {
-    this->x = x;
-    this->y = y;
-    this->w = w;
-    this->h = h;
-  }
-};
-
-enum ButtonId
-{
-  Home,
-  Calibration,
-  Configuration,
-  Default,
-  Previous,
-  Next,
-  Play,
-  Pause,
-  Stop,
-  Hourly,
-  StartHour,
-  EndHour,
-  TimeZone,
-  Song,
-  Startup
-};
-
-struct Button
-{
-  String text;
-  ButtonId buttonId;
-  Boundry boundry;
-
-  uint32_t textColor = TFT_BLACK;
-  uint32_t fillColor = TFT_GREEN;
-  uint32_t activeColor = TFT_WHITE;
-  uint32_t borderColor = TFT_DARKGREEN;
-
-  Button(ButtonId buttonId, String text, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
-  {
-    this->text = text;
-    this->buttonId = buttonId;
-    this->boundry = boundry;
-    this->textColor = textColor;
-    this->fillColor = fillColor;
-    this->activeColor = activeColor;
-    this->borderColor = borderColor;
-  }
-};
-
-struct Label
-{
-  String text;
-  uint32_t textColor = TFT_BLACK;
-  int x;
-  int y;
-
-  Label(String text, int x, int y, uint32_t textColor)
-  {
-    this->text = text;
-    this->x = x;
-    this->y = y;
-    this->textColor = textColor;
-  }
-};
+  bool hourly = true;
+  int startHour = 900;
+  int endHour = 2200;
+  signed int timeZone = -4;
+  bool startup = true;
+  String songName = "Default Song";
+} configuration;
 
 const int buttonMainW = 110;
 const int buttonMainH = 55;
@@ -109,52 +61,24 @@ Button buttonsConfiguration[] = {Button(ButtonId::Hourly, "Yes", Boundry(20, 90,
                                  Button(ButtonId::Startup, "Yes", Boundry(180, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::Song, "Random", Boundry(20, 230, 270, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
 
-Label labelsConfiguration[] = {Label("Hourly", 20, 70, TFT_WHITE),
-                               Label("Start Hour", 180, 70, TFT_WHITE),
-                               Label("End Hour", 340, 70, TFT_WHITE),
-                               Label("Time Zone", 20, 140, TFT_WHITE),
-                               Label("On Startup", 180, 140, TFT_WHITE),
-                               Label("Song", 20, 210, TFT_WHITE)};
+Label labelsMain[] = {Label(LabelId::MainState, "MainState", 2, 20, 294, TFT_WHITE, Justification::Left),
+                      Label(LabelId::Time, "Time", 2, 260, 460, TFT_WHITE, Justification::Right)};
 
-struct StatusItem
-{
-  String text;
-  bool status;
+Label labelsHome[] = {Label(LabelId::SongTitle, "Song Title", 3, 240, 80, TFT_GREEN, Justification::Center),
+                      Label(LabelId::SongLength, "Length", 2, 240, 160, TFT_GREEN, Justification::Center),
+                      Label(LabelId::SongNumber, "Count", 2, 240, 185, TFT_GREEN, Justification::Center)};
 
-  StatusItem(String text, bool status)
-  {
-    this->text = text;
-    this->status = status;
-  }
-};
+Label labelsConfiguration[] = {Label(LabelId::Default, "Hourly", 2, 20, 70, TFT_WHITE, Justification::Left),
+                               Label(LabelId::Default, "Start Hour", 2, 180, 70, TFT_WHITE, Justification::Left),
+                               Label(LabelId::Default, "End Hour", 2, 340, 70, TFT_WHITE, Justification::Left),
+                               Label(LabelId::Default, "Time Zone", 2, 20, 140, TFT_WHITE, Justification::Left),
+                               Label(LabelId::Default, "On Startup", 2, 180, 140, TFT_WHITE, Justification::Left),
+                               Label(LabelId::Default, "Song", 2, 20, 210, TFT_WHITE, Justification::Left)};
 
-enum PageId
-{
-  HomePage,
-  CalibrationPage,
-  ConfigurationPage
-};
+StatusItem _statusItems[] = {StatusItem("SD", 0),
+                             StatusItem("WIFI", 0),
+                             StatusItem("TIME", 0)};
 
-PageId pageId = PageId::HomePage;
-
-// Touch screen variables.
-bool takeTouchReadings = true;
-unsigned long touchDebounceMillis = millis();
-
-// Configuration variables.
-struct Configuration
-{
-  bool hourly = true;
-  int startHour = 900;
-  int endHour = 2200;
-  signed int timeZone = -4;
-  bool startup = true;
-  String songName = "Default Song";
-} configuration;
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -187,12 +111,38 @@ void DisplayButton(Button b)
   tft.drawString(b.text, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
 }
 
+void DisplayLabel(Label l)
+{
+  int x;
+  tft.setTextSize(l.size);
+  tft.setTextColor(l.textColor);
+
+  if (l.justification == Justification::Left)
+  {
+    x = l.x;
+  }
+  else if (l.justification == Justification::Center)
+  {
+    x = l.x - (tft.textWidth(l.text) / 2);
+  }
+  else if (l.justification == Justification::Right)
+  {
+    x = l.x - tft.textWidth(l.text);
+  }
+  tft.drawString(l.text, x, l.y);
+}
+
+void DisplayLabel(Label *labels, LabelId id)
+{
+  DisplayLabel(labels[int(id)]);
+}
+
 void DisplayClearPartial()
 {
   tft.fillRect(5, 60, 470, 225, TFT_BLACK);
 }
 
-void DisplaySetup()
+void DisplayMain()
 {
   tft.fillScreen(TFT_BLACK);
 
@@ -210,11 +160,10 @@ void DisplaySetup()
   tft.fillRect(0, 285, tft.width(), t, TFT_BLUE);
 
   // Status items.
-  StatusItem _statusItems[3] = {StatusItem("SD", 0), StatusItem("WIFI", 0), StatusItem("TIME", 0)};
   tft.setFreeFont(FF21);
   tft.setTextColor(TFT_BLACK);
   tft.setTextSize(1);
-  int sX = 20;
+  int sX = 160;
   int sY = 292;
   const int sW = 50;
   const int sH = 20;
@@ -226,63 +175,50 @@ void DisplaySetup()
     sX += sW + 20;
   }
 
-  // Time.
-  tft.setTextFont(GLCD);
-  tft.setTextColor(TFT_WHITE);
-  tft.setTextSize(2);
-  tft.drawString("15:01:01", 360, 294);
-
   for (Button b : buttonsMain)
   {
     DisplayButton(b);
+  }
+
+  tft.setTextFont(GLCD); // TODO: add fonts to the label class.
+  for (Label l : labelsMain)
+  {
+    DisplayLabel(l);
   }
 }
 
 void DisplayHomePage()
 {
-  // Song title.
-  String songTitle = "Castle on the River";
-  tft.setTextFont(GLCD);
-  tft.setTextColor(TFT_GREEN);
-  tft.setTextSize(3);
-  int textWidth = tft.textWidth(songTitle);
-  tft.drawString(songTitle, (tft.width() - textWidth) / 2, 80, GFXFF);
-
   // Song border.
   tft.drawRect(20, 70, 440, 40, TFT_LIGHTGREY);
 
   // Progress bar.
   tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
 
-  // Song time.
-  tft.setTextSize(2);
-  tft.drawString("2:33", 200, 155, GFXFF);
-  // Song time.
-  tft.setTextSize(2);
-  tft.drawString("1 of 5", 200, 175, GFXFF);
-
-  // Control buttons
   for (Button b : buttonsHome)
   {
     DisplayButton(b);
+  }
+
+  tft.setTextFont(GLCD); // TODO: add fonts to the label class.
+  for (Label l : labelsHome)
+  {
+    DisplayLabel(l);
   }
 }
 
 void DisplayConfigurationPage()
 {
-  tft.setFreeFont(FF21);
-  tft.setTextColor(TFT_WHITE);
-  tft.setTextSize(1);
-
-  for (auto const &l : labelsConfiguration)
-  {
-    tft.setTextColor(l.textColor);
-    tft.drawString(l.text, l.x, l.y);
-  }
 
   for (auto const &b : buttonsConfiguration)
   {
     DisplayButton(b);
+  }
+
+  tft.setFreeFont(FF21); // TODO: add fonts to the label class.
+  for (auto const &l : labelsConfiguration)
+  {
+    DisplayLabel(l);
   }
 }
 
@@ -324,8 +260,7 @@ void CheckTouchScreen()
   {
     if (tft.getTouch(&x, &y, 20))
     {
-
-      Serial.printf("(%u, %u)\n",x, y);
+      // Serial.printf("(%u, %u)\n", x, y);
 
       for (auto &b : buttonsMain)
       {
@@ -354,18 +289,42 @@ void CheckTouchScreen()
           {
             if (b.buttonId == ButtonId::Previous)
             {
+              /*
+              playState = PlayState::Stop;
+              if (selectedFileId-- == 0)
+              {
+                selectedFileId = midiFiles.size() - 1;
+              }
+
+              labelsHome[int(LabelId::SongTitle)].text = midiFiles[selectedFileId];
+              DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
+              */
+
+              Serial.println(labelsHome[int(LabelId::SongTitle)].text);
             }
             else if (b.buttonId == ButtonId::Next)
             {
+              /*
+              playState = PlayState::Stop;
+              if (selectedFileId++ > midiFiles.size() - 1)
+              {
+                selectedFileId = 0;
+              }
+              */
+
+              DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
             }
             else if (b.buttonId == ButtonId::Play)
             {
+              playState = PlayState::Play;
             }
             else if (b.buttonId == ButtonId::Pause)
             {
+              playState = PlayState::Pause;
             }
             else if (b.buttonId == ButtonId::Stop)
             {
+              playState = PlayState::Stop;
             }
           }
         }
@@ -416,10 +375,10 @@ void CheckTouchScreen()
   }
 }
 
-void SetupScreen()
+void ScreenInit()
 {
-  uint16_t calibrationData[5];
-  uint8_t calDataOK = 0;
+  //uint16_t calibrationData[5];
+  //uint8_t calDataOK = 0;
 
   tft.init();
   tft.setRotation(3);
@@ -469,14 +428,64 @@ void SetupScreen()
   */
 }
 
+// Initialize SD Card
+void SDInit()
+{
+  if (!SD.begin(SD_SELECT, SPI_FULL_SPEED))
+  {
+    Serial.println("SD Card: init failed!");
+
+    while (true)
+      ;
+  }
+
+  Serial.println("SD Card: init successful.");
+
+  Serial.println("SD Card: finding .mid files.");
+  // Open root directory
+  if (!dir.open("/"))
+  {
+    Serial.println("SD Card: dir.open() failed!");
+  }
+
+  while (file.openNext(&dir, O_RDONLY))
+  {
+    char buf[25];
+    file.getName(buf, 25);
+    String fileName(buf);
+    String extension = fileName.substring(fileName.length() - 3);
+    if (extension.equals("mid") || extension.equals("MID"))
+    {
+      midiFiles.push_back(fileName);
+    }
+    file.close();
+  }
+  if (dir.getError())
+  {
+    Serial.println("SD Card: openNext() failed!");
+  }
+  else
+  {
+    Serial.printf("SD Card: %u .mid files found.\n", midiFiles.size());
+  }
+
+  for (auto &s : midiFiles)
+  {
+    Serial.println(s);
+  }
+}
+
 void setup(void)
 {
+  delay(1000);
   Serial.begin(115200);
   Serial.println("starting");
 
-  SetupScreen();
+  SDInit();
 
-  DisplaySetup();
+  ScreenInit();
+
+  DisplayMain();
   DisplayHomePage();
 
   Serial.println("Screen printed.");
