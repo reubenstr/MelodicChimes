@@ -107,7 +107,7 @@ Button buttonsConfiguration[] = {Button(ButtonId::Hourly, "Yes", Boundry(20, 90,
                                  Button(ButtonId::EndHour, "1300", Boundry(340, 90, buttonMainW, 35), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::TimeZone, "EST -4 GMT", Boundry(20, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::Startup, "Yes", Boundry(180, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::Song, "Random", Boundry(20, 230, 240, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
+                                 Button(ButtonId::Song, "Random", Boundry(20, 230, 270, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
 
 Label labelsConfiguration[] = {Label("Hourly", 20, 70, TFT_WHITE),
                                Label("Start Hour", 180, 70, TFT_WHITE),
@@ -178,7 +178,7 @@ void DisplayButton(Button b)
   tft.setFreeFont(FF22);
   tft.setTextColor(b.textColor);
   tft.setTextSize(1);
-  int borderThickness = 3;
+  int borderThickness = 1;
   tft.fillRoundRect(b.boundry.x, b.boundry.y, b.boundry.w, b.boundry.h, 6, b.borderColor);
   tft.fillRoundRect(b.boundry.x + borderThickness, b.boundry.y + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
 
@@ -322,8 +322,10 @@ void CheckTouchScreen()
 
   if (takeTouchReadings)
   {
-    if (tft.getTouch(&x, &y))
+    if (tft.getTouch(&x, &y, 20))
     {
+
+      Serial.printf("(%u, %u)\n",x, y);
 
       for (auto &b : buttonsMain)
       {
@@ -422,6 +424,8 @@ void SetupScreen()
   tft.init();
   tft.setRotation(3);
 
+  /*
+
   // check file system
   if (!SPIFFS.begin())
   {
@@ -462,6 +466,7 @@ void SetupScreen()
       f.close();
     }
   }
+  */
 }
 
 void setup(void)
@@ -473,6 +478,8 @@ void setup(void)
 
   DisplaySetup();
   DisplayHomePage();
+
+  Serial.println("Screen printed.");
 }
 
 void loop()
