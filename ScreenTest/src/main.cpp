@@ -31,14 +31,6 @@ struct Boundry
   }
 };
 
-/*
-struct ButtonType
-{
-  Text,
-  LeftArrow,
-  RightArrow
-};
-*/
 enum ButtonId
 {
   Home,
@@ -60,7 +52,7 @@ enum ButtonId
 
 struct Button
 {
-  String name;
+  String text;
   ButtonId buttonId;
   Boundry boundry;
 
@@ -69,9 +61,9 @@ struct Button
   uint32_t activeColor = TFT_WHITE;
   uint32_t borderColor = TFT_DARKGREEN;
 
-  Button(ButtonId buttonId, String name, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
+  Button(ButtonId buttonId, String text, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
   {
-    this->name = name;
+    this->text = text;
     this->buttonId = buttonId;
     this->boundry = boundry;
     this->textColor = textColor;
@@ -100,32 +92,28 @@ struct Label
 const int buttonMainW = 110;
 const int buttonMainH = 55;
 
+Button buttonsMain[] = {Button(ButtonId::Home, "HOME", Boundry(30, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Configuration, "CONFIG.", Boundry(180, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
+                        Button(ButtonId::Calibration, "CALIB.", Boundry(330, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE)};
+
 Button buttonsHome[] = {Button(ButtonId::Play, "PLAY", Boundry(30, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
                         Button(ButtonId::Pause, "PAUSE", Boundry(180, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
                         Button(ButtonId::Stop, "STOP", Boundry(330, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
                         Button(ButtonId::Previous, "PREV.", Boundry(30, 150, buttonMainW, buttonMainH), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
                         Button(ButtonId::Next, "NEXT", Boundry(330, 150, buttonMainW, buttonMainH), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
 
-Button buttonsMain[] = {Button(ButtonId::Home, "HOME", Boundry(30, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Configuration, "CONFIG.", Boundry(180, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Calibration, "CALIB.", Boundry(330, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE)};
-
 Button buttonsConfiguration[] = {Button(ButtonId::Hourly, "Yes", Boundry(20, 90, buttonMainW, 35), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::StartHour, "900", Boundry(180, 90, buttonMainW, 35), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::EndHour, "1300", Boundry(340, 90, buttonMainW, 35), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
+                                 Button(ButtonId::TimeZone, "EST -4 GMT", Boundry(20, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
+                                 Button(ButtonId::Startup, "Yes", Boundry(180, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
+                                 Button(ButtonId::Song, "Random", Boundry(20, 230, 240, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
 
-                                 Button(ButtonId::TimeZone, "EST -4 GMT", Boundry(20, 170, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::Startup, "Yes", Boundry(180, 170, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-
-                                 Button(ButtonId::Song, "Random", Boundry(20, 240, buttonMainW * 3, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
-
-Label labelsConfiguration[] = {Label("Hourly", 20, 60, TFT_WHITE),
-                               Label("Start Hour", 180, 60, TFT_WHITE),
-                               Label("End Hour", 340, 60, TFT_WHITE),
-                              
-                               Label("Time Zone", 20, 140, TFT_WHITE),                               
+Label labelsConfiguration[] = {Label("Hourly", 20, 70, TFT_WHITE),
+                               Label("Start Hour", 180, 70, TFT_WHITE),
+                               Label("End Hour", 340, 70, TFT_WHITE),
+                               Label("Time Zone", 20, 140, TFT_WHITE),
                                Label("On Startup", 180, 140, TFT_WHITE),
-                               
                                Label("Song", 20, 210, TFT_WHITE)};
 
 struct StatusItem
@@ -149,9 +137,22 @@ enum PageId
 
 PageId pageId = PageId::HomePage;
 
-// Touch screen variables
+// Touch screen variables.
 bool takeTouchReadings = true;
 unsigned long touchDebounceMillis = millis();
+
+// Configuration variables.
+struct Configuration
+{
+  bool hourly = true;
+  int startHour = 900;
+  int endHour = 2200;
+  signed int timeZone = -4;
+  bool startup = true;
+  String songName = "Default Song";
+} configuration;
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,9 +182,9 @@ void DisplayButton(Button b)
   tft.fillRoundRect(b.boundry.x, b.boundry.y, b.boundry.w, b.boundry.h, 6, b.borderColor);
   tft.fillRoundRect(b.boundry.x + borderThickness, b.boundry.y + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
 
-  int textWidth = tft.textWidth(b.name);
+  int textWidth = tft.textWidth(b.text);
   int textHeight = tft.fontHeight();
-  tft.drawString(b.name, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
+  tft.drawString(b.text, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
 }
 
 void DisplayClearPartial()
@@ -221,7 +222,7 @@ void DisplaySetup()
   {
     tft.fillRect(sX, sY, sW, sH, s.status ? TFT_GREEN : TFT_RED);
     int textWidth = tft.textWidth(s.text);
-    tft.drawString(s.text, sX + (sW - textWidth) / 2, sY + 2); // Manual verticle spacing fix.
+    tft.drawString(s.text, sX + (sW - textWidth) / 2 - 1, sY + 2); // Manual verticle spacing fix.
     sX += sW + 20;
   }
 
@@ -269,7 +270,6 @@ void DisplayHomePage()
 
 void DisplayConfigurationPage()
 {
-
   tft.setFreeFont(FF21);
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
@@ -324,6 +324,7 @@ void CheckTouchScreen()
   {
     if (tft.getTouch(&x, &y))
     {
+
       for (auto &b : buttonsMain)
       {
         if (IsButtonPressed(b, x, y))
@@ -342,15 +343,79 @@ void CheckTouchScreen()
           }
         }
       }
+
+      if (pageId == PageId::HomePage)
+      {
+        for (auto &b : buttonsHome)
+        {
+          if (IsButtonPressed(b, x, y))
+          {
+            if (b.buttonId == ButtonId::Previous)
+            {
+            }
+            else if (b.buttonId == ButtonId::Next)
+            {
+            }
+            else if (b.buttonId == ButtonId::Play)
+            {
+            }
+            else if (b.buttonId == ButtonId::Pause)
+            {
+            }
+            else if (b.buttonId == ButtonId::Stop)
+            {
+            }
+          }
+        }
+      }
+
+      if (pageId == PageId::ConfigurationPage)
+      {
+        for (auto &b : buttonsConfiguration)
+        {
+          if (IsButtonPressed(b, x, y))
+          {
+            if (b.buttonId == ButtonId::Hourly)
+            {
+            }
+            else if (b.buttonId == ButtonId::StartHour)
+            {
+              configuration.startHour += 100;
+              if (configuration.startHour > 2300)
+              {
+                configuration.startHour = 100;
+              }
+              String postFix = configuration.startHour < 1300 ? "pm" : "am";
+              String hour = String(configuration.startHour > 1200 ? (configuration.startHour - 1200) / 100 : configuration.startHour / 100);
+
+              b.text = hour + " " + postFix;
+              DisplayButton(b);
+            }
+            else if (b.buttonId == ButtonId::EndHour)
+            {
+            }
+            else if (b.buttonId == ButtonId::TimeZone)
+            {
+            }
+            else if (b.buttonId == ButtonId::StartHour)
+            {
+            }
+            else if (b.buttonId == ButtonId::Song)
+            {
+            }
+          }
+        }
+      }
+
+      if (pageId == PageId::CalibrationPage)
+      {
+      }
     }
   }
 }
 
-void setup(void)
+void SetupScreen()
 {
-  Serial.begin(115200);
-  Serial.println("starting");
-
   uint16_t calibrationData[5];
   uint8_t calDataOK = 0;
 
@@ -397,6 +462,14 @@ void setup(void)
       f.close();
     }
   }
+}
+
+void setup(void)
+{
+  Serial.begin(115200);
+  Serial.println("starting");
+
+  SetupScreen();
 
   DisplaySetup();
   DisplayHomePage();
