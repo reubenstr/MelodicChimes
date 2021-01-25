@@ -1,11 +1,12 @@
-
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <map>
 #include <vector>
 
-#ifndef BUTTONS_H
-#define BUTTONS_H
+#ifndef GFXITEMS_H
+#define GFXITEMS_H
+
+// ids are not unique.
 
 enum class Justification
 {
@@ -38,10 +39,15 @@ struct GFXItem
     int padding = -1;
     int cornerSize = 0;
 
+    uint8_t textFont = 0;
+    const GFXfont *gfxFont = nullptr;
+
     GFXItem();
 
     // Candidate for buttons.
-    GFXItem(int id, String text, int x, int y, int w, int h, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
+    GFXItem(int id, String text, int x, int y, int w, int h,
+            uint32_t textColor, uint32_t fillColor, uint32_t activeColor,
+            uint32_t borderColor, const GFXfont *gfxFont = nullptr)
     {
         this->text = text;
         this->id = id;
@@ -53,14 +59,17 @@ struct GFXItem
         this->fillColor = fillColor;
         this->activeColor = activeColor;
         this->borderColor = borderColor;
-              
+        this->gfxFont = gfxFont;
+
         cornerSize = 5;
-        textSize = 3;
+        textSize = 1;
         borderThickness = 1;
     }
 
     // Candidate for labels.
-    GFXItem(int id, String text, int textSize, int x, int y, int w, int h, uint32_t textColor, uint32_t fillColor, Justification justification)
+    GFXItem(int id, String text, int textSize, int x, int y, int w, int h,
+            uint32_t textColor, uint32_t fillColor,
+            Justification justification, const GFXfont *gfxFont = nullptr)
     {
         this->id = id;
         this->text = text;
@@ -72,50 +81,39 @@ struct GFXItem
         this->textColor = textColor;
         this->fillColor = fillColor;
         this->justification = justification;
-
-      
+        this->gfxFont = gfxFont;
     }
 };
 
-class Buttons
+class GFXItems
 {
 public:
-    Buttons(TFT_eSPI *tft);
-
-    void Add(GFXItem button);
-
-    void AddElementToGroup(int groupId, int eId);
-
-    void DisplayButton(int eId);
-
-    bool IsButtonInGroupPressed(int key, int *id);
-
+    GFXItems(TFT_eSPI *tft);
+    void Add(GFXItem gfxItem);
+    void AddElementToGroup(int groupId, int id);
+    void DisplayGfxItem(int id);
     void DisplayGroup(int groupId);
+    bool IsButtonInGroupPressed(int key, int *id);
+    GFXItem &GetGfxItemById(int id);
 
-    GFXItem &GetButtonById(int eId);
+private:
+    TFT_eSPI *tft;
+    std::vector<GFXItem> gfxItems;
+    std::map<int, std::vector<int>> groups;
 
-    // Button operator [](int i) const    {return vButtons[i];}
+    void DisplayElement(GFXItem b);
 
     GFXItem &operator[](int i)
     {
-        for (auto &b : buttons)
+        for (auto &b : gfxItems)
         {
             if (b.id == i)
             {
-                return buttons[i];
+                return gfxItems[i];
             }
         }
-        return buttons[i];
+        return gfxItems[i];
     }
-
-private:
-    std::vector<GFXItem> buttons;
-
-    TFT_eSPI *tft;
-    std::map<int, std::vector<int>> groups;
-    GFXItem *lastPressedButton;
-
-    void DisplayElement(GFXItem b);
 };
 
 #endif
