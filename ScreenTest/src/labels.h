@@ -49,6 +49,7 @@ public:
     void SetPadding(int key, int id, int amt);
     void DisplayLabels(int key);
     void UpdateLabelText(int key, int id, String text, bool displayLabel = true);
+    void UpdateLabelFillColor(int key, int id, uint32_t color, bool displayLabel = true);
 
 
 private:

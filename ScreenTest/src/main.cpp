@@ -53,15 +53,14 @@ Buttons buttons(&tft);
 
 void InitScreenElements()
 {
-  labels.Add(int(PageId::All), Labels::Label(int(LabelId::MainState), "MainState", 2, 20, 294, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::PlayState), "", 2, 20, 294, TFT_BLACK, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::Clock), "Clock", 2, 470, 294, TFT_WHITE, TFT_BLACK, Labels::Justification::Right));
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::SD), "SD", 2, 170, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::Wifi), "WIFI", 2, 235, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::Time), "TIME", 2, 310, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
-
   labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongTitle), "Song Title 2", 3, 240, 80, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
-  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongLength), "Length", 2, 240, 160, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
-  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongNumber), "Count", 2, 240, 185, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongLength), "Length", 2, 230, 160, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongNumber), "Count", 2, 230, 185, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Hourly", 2, 20, 70, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Start Hour", 2, 180, 70, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "End Hour", 2, 340, 70, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
@@ -69,9 +68,13 @@ void InitScreenElements()
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
 
+  //labels.SetMinimumCharacters(int(PageId::All), int(LabelId::PlayState), 8);
+  labels.SetPadding(int(PageId::All), int(LabelId::PlayState), 3);
   labels.SetPadding(int(PageId::All), int(LabelId::SD), 3);
   labels.SetPadding(int(PageId::All), int(LabelId::Wifi), 3);
   labels.SetPadding(int(PageId::All), int(LabelId::Time), 3);
+
+
 
   labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongTitle), 22);
   labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongLength), 11);
@@ -145,8 +148,17 @@ void DisplayConfigurationPage()
 
 void UpdateScreen()
 {
-  static PageId previousPageId = pageId;
 
+  static PlayState previousPlayState = PlayState::Default;
+  if (previousPlayState != playState)
+  {
+    previousPlayState = playState;
+
+    labels.UpdateLabelFillColor(int(PageId::All), int(LabelId::PlayState), playStateFillColor[int(playState)], false);
+    labels.UpdateLabelText(int(PageId::All), int(LabelId::PlayState), String(playStateText[int(playState)]));
+  }
+
+  static PageId previousPageId = pageId;
   if (previousPageId != pageId)
   {
     previousPageId = pageId;
@@ -244,49 +256,6 @@ void CheckTouchScreen()
     takeTouchReadings = false;
     touchDebounceMillis = millis();
   }
-
-  /*
-
-      if (pageId == PageId::Configuration)
-      {
-        for (auto &b : buttonsConfiguration)
-        {
-          if (IsButtonPressed(b, x, y))
-          {
-            if (b.buttonId == ButtonId::Hourly)
-            {
-            }
-            else if (b.buttonId == ButtonId::StartHour)
-            {
-              configuration.startHour += 100;
-              if (configuration.startHour > 2300)
-              {
-                configuration.startHour = 100;
-              }
-              String postFix = configuration.startHour < 1300 ? "pm" : "am";
-              String hour = String(configuration.startHour > 1200 ? (configuration.startHour - 1200) / 100 : configuration.startHour / 100);
-
-              b.text = hour + " " + postFix;
-              DisplayButton(b);
-            }
-            else if (b.buttonId == ButtonId::EndHour)
-            {
-            }
-            else if (b.buttonId == ButtonId::TimeZone)
-            {
-            }
-            else if (b.buttonId == ButtonId::StartHour)
-            {
-            }
-            else if (b.buttonId == ButtonId::Song)
-            {
-            }
-          }
-        }
-      }    
-    }
-  }
-  */
 }
 
 void ScreenInit()
@@ -318,9 +287,8 @@ void SDInit()
   }
 
   Serial.println("SD Card: init successful.");
-
   Serial.println("SD Card: finding .mid files.");
-  // Open root directory
+
   if (!dir.open("/"))
   {
     Serial.println("SD Card: dir.open() failed!");
@@ -364,10 +332,8 @@ void setup(void)
   ScreenInit();
   InitScreenElements();
 
-  DisplayHomePage();
   DisplayMain();
-
-  Serial.println("Screen printed.");
+  DisplayHomePage();
 }
 
 void loop()

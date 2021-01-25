@@ -20,7 +20,7 @@ enum class ButtonId
 enum class LabelId
 {
   Default,
-  MainState,
+  PlayState,
   Clock,
   SongTitle,
   SongLength,
@@ -50,10 +50,14 @@ enum class PageId
 
 enum class PlayState
 {
+  Default,
   Play,
   Pause,
   Stop
 };
+
+const char * playStateText[4] = {"", "Play ", "Pause", "Stop "};
+const uint32_t playStateFillColor[4] = {TFT_BLACK, TFT_GREEN, TFT_YELLOW, TFT_RED};
 
 struct StatusItem
 {

@@ -64,14 +64,16 @@ void Labels::DisplayLabel(Label label)
     // Pad text with spaces on the left and right to center the text which clears the background.
     if (label.minimumCharacters != -1)
     {
-        int spaces = (label.minimumCharacters - label.text.length()) / 2;
+        signed int spaces = (label.minimumCharacters - (signed int)label.text.length()) / 2;
         char buf[50];
-        sprintf(buf, "%*s%s%*s", spaces, "", label.text.c_str(), spaces - 1, "");
-        text = String(buf);
+        if (spaces > 0)
+        {
+            sprintf(buf, "%*s%s%*s", spaces, "", label.text.c_str(), spaces - 1, "");
+            text = String(buf);
+        }
     }
 
     tft->setTextSize(label.size);
-    tft->setTextColor(label.textColor);
 
     if (label.justification == Justification::Left)
     {
@@ -88,8 +90,13 @@ void Labels::DisplayLabel(Label label)
 
     if (label.padding > 0)
     {
+        tft->setTextColor(label.textColor);
         tft->fillRect(x - label.padding, label.y - label.padding, tft->textWidth(text) + label.padding * 2, tft->fontHeight() + label.padding * 2, label.fillColor);
-    }    
+    }
+    else
+    {
+        tft->setTextColor(label.textColor, label.fillColor);
+    }
 
     tft->drawString(text, x, label.y);
 }
@@ -110,6 +117,21 @@ void Labels::UpdateLabelText(int key, int id, String text, bool displayLabel = t
         if (l.id == id)
         {
             l.text = text;
+            if (displayLabel)
+            {
+                DisplayLabel(l);
+            }
+        }
+    }
+}
+
+void Labels::UpdateLabelFillColor(int key, int id, uint32_t color, bool displayLabel = true)
+{
+    for (auto &l : labels[key])
+    {
+        if (l.id == id)
+        {
+            l.fillColor = color;
             if (displayLabel)
             {
                 DisplayLabel(l);
