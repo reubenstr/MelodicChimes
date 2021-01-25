@@ -6,7 +6,7 @@
 
 class Labels
 {
-    public:
+public:
     enum class Justification
     {
         Left,
@@ -24,6 +24,8 @@ class Labels
         int y;
         Justification justification;
 
+        signed int minimumCharacters = -1;
+
         Label(int id, String text, int size, int x, int y, uint32_t textColor, Justification justification)
         {
             this->id = id;
@@ -39,11 +41,14 @@ class Labels
     Labels();
     Labels(TFT_eSPI *tft);
 
-    void Add(int key, Label label);
-
+    void Add(int key, Label Labels);
+    void SetMinimumCharacters(int key, int id, int amt);
     void DisplayLabels(int key);
+    void UpdateLabelText(int key, int id, String text, bool displayLabel = true);
+
 
 private:
+    void DisplayLabel(Label l);
 
     TFT_eSPI *tft;
 

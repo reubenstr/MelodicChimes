@@ -17,7 +17,7 @@ void Labels::Add(int key, Label label)
     if (labels.find(key) == labels.end())
     {
         // Key not found.
-        std::vector<Label> newVector {label};
+        std::vector<Label> newVector{label};
         labels.insert(std::make_pair(key, newVector));
     }
     else
@@ -27,31 +27,74 @@ void Labels::Add(int key, Label label)
     }
 }
 
+void Labels::SetMinimumCharacters(int key, int id, int amt)
+{
+    if (labels.find(key) != labels.end())
+    {
+        for (auto &l : labels[key])
+        {
+            if (l.id == id)
+            {
+                l.minimumCharacters = amt;
+            }
+        }
+    }
+}
+
+void Labels::DisplayLabel(Label label)
+{
+    tft->setTextFont(GLCD);
+    int x;
+    String text(label.text);
+
+    // Pad text with spaces on the left and right to center the text which clears the background.
+    if (label.minimumCharacters != -1)
+    {
+        int spaces = (label.minimumCharacters - label.text.length()) / 2;
+        char buf[50];
+        sprintf(buf, "%*s%s%*s", spaces, "", label.text.c_str(), spaces - 1, "");
+        text = String(buf);
+    }    
+
+    tft->setTextSize(label.size);
+    tft->setTextColor(label.textColor, TFT_BLACK);
+
+    if (label.justification == Justification::Left)
+    {
+        x = label.x;
+    }
+    else if (label.justification == Justification::Center)
+    {
+        x = label.x - (tft->textWidth(text) / 2);
+    }
+    else if (label.justification == Justification::Right)
+    {
+        x = label.x - tft->textWidth(text);
+    }
+
+    tft->drawString(text, x, label.y);
+}
+
 void Labels::DisplayLabels(int key)
 {
-
     // TODO: Check if key is found.
-
-      tft->setTextFont(GLCD);
-
     for (auto const &l : labels[key])
-    {   
-        int x;
-        tft->setTextSize(l.size);
-        tft->setTextColor(l.textColor);
+    {
+        DisplayLabel(l);
+    }
+}
 
-        if (l.justification == Justification::Left)
+void Labels::UpdateLabelText(int key, int id, String text, bool displayLabel = true)
+{
+    for (auto &l : labels[key])
+    {
+        if (l.id == id)
         {
-            x = l.x;
+            l.text = text;
+            if (displayLabel)
+            {
+                DisplayLabel(l);
+            }
         }
-        else if (l.justification == Justification::Center)
-        {
-            x = l.x - (tft->textWidth(l.text) / 2);
-        }
-        else if (l.justification == Justification::Right)
-        {
-            x = l.x - tft->textWidth(l.text);
-        }
-        tft->drawString(l.text, x, l.y);
     }
 }

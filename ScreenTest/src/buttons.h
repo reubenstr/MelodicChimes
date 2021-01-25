@@ -18,6 +18,8 @@ public:
         uint32_t activeColor = TFT_WHITE;
         uint32_t borderColor = TFT_DARKGREEN;
 
+        bool isPressed = false;
+
         Button(int id, String text, int x, int y, int w, int h, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
         {
             this->text = text;
@@ -42,7 +44,11 @@ public:
     bool IsButtonPressed(int key, int *id);
 
 private:
-    TFT_eSPI *tft;
 
+
+    TFT_eSPI *tft;
     std::map<int, std::vector<Button>> buttons;
+     Button *lastPressedButton;
+
+    void DisplayButton(Button b);
 };

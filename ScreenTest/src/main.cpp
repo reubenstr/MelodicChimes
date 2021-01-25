@@ -106,6 +106,10 @@ void InitScreenElements()
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, Labels::Justification::Left));
 
+  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongTitle), 22);
+  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongLength), 12);
+  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongNumber), 12);
+
   buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Home), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Configuration), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Calibration), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
@@ -230,8 +234,7 @@ void UpdateScreen()
 void CheckTouchScreen()
 {
 
-  uint16_t x, y;
-   signed id = -1;
+  signed id = -1;
 
   if (millis() - touchDebounceMillis > 250)
   {
@@ -240,31 +243,62 @@ void CheckTouchScreen()
 
   if (takeTouchReadings)
   {
-   
+
     if (buttons.IsButtonPressed(int(PageId::All), &id))
     {
-      takeTouchReadings = false;
-      touchDebounceMillis = millis();
 
-      if (b.buttonId == ButtonId::Home)
+      if ((ButtonId)id == ButtonId::Home)
       {
         pageId = PageId::Home;
       }
-      else if (b.buttonId == ButtonId::Calibration)
+      else if ((ButtonId)id == ButtonId::Calibration)
       {
         pageId = PageId::Calibration;
       }
-      else if (b.buttonId == ButtonId::Configuration)
+      else if ((ButtonId)id == ButtonId::Configuration)
       {
         pageId = PageId::Configuration;
       }
     }
 
-    if (buttons.IsButtonPressed(int(pageId), &id))
+    if (pageId == PageId::Home)
     {
+      if (buttons.IsButtonPressed(int(PageId::Home), &id))
+      {
+        if ((ButtonId)id == ButtonId::Previous)
+        {
+          playState = PlayState::Stop;
+          if (selectedFileId-- == 0)
+          {
+            selectedFileId = midiFiles.size() - 1;
+          }
+          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongTitle), midiFiles[selectedFileId]);
+           labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongNumber), String(String(selectedFileId + 1) + " of " + midiFiles.size()));
+        }
+        else if ((ButtonId)id == ButtonId::Next)
+        {
 
-      Serial.println("Button pressed");
-      Serial.println(id);
+          playState = PlayState::Stop;
+          if (selectedFileId++ == midiFiles.size() - 1)
+          {
+            selectedFileId = 0;
+          }
+          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongTitle), midiFiles[selectedFileId]);
+          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongNumber), String(String(selectedFileId + 1) + " of " + midiFiles.size()));
+        }
+        else if ((ButtonId)id == ButtonId::Play)
+        {
+          playState = PlayState::Play;
+        }
+        else if ((ButtonId)id == ButtonId::Pause)
+        {
+          playState = PlayState::Pause;
+        }
+        else if ((ButtonId)id == ButtonId::Stop)
+        {
+          playState = PlayState::Stop;
+        }
+      }
     }
   }
 
