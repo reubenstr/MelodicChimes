@@ -13,10 +13,10 @@ public:
         int id;
         int x, y, w, h;
 
-        uint32_t textColor = TFT_BLACK;
-        uint32_t fillColor = TFT_GREEN;
-        uint32_t activeColor = TFT_WHITE;
-        uint32_t borderColor = TFT_DARKGREEN;
+        uint32_t textColor;
+        uint32_t fillColor;
+        uint32_t activeColor;
+        uint32_t borderColor;
 
         bool isPressed = false;
 

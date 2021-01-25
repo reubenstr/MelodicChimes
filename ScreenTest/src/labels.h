@@ -18,15 +18,17 @@ public:
     {
         String text;
         int id;
-        uint32_t textColor = TFT_BLACK;
+        uint32_t textColor;
+        uint32_t fillColor;
         int size;
         int x;
         int y;
         Justification justification;
 
         signed int minimumCharacters = -1;
+        int padding = 0;
 
-        Label(int id, String text, int size, int x, int y, uint32_t textColor, Justification justification)
+        Label(int id, String text, int size, int x, int y, uint32_t textColor, uint32_t fillColor, Justification justification)
         {
             this->id = id;
             this->text = text;
@@ -34,6 +36,7 @@ public:
             this->x = x;
             this->y = y;
             this->textColor = textColor;
+            this->fillColor = fillColor;
             this->justification = justification;
         }
     };
@@ -43,6 +46,7 @@ public:
 
     void Add(int key, Label Labels);
     void SetMinimumCharacters(int key, int id, int amt);
+    void SetPadding(int key, int id, int amt);
     void DisplayLabels(int key);
     void UpdateLabelText(int key, int id, String text, bool displayLabel = true);
 

@@ -48,67 +48,34 @@ struct Configuration
 const int buttonMainW = 110;
 const int buttonMainH = 55;
 
-/*
-Button buttonsMain[] = {Button(ButtonId::Home, "HOME", Boundry(30, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Configuration, "CONFIG.", Boundry(180, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Calibration, "CALIB.", Boundry(330, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE)};
-
-Button buttonsHome[] = {Button(ButtonId::Play, "PLAY", Boundry(30, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Pause, "PAUSE", Boundry(180, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Stop, "STOP", Boundry(330, 220, buttonMainW, buttonMainH), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Previous, "PREV.", Boundry(30, 150, buttonMainW, buttonMainH), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-                        Button(ButtonId::Next, "NEXT", Boundry(330, 150, buttonMainW, buttonMainH), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
-
-Button buttonsConfiguration[] = {Button(ButtonId::Hourly, "Yes", Boundry(20, 90, buttonMainW, 35), TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::StartHour, "900", Boundry(180, 90, buttonMainW, 35), TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::EndHour, "1300", Boundry(340, 90, buttonMainW, 35), TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::TimeZone, "EST -4 GMT", Boundry(20, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::Startup, "Yes", Boundry(180, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
-                                 Button(ButtonId::Song, "Random", Boundry(20, 230, 270, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
-*/
-/*
-Label labelsMain[] = {Label(LabelId::MainState, "MainState", 2, 20, 294, TFT_WHITE, Justification::Left),
-                      Label(LabelId::Time, "Time", 2, 260, 460, TFT_WHITE, Justification::Right)};
-
-Label labelsHome[] = {Label(LabelId::SongTitle, "Song Title", 3, 240, 80, TFT_GREEN, Justification::Center),
-                      Label(LabelId::SongLength, "Length", 2, 240, 160, TFT_GREEN, Justification::Center),
-                      Label(LabelId::SongNumber, "Count", 2, 240, 185, TFT_GREEN, Justification::Center)};
-
-Label labelsConfiguration[] = {Label(LabelId::Default, "Hourly", 2, 20, 70, TFT_WHITE, Justification::Left),
-                               Label(LabelId::Default, "Start Hour", 2, 180, 70, TFT_WHITE, Justification::Left),
-                               Label(LabelId::Default, "End Hour", 2, 340, 70, TFT_WHITE, Justification::Left),
-                               Label(LabelId::Default, "Time Zone", 2, 20, 140, TFT_WHITE, Justification::Left),
-                               Label(LabelId::Default, "On Startup", 2, 180, 140, TFT_WHITE, Justification::Left),
-                               Label(LabelId::Default, "Song", 2, 20, 210, TFT_WHITE, Justification::Left)};
-                               */
-
-StatusItem _statusItems[] = {StatusItem("SD", 0),
-                             StatusItem("WIFI", 0),
-                             StatusItem("TIME", 0)};
-
-//std::map<std::pair<PageId, LabelId>, Label> labels = {{std::make_pair(PageId::HomePage, LabelId::MainState), Label(LabelId::MainState, "MainState", 2, 20, 294, TFT_WHITE, Justification::Left)}};
-
 Labels labels(&tft);
 Buttons buttons(&tft);
 
 void InitScreenElements()
 {
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::MainState), "MainState", 2, 20, 294, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::Clock), "Clock", 2, 470, 294, TFT_WHITE, TFT_BLACK, Labels::Justification::Right));
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::SD), "SD", 2, 170, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::Wifi), "WIFI", 2, 235, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::Time), "TIME", 2, 310, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
 
-  labels.Add(int(PageId::All), Labels::Label(int(LabelId::MainState), "MainState", 2, 20, 294, TFT_WHITE, Labels::Justification::Left));
-  labels.Add(int(PageId::All), Labels::Label(int(LabelId::Time), "Time", 2, 260, 460, TFT_WHITE, Labels::Justification::Right));
-  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongTitle), "Song Title 2", 3, 240, 80, TFT_GREEN, Labels::Justification::Center));
-  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongLength), "Length", 2, 240, 160, TFT_GREEN, Labels::Justification::Center));
-  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongNumber), "Count", 2, 240, 185, TFT_GREEN, Labels::Justification::Center));
-  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Hourly", 2, 20, 70, TFT_WHITE, Labels::Justification::Left));
-  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Start Hour", 2, 180, 70, TFT_WHITE, Labels::Justification::Left));
-  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "End Hour", 2, 340, 70, TFT_WHITE, Labels::Justification::Left));
-  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Time Zone", 2, 20, 140, TFT_WHITE, Labels::Justification::Left));
-  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, Labels::Justification::Left));
-  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongTitle), "Song Title 2", 3, 240, 80, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongLength), "Length", 2, 240, 160, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongNumber), "Count", 2, 240, 185, TFT_GREEN, TFT_BLACK, Labels::Justification::Center));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Hourly", 2, 20, 70, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Start Hour", 2, 180, 70, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "End Hour", 2, 340, 70, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Time Zone", 2, 20, 140, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+
+  labels.SetPadding(int(PageId::All), int(LabelId::SD), 3);
+  labels.SetPadding(int(PageId::All), int(LabelId::Wifi), 3);
+  labels.SetPadding(int(PageId::All), int(LabelId::Time), 3);
 
   labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongTitle), 22);
-  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongLength), 12);
-  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongNumber), 12);
+  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongLength), 11);
+  labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongNumber), 11);
 
   buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Home), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Configuration), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
@@ -120,30 +87,16 @@ void InitScreenElements()
   buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Previous), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Next), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
 
-  //labels.DisplayLabels(int(PageId::All));
-  // labels.DisplayLabels(int(PageId::Home));
-  //labels.DisplayLabels(int(PageId::Configuration));
+  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::Hourly), "Yes", 20, 90, buttonMainW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::StartHour), "900", 180, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::EndHour), "1300", 340, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::TimeZone), "EST -4 GMT", 20, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::Startup), "Yes", 180, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::Song), "Random", 20, 230, 270, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-bool IsButtonPressed(Button b, int x, int y)
-{
-  if (x >= b.boundry.x && x <= (b.boundry.x + b.boundry.w))
-  {
-    if (y >= b.boundry.y && y <= (b.boundry.y + b.boundry.h))
-    {
-      takeTouchReadings = false;
-      touchDebounceMillis = millis();
-      return true;
-    }
-  }
-
-  return false;
-}
-*/
 
 void DisplayClearPartial()
 {
@@ -166,22 +119,6 @@ void DisplayMain()
   // Cross lines.
   tft.fillRect(0, 50, tft.width(), t, TFT_BLUE);
   tft.fillRect(0, 285, tft.width(), t, TFT_BLUE);
-
-  // Status items.
-  tft.setFreeFont(FF21);
-  tft.setTextColor(TFT_BLACK);
-  tft.setTextSize(1);
-  int sX = 160;
-  int sY = 292;
-  const int sW = 50;
-  const int sH = 20;
-  for (auto &s : _statusItems)
-  {
-    tft.fillRect(sX, sY, sW, sH, s.status ? TFT_GREEN : TFT_RED);
-    int textWidth = tft.textWidth(s.text);
-    tft.drawString(s.text, sX + (sW - textWidth) / 2 - 1, sY + 2); // Manual verticle spacing fix.
-    sX += sW + 20;
-  }
 
   tft.setTextFont(GLCD); // TODO: add fonts to the label class.
   buttons.DisplayButtons(int(PageId::All));
@@ -273,7 +210,7 @@ void CheckTouchScreen()
             selectedFileId = midiFiles.size() - 1;
           }
           labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongTitle), midiFiles[selectedFileId]);
-           labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongNumber), String(String(selectedFileId + 1) + " of " + midiFiles.size()));
+          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongNumber), String(String(selectedFileId + 1) + " of " + midiFiles.size()));
         }
         else if ((ButtonId)id == ButtonId::Next)
         {
@@ -309,85 +246,6 @@ void CheckTouchScreen()
   }
 
   /*
-  uint16_t x, y;
-
-  if (millis() - touchDebounceMillis > 250)
-  {
-    takeTouchReadings = true;
-  }
-
-  if (takeTouchReadings)
-  {
-    if (tft.getTouch(&x, &y, 20))
-    {
-     
-      for (auto &b : buttonsMain)
-      {
-        if (IsButtonPressed(b, x, y))
-        {
-          if (b.buttonId == ButtonId::Home)
-          {
-            pageId = PageId::Home;
-          }
-          else if (b.buttonId == ButtonId::Calibration)
-          {
-            pageId = PageId::Calibration;
-          }
-          else if (b.buttonId == ButtonId::Configuration)
-          {
-            pageId = PageId::Configuration;
-          }
-        }
-      }
-
-      if (pageId == PageId::Home)
-      {
-        for (auto &b : buttonsHome)
-        {
-          if (IsButtonPressed(b, x, y))
-          {
-            if (b.buttonId == ButtonId::Previous)
-            {
-            
-              playState = PlayState::Stop;
-              if (selectedFileId-- == 0)
-              {
-                selectedFileId = midiFiles.size() - 1;
-              }
-
-              labelsHome[int(LabelId::SongTitle)].text = midiFiles[selectedFileId];
-              DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
-             
-
-              // Serial.println(labelsHome[int(LabelId::SongTitle)].text);
-            }
-            else if (b.buttonId == ButtonId::Next)
-            {
-              
-              playState = PlayState::Stop;
-              if (selectedFileId++ > midiFiles.size() - 1)
-              {
-                selectedFileId = 0;
-              }
-            
-
-              // DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
-            }
-            else if (b.buttonId == ButtonId::Play)
-            {
-              playState = PlayState::Play;
-            }
-            else if (b.buttonId == ButtonId::Pause)
-            {
-              playState = PlayState::Pause;
-            }
-            else if (b.buttonId == ButtonId::Stop)
-            {
-              playState = PlayState::Stop;
-            }
-          }
-        }
-      }
 
       if (pageId == PageId::Configuration)
       {
@@ -425,11 +283,7 @@ void CheckTouchScreen()
             }
           }
         }
-      }
-
-      if (pageId == PageId::Calibration)
-      {
-      }
+      }    
     }
   }
   */
@@ -437,55 +291,19 @@ void CheckTouchScreen()
 
 void ScreenInit()
 {
-  //uint16_t calibrationData[5];
-  //uint8_t calDataOK = 0;
-
   tft.init();
   tft.setRotation(3);
 
+  uint16_t calibrationData[5] = {293, 3597, 267, 3597, 1};
+  // Below line calls calibration routine.
   /*
-
-  // check file system
-  if (!SPIFFS.begin())
+  tft.calibrateTouch(calibrationData, TFT_WHITE, TFT_RED, 15);
+  for(int i = 0; i < 5; i ++)
   {
-    Serial.println("Formating file system.");
-
-    SPIFFS.format();
-    SPIFFS.begin();
-  }
-
-  // check if calibration file exists
-  if (SPIFFS.exists(CALIBRATION_FILE))
-  {
-    File f = SPIFFS.open(CALIBRATION_FILE, "r");
-    if (f)
-    {
-      if (f.readBytes((char *)calibrationData, 14) == 14)
-        calDataOK = 1;
-
-      f.close();
-    }
-  }
-
-  // calDataOK = false;
-
-  if (calDataOK)
-  {
-    Serial.println("GLCD calibration data OK.");
-    tft.setTouch(calibrationData);
-  }
-  else
-  {
-    Serial.println("GLCD calibration data NOT OK.");
-    tft.calibrateTouch(calibrationData, TFT_WHITE, TFT_RED, 15);
-    File f = SPIFFS.open(CALIBRATION_FILE, "w");
-    if (f)
-    {
-      f.write((const unsigned char *)calibrationData, 14);
-      f.close();
-    }
+    Serial.println(calibrationData[i]);
   }
   */
+  tft.setTouch(calibrationData);
 }
 
 // Initialize SD Card

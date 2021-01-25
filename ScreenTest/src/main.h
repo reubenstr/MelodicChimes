@@ -21,10 +21,14 @@ enum class LabelId
 {
   Default,
   MainState,
-  Time,
+  Clock,
   SongTitle,
   SongLength,
-  SongNumber
+  SongNumber,
+  SD,
+  Wifi,
+  Time
+   
 };
 
 /*

@@ -41,6 +41,20 @@ void Labels::SetMinimumCharacters(int key, int id, int amt)
     }
 }
 
+void Labels::SetPadding(int key, int id, int amt)
+{
+    if (labels.find(key) != labels.end())
+    {
+        for (auto &l : labels[key])
+        {
+            if (l.id == id)
+            {
+                l.padding = amt;
+            }
+        }
+    }
+}
+
 void Labels::DisplayLabel(Label label)
 {
     tft->setTextFont(GLCD);
@@ -54,10 +68,10 @@ void Labels::DisplayLabel(Label label)
         char buf[50];
         sprintf(buf, "%*s%s%*s", spaces, "", label.text.c_str(), spaces - 1, "");
         text = String(buf);
-    }    
+    }
 
     tft->setTextSize(label.size);
-    tft->setTextColor(label.textColor, TFT_BLACK);
+    tft->setTextColor(label.textColor);
 
     if (label.justification == Justification::Left)
     {
@@ -71,6 +85,11 @@ void Labels::DisplayLabel(Label label)
     {
         x = label.x - tft->textWidth(text);
     }
+
+    if (label.padding > 0)
+    {
+        tft->fillRect(x - label.padding, label.y - label.padding, tft->textWidth(text) + label.padding * 2, tft->fontHeight() + label.padding * 2, label.fillColor);
+    }    
 
     tft->drawString(text, x, label.y);
 }

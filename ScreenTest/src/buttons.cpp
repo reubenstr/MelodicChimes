@@ -84,7 +84,6 @@ bool Buttons::IsButtonPressed(int key, int *id)
           b.isPressed = true;
           DisplayButton(b);
         }
-        
       }
       else
       {
@@ -111,20 +110,3 @@ bool Buttons::IsButtonPressed(int key, int *id)
 
   return buttonPressedFlag;
 }
-
-/*
-bool Buttons::IsButtonPressed(Button b, int x, int y)
-{
-  if (x >= b.boundry.x && x <= (b.boundry.x + b.boundry.w))
-  {
-    if (y >= b.boundry.y && y <= (b.boundry.y + b.boundry.h))
-    {
-      takeTouchReadings = false;
-      touchDebounceMillis = millis();
-      return true;
-    }
-  }
-
-  return false;
-}
-*/
