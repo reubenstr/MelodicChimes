@@ -53,6 +53,8 @@ Buttons buttons(&tft);
 
 void InitScreenElements()
 {
+
+  /*
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::PlayState), "", 2, 20, 294, TFT_BLACK, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::Clock), "Clock", 2, 470, 294, TFT_WHITE, TFT_BLACK, Labels::Justification::Right));
   labels.Add(int(PageId::All), Labels::Label(int(LabelId::SD), "SD", 2, 170, 294, TFT_BLACK, TFT_YELLOW, Labels::Justification::Center));
@@ -67,6 +69,7 @@ void InitScreenElements()
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Time Zone", 2, 20, 140, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, TFT_BLACK, Labels::Justification::Left));
+*/
 
   //labels.SetMinimumCharacters(int(PageId::All), int(LabelId::PlayState), 8);
   labels.SetPadding(int(PageId::All), int(LabelId::PlayState), 3);
@@ -74,28 +77,73 @@ void InitScreenElements()
   labels.SetPadding(int(PageId::All), int(LabelId::Wifi), 3);
   labels.SetPadding(int(PageId::All), int(LabelId::Time), 3);
 
-
-
   labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongTitle), 22);
   labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongLength), 11);
   labels.SetMinimumCharacters(int(PageId::Home), int(LabelId::SongNumber), 11);
 
-  buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Home), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Configuration), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Calibration), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
+  // Create and add buttons.
+  buttons.Add(GFXItem(int(GFXItemId::Home), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Configuration), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Calibration), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
 
-  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Play), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Pause), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Stop), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Previous), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Next), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Play), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Pause), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Stop), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Previous), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Next), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
 
-  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::Hourly), "Yes", 20, 90, buttonMainW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::StartHour), "900", 180, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::EndHour), "1300", 340, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::TimeZone), "EST -4 GMT", 20, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::Startup), "Yes", 180, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Configuration), Buttons::Button(int(ButtonId::Song), "Random", 20, 230, 270, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Hourly), "Yes", 20, 90, buttonMainW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::StartHour), "900", 180, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::EndHour), "1300", 340, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::TimeZone), "EST -4 GMT", 20, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Startup), "Yes", 180, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(GFXItem(int(GFXItemId::Song), "Random", 20, 230, 270, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+
+  // Add buttons to groups.
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::Home));
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::Configuration));
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::Calibration));
+
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::Play));
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::Pause));
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::Stop));
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::Previous));
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::Next));
+
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Hourly));
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::StartHour));
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::EndHour));
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::TimeZone));
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Startup));
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Song));
+
+  // Add labels.
+  buttons.Add(GFXItem(int(GFXItemId::PlayState), "State", 2, 20, 294, 70, 20, TFT_BLACK, TFT_BLACK, Justification::Left));
+  buttons.Add(GFXItem(int(GFXItemId::Clock), "Clock", 2, 390, 294, 60, 20, TFT_WHITE, TFT_BLACK, Justification::Right));
+  buttons.Add(GFXItem(int(GFXItemId::SD), "SD", 2, 150, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
+  buttons.Add(GFXItem(int(GFXItemId::Wifi), "WIFI", 2, 220, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
+  buttons.Add(GFXItem(int(GFXItemId::Time), "TIME", 2, 300, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
+  buttons.Add(GFXItem(int(GFXItemId::SongTitle), "Song Title 2", 3, 25, 72, 420, 35,TFT_GREEN, TFT_BLACK, Justification::Center));
+  buttons.Add(GFXItem(int(GFXItemId::SongLength), "Length", 2, 175, 145, 120, 30,TFT_GREEN, TFT_BLACK, Justification::Center));
+  buttons.Add(GFXItem(int(GFXItemId::SongNumber), "Count", 2, 175, 165, 120, 30,TFT_GREEN, TFT_BLACK, Justification::Center));
+  buttons.Add(GFXItem(int(GFXItemId::Default), "Hourly", 2, 20, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  buttons.Add(GFXItem(int(GFXItemId::Default), "Start Hour", 2, 180, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  buttons.Add(GFXItem(int(GFXItemId::Default), "End Hour", 2, 340, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  buttons.Add(GFXItem(int(GFXItemId::Default), "Time Zone", 2, 20, 140, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  buttons.Add(GFXItem(int(GFXItemId::Default), "On Startup", 2, 180, 140, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  buttons.Add(GFXItem(int(GFXItemId::Default), "Song", 2, 20, 210, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::PlayState));
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::Clock));
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::SD));
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::Wifi));
+  buttons.AddElementToGroup(int(PageId::All), int(GFXItemId::Time));
+
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::SongTitle));
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::SongLength));
+  buttons.AddElementToGroup(int(PageId::Home), int(GFXItemId::SongNumber));
+
+  buttons.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Default));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,8 +172,7 @@ void DisplayMain()
   tft.fillRect(0, 285, tft.width(), t, TFT_BLUE);
 
   tft.setTextFont(GLCD); // TODO: add fonts to the label class.
-  buttons.DisplayButtons(int(PageId::All));
-  labels.DisplayLabels(int(PageId::All));
+  buttons.DisplayGroup(int(PageId::All));
 }
 
 void DisplayHomePage()
@@ -136,14 +183,12 @@ void DisplayHomePage()
   // Progress bar.
   tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
 
-  labels.DisplayLabels(int(PageId::Home));
-  buttons.DisplayButtons(int(PageId::Home));
+  buttons.DisplayGroup(int(PageId::Home));
 }
 
 void DisplayConfigurationPage()
 {
-  labels.DisplayLabels(int(PageId::Configuration));
-  buttons.DisplayButtons(int(PageId::Configuration));
+  buttons.DisplayGroup(int(PageId::Configuration));
 }
 
 void UpdateScreen()
@@ -180,6 +225,62 @@ void UpdateScreen()
   }
 }
 
+void ProcessPressedButton(int id)
+{
+
+  if ((GFXItemId)id == GFXItemId::Home)
+  {
+    pageId = PageId::Home;
+  }
+  else if ((GFXItemId)id == GFXItemId::Calibration)
+  {
+    pageId = PageId::Calibration;
+  }
+  else if ((GFXItemId)id == GFXItemId::Configuration)
+  {
+    pageId = PageId::Configuration;
+  }
+
+  if ((GFXItemId)id == GFXItemId::Previous)
+  {
+    playState = PlayState::Stop;
+    if (selectedFileId-- == 0)
+    {
+      selectedFileId = midiFiles.size() - 1;
+    }
+
+    buttons.GetButtonById(int(GFXItemId::SongTitle)).text = midiFiles[selectedFileId];
+    buttons.GetButtonById(int(GFXItemId::SongNumber)).text = String(String(selectedFileId + 1) + " of " + midiFiles.size());
+    buttons.DisplayButton(int(GFXItemId::SongTitle));
+    buttons.DisplayButton(int(GFXItemId::SongNumber));
+  }
+  else if ((GFXItemId)id == GFXItemId::Next)
+  {
+
+    playState = PlayState::Stop;
+    if (selectedFileId++ == midiFiles.size() - 1)
+    {
+      selectedFileId = 0;
+    }
+    buttons.GetButtonById(int(GFXItemId::SongTitle)).text = midiFiles[selectedFileId];
+    buttons.GetButtonById(int(GFXItemId::SongNumber)).text = String(String(selectedFileId + 1) + " of " + midiFiles.size());
+    buttons.DisplayButton(int(GFXItemId::SongTitle));
+    buttons.DisplayButton(int(GFXItemId::SongNumber));
+  }
+  else if ((GFXItemId)id == GFXItemId::Play)
+  {
+    playState = PlayState::Play;
+  }
+  else if ((GFXItemId)id == GFXItemId::Pause)
+  {
+    playState = PlayState::Pause;
+  }
+  else if ((GFXItemId)id == GFXItemId::Stop)
+  {
+    playState = PlayState::Stop;
+  }
+}
+
 void CheckTouchScreen()
 {
 
@@ -190,71 +291,22 @@ void CheckTouchScreen()
     takeTouchReadings = true;
   }
 
-  if (takeTouchReadings)
+  buttons.IsButtonInGroupPressed(int(PageId::All), &id);
+
+  if (pageId == PageId::Home)
   {
-
-    if (buttons.IsButtonPressed(int(PageId::All), &id))
-    {
-
-      if ((ButtonId)id == ButtonId::Home)
-      {
-        pageId = PageId::Home;
-      }
-      else if ((ButtonId)id == ButtonId::Calibration)
-      {
-        pageId = PageId::Calibration;
-      }
-      else if ((ButtonId)id == ButtonId::Configuration)
-      {
-        pageId = PageId::Configuration;
-      }
-    }
-
-    if (pageId == PageId::Home)
-    {
-      if (buttons.IsButtonPressed(int(PageId::Home), &id))
-      {
-        if ((ButtonId)id == ButtonId::Previous)
-        {
-          playState = PlayState::Stop;
-          if (selectedFileId-- == 0)
-          {
-            selectedFileId = midiFiles.size() - 1;
-          }
-          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongTitle), midiFiles[selectedFileId]);
-          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongNumber), String(String(selectedFileId + 1) + " of " + midiFiles.size()));
-        }
-        else if ((ButtonId)id == ButtonId::Next)
-        {
-
-          playState = PlayState::Stop;
-          if (selectedFileId++ == midiFiles.size() - 1)
-          {
-            selectedFileId = 0;
-          }
-          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongTitle), midiFiles[selectedFileId]);
-          labels.UpdateLabelText(int(PageId::Home), int(LabelId::SongNumber), String(String(selectedFileId + 1) + " of " + midiFiles.size()));
-        }
-        else if ((ButtonId)id == ButtonId::Play)
-        {
-          playState = PlayState::Play;
-        }
-        else if ((ButtonId)id == ButtonId::Pause)
-        {
-          playState = PlayState::Pause;
-        }
-        else if ((ButtonId)id == ButtonId::Stop)
-        {
-          playState = PlayState::Stop;
-        }
-      }
-    }
+    buttons.IsButtonInGroupPressed(int(PageId::Home), &id);
   }
 
-  if (id != -1)
+  if (takeTouchReadings)
   {
-    takeTouchReadings = false;
-    touchDebounceMillis = millis();
+    if (id != -1)
+    {
+
+      ProcessPressedButton(id);
+      takeTouchReadings = false;
+      touchDebounceMillis = millis();
+    }
   }
 }
 

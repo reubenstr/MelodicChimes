@@ -55,50 +55,50 @@ void Labels::SetPadding(int key, int id, int amt)
     }
 }
 
-void Labels::DisplayLabel(Label label)
+void Labels::DisplayLabel(Label b)
 {
     tft->setTextFont(GLCD);
     int x;
-    String text(label.text);
+    String text(b.text);
 
     // Pad text with spaces on the left and right to center the text which clears the background.
-    if (label.minimumCharacters != -1)
+    if (b.minimumCharacters != -1)
     {
-        signed int spaces = (label.minimumCharacters - (signed int)label.text.length()) / 2;
+        signed int spaces = (b.minimumCharacters - (signed int)b.text.length()) / 2;
         char buf[50];
         if (spaces > 0)
         {
-            sprintf(buf, "%*s%s%*s", spaces, "", label.text.c_str(), spaces - 1, "");
+            sprintf(buf, "%*s%s%*s", spaces, "", b.text.c_str(), spaces - 1, "");
             text = String(buf);
         }
     }
 
-    tft->setTextSize(label.size);
+    tft->setTextSize(b.size);
 
-    if (label.justification == Justification::Left)
+    if (b.justification == Justification::Left)
     {
-        x = label.x;
+        x = b.x;
     }
-    else if (label.justification == Justification::Center)
+    else if (b.justification == Justification::Center)
     {
-        x = label.x - (tft->textWidth(text) / 2);
+        x = b.x - (tft->textWidth(text) / 2);
     }
-    else if (label.justification == Justification::Right)
+    else if (b.justification == Justification::Right)
     {
-        x = label.x - tft->textWidth(text);
+        x = b.x - tft->textWidth(text);
     }
 
-    if (label.padding > 0)
+    if (b.padding > 0)
     {
-        tft->setTextColor(label.textColor);
-        tft->fillRect(x - label.padding, label.y - label.padding, tft->textWidth(text) + label.padding * 2, tft->fontHeight() + label.padding * 2, label.fillColor);
+        tft->setTextColor(b.textColor);
+        tft->fillRect(x - b.padding, b.y - b.padding, tft->textWidth(text) + b.padding * 2, tft->fontHeight() + b.padding * 2, b.fillColor);
     }
     else
     {
-        tft->setTextColor(label.textColor, label.fillColor);
+        tft->setTextColor(b.textColor, b.fillColor);
     }
 
-    tft->drawString(text, x, label.y);
+    tft->drawString(text, x, b.y);
 }
 
 void Labels::DisplayLabels(int key)
