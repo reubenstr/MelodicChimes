@@ -8,7 +8,11 @@
 #include <SdFat.h>
 #include <list>
 #include <vector>
+#include <map>
 #include "main.h"
+
+#include "labels.h"  // local library
+#include "buttons.h" // local libray
 
 // TFT Screen.
 // TFT configuration contained in User_Setup.h in the local library.
@@ -23,7 +27,7 @@ File32 dir;
 File32 file;
 
 // General system.
-PageId pageId = PageId::HomePage;
+PageId pageId = PageId::Home;
 PlayState playState = PlayState::Stop;
 
 // MIDI system.
@@ -44,6 +48,7 @@ struct Configuration
 const int buttonMainW = 110;
 const int buttonMainH = 55;
 
+/*
 Button buttonsMain[] = {Button(ButtonId::Home, "HOME", Boundry(30, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
                         Button(ButtonId::Configuration, "CONFIG.", Boundry(180, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE),
                         Button(ButtonId::Calibration, "CALIB.", Boundry(330, 10, buttonMainW, 35), TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE)};
@@ -60,7 +65,8 @@ Button buttonsConfiguration[] = {Button(ButtonId::Hourly, "Yes", Boundry(20, 90,
                                  Button(ButtonId::TimeZone, "EST -4 GMT", Boundry(20, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::Startup, "Yes", Boundry(180, 160, buttonMainW, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE),
                                  Button(ButtonId::Song, "Random", Boundry(20, 230, 270, 35), TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE)};
-
+*/
+/*
 Label labelsMain[] = {Label(LabelId::MainState, "MainState", 2, 20, 294, TFT_WHITE, Justification::Left),
                       Label(LabelId::Time, "Time", 2, 260, 460, TFT_WHITE, Justification::Right)};
 
@@ -74,14 +80,47 @@ Label labelsConfiguration[] = {Label(LabelId::Default, "Hourly", 2, 20, 70, TFT_
                                Label(LabelId::Default, "Time Zone", 2, 20, 140, TFT_WHITE, Justification::Left),
                                Label(LabelId::Default, "On Startup", 2, 180, 140, TFT_WHITE, Justification::Left),
                                Label(LabelId::Default, "Song", 2, 20, 210, TFT_WHITE, Justification::Left)};
+                               */
 
 StatusItem _statusItems[] = {StatusItem("SD", 0),
                              StatusItem("WIFI", 0),
                              StatusItem("TIME", 0)};
 
+//std::map<std::pair<PageId, LabelId>, Label> labels = {{std::make_pair(PageId::HomePage, LabelId::MainState), Label(LabelId::MainState, "MainState", 2, 20, 294, TFT_WHITE, Justification::Left)}};
+
+Labels labels(&tft);
+Buttons buttons(&tft);
+
+void InitScreenElements()
+{
+
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::MainState), "MainState", 2, 20, 294, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::All), Labels::Label(int(LabelId::Time), "Time", 2, 260, 460, TFT_WHITE, Labels::Justification::Right));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongTitle), "Song Title 2", 3, 240, 80, TFT_GREEN, Labels::Justification::Center));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongLength), "Length", 2, 240, 160, TFT_GREEN, Labels::Justification::Center));
+  labels.Add(int(PageId::Home), Labels::Label(int(LabelId::SongNumber), "Count", 2, 240, 185, TFT_GREEN, Labels::Justification::Center));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Hourly", 2, 20, 70, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Start Hour", 2, 180, 70, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "End Hour", 2, 340, 70, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Time Zone", 2, 20, 140, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, Labels::Justification::Left));
+  labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, Labels::Justification::Left));
+
+  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Play), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Pause), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Stop), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Previous), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Next), "NEXT",330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+
+  //labels.DisplayLabels(int(PageId::All));
+  // labels.DisplayLabels(int(PageId::Home));
+  //labels.DisplayLabels(int(PageId::Configuration));
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 bool IsButtonPressed(Button b, int x, int y)
 {
   if (x >= b.boundry.x && x <= (b.boundry.x + b.boundry.w))
@@ -96,46 +135,9 @@ bool IsButtonPressed(Button b, int x, int y)
 
   return false;
 }
+*/
 
-void DisplayButton(Button b)
-{
-  tft.setFreeFont(FF22);
-  tft.setTextColor(b.textColor);
-  tft.setTextSize(1);
-  int borderThickness = 1;
-  tft.fillRoundRect(b.boundry.x, b.boundry.y, b.boundry.w, b.boundry.h, 6, b.borderColor);
-  tft.fillRoundRect(b.boundry.x + borderThickness, b.boundry.y + borderThickness, b.boundry.w - borderThickness * 2, b.boundry.h - borderThickness * 2, 5, b.fillColor);
 
-  int textWidth = tft.textWidth(b.text);
-  int textHeight = tft.fontHeight();
-  tft.drawString(b.text, b.boundry.x + (b.boundry.w - textWidth) / 2 - 1, b.boundry.y + (b.boundry.h - textHeight) / 2 + borderThickness * 2);
-}
-
-void DisplayLabel(Label l)
-{
-  int x;
-  tft.setTextSize(l.size);
-  tft.setTextColor(l.textColor);
-
-  if (l.justification == Justification::Left)
-  {
-    x = l.x;
-  }
-  else if (l.justification == Justification::Center)
-  {
-    x = l.x - (tft.textWidth(l.text) / 2);
-  }
-  else if (l.justification == Justification::Right)
-  {
-    x = l.x - tft.textWidth(l.text);
-  }
-  tft.drawString(l.text, x, l.y);
-}
-
-void DisplayLabel(Label *labels, LabelId id)
-{
-  DisplayLabel(labels[int(id)]);
-}
 
 void DisplayClearPartial()
 {
@@ -175,16 +177,15 @@ void DisplayMain()
     sX += sW + 20;
   }
 
-  for (Button b : buttonsMain)
-  {
-    DisplayButton(b);
-  }
+
 
   tft.setTextFont(GLCD); // TODO: add fonts to the label class.
+  /*
   for (Label l : labelsMain)
   {
     DisplayLabel(l);
   }
+  */
 }
 
 void DisplayHomePage()
@@ -195,31 +196,28 @@ void DisplayHomePage()
   // Progress bar.
   tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
 
-  for (Button b : buttonsHome)
-  {
-    DisplayButton(b);
-  }
 
+
+  /*
   tft.setTextFont(GLCD); // TODO: add fonts to the label class.
   for (Label l : labelsHome)
   {
     DisplayLabel(l);
   }
+  */
 }
 
 void DisplayConfigurationPage()
 {
 
-  for (auto const &b : buttonsConfiguration)
-  {
-    DisplayButton(b);
-  }
 
+  /*
   tft.setFreeFont(FF21); // TODO: add fonts to the label class.
   for (auto const &l : labelsConfiguration)
   {
     DisplayLabel(l);
   }
+  */
 }
 
 void UpdateScreen()
@@ -230,17 +228,23 @@ void UpdateScreen()
   {
     previousPageId = pageId;
 
-    if (pageId == PageId::HomePage)
+    labels.DisplayLabels(int(pageId));
+ buttons.DisplayButtons(int(pageId));
+
+
+
+
+    if (pageId == PageId::Home)
     {
       DisplayClearPartial();
       DisplayHomePage();
     }
-    else if (pageId == PageId::ConfigurationPage)
+    else if (pageId == PageId::Configuration)
     {
       DisplayClearPartial();
       DisplayConfigurationPage();
     }
-    else if (pageId == PageId::CalibrationPage)
+    else if (pageId == PageId::Calibration)
     {
       DisplayClearPartial();
     }
@@ -249,6 +253,7 @@ void UpdateScreen()
 
 void CheckTouchScreen()
 {
+  /*
   uint16_t x, y;
 
   if (millis() - touchDebounceMillis > 250)
@@ -260,28 +265,27 @@ void CheckTouchScreen()
   {
     if (tft.getTouch(&x, &y, 20))
     {
-      // Serial.printf("(%u, %u)\n", x, y);
-
+     
       for (auto &b : buttonsMain)
       {
         if (IsButtonPressed(b, x, y))
         {
           if (b.buttonId == ButtonId::Home)
           {
-            pageId = PageId::HomePage;
+            pageId = PageId::Home;
           }
           else if (b.buttonId == ButtonId::Calibration)
           {
-            pageId = PageId::CalibrationPage;
+            pageId = PageId::Calibration;
           }
           else if (b.buttonId == ButtonId::Configuration)
           {
-            pageId = PageId::ConfigurationPage;
+            pageId = PageId::Configuration;
           }
         }
       }
 
-      if (pageId == PageId::HomePage)
+      if (pageId == PageId::Home)
       {
         for (auto &b : buttonsHome)
         {
@@ -289,7 +293,7 @@ void CheckTouchScreen()
           {
             if (b.buttonId == ButtonId::Previous)
             {
-              /*
+            
               playState = PlayState::Stop;
               if (selectedFileId-- == 0)
               {
@@ -298,21 +302,21 @@ void CheckTouchScreen()
 
               labelsHome[int(LabelId::SongTitle)].text = midiFiles[selectedFileId];
               DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
-              */
+             
 
-              Serial.println(labelsHome[int(LabelId::SongTitle)].text);
+              // Serial.println(labelsHome[int(LabelId::SongTitle)].text);
             }
             else if (b.buttonId == ButtonId::Next)
             {
-              /*
+              
               playState = PlayState::Stop;
               if (selectedFileId++ > midiFiles.size() - 1)
               {
                 selectedFileId = 0;
               }
-              */
+            
 
-              DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
+              // DisplayLabel(labelsHome[int(LabelId::SongTitle)]);
             }
             else if (b.buttonId == ButtonId::Play)
             {
@@ -330,7 +334,7 @@ void CheckTouchScreen()
         }
       }
 
-      if (pageId == PageId::ConfigurationPage)
+      if (pageId == PageId::Configuration)
       {
         for (auto &b : buttonsConfiguration)
         {
@@ -368,11 +372,12 @@ void CheckTouchScreen()
         }
       }
 
-      if (pageId == PageId::CalibrationPage)
+      if (pageId == PageId::Calibration)
       {
       }
     }
   }
+  */
 }
 
 void ScreenInit()
@@ -486,9 +491,18 @@ void setup(void)
   ScreenInit();
 
   DisplayMain();
+
+  InitScreenElements();
+
   DisplayHomePage();
 
+
+   labels.DisplayLabels(int(pageId));
+ buttons.DisplayButtons(int(pageId));
+
+
   Serial.println("Screen printed.");
+
 }
 
 void loop()

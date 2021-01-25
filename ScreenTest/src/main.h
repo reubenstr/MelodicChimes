@@ -27,18 +27,21 @@ enum class LabelId
   SongNumber
 };
 
+/*
 enum class Justification
 {
   Left,
   Center,
   Right
 };
+*/
 
-enum PageId
+enum class PageId
 {
-  HomePage,
-  CalibrationPage,
-  ConfigurationPage
+  All,
+  Home,
+  Calibration,
+  Configuration
 };
 
 enum class PlayState
@@ -60,46 +63,11 @@ struct StatusItem
   }
 };
 
-struct Boundry
-{
-  int x, y, w, h;
 
-  Boundry()
-  {
-  }
 
-  Boundry(int x, int y, int w, int h)
-  {
-    this->x = x;
-    this->y = y;
-    this->w = w;
-    this->h = h;
-  }
-};
 
-struct Button
-{
-  String text;
-  ButtonId buttonId;
-  Boundry boundry;
 
-  uint32_t textColor = TFT_BLACK;
-  uint32_t fillColor = TFT_GREEN;
-  uint32_t activeColor = TFT_WHITE;
-  uint32_t borderColor = TFT_DARKGREEN;
-
-  Button(ButtonId buttonId, String text, Boundry boundry, uint32_t textColor, uint32_t fillColor, uint32_t activeColor, uint32_t borderColor)
-  {
-    this->text = text;
-    this->buttonId = buttonId;
-    this->boundry = boundry;
-    this->textColor = textColor;
-    this->fillColor = fillColor;
-    this->activeColor = activeColor;
-    this->borderColor = borderColor;
-  }
-};
-
+/*
 struct Label
 {
   String text;
@@ -121,3 +89,4 @@ struct Label
     this->justification = justification;
   }
 };
+*/
