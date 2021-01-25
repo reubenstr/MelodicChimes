@@ -106,11 +106,15 @@ void InitScreenElements()
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "On Startup", 2, 180, 140, TFT_WHITE, Labels::Justification::Left));
   labels.Add(int(PageId::Configuration), Labels::Label(int(LabelId::Default), "Song", 2, 20, 210, TFT_WHITE, Labels::Justification::Left));
 
+  buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Home), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Configuration), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::All), Buttons::Button(int(ButtonId::Calibration), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE));
+
   buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Play), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Pause), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Stop), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE));
   buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Previous), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
-  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Next), "NEXT",330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
+  buttons.Add(int(PageId::Home), Buttons::Button(int(ButtonId::Next), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE));
 
   //labels.DisplayLabels(int(PageId::All));
   // labels.DisplayLabels(int(PageId::Home));
@@ -136,8 +140,6 @@ bool IsButtonPressed(Button b, int x, int y)
   return false;
 }
 */
-
-
 
 void DisplayClearPartial()
 {
@@ -177,15 +179,9 @@ void DisplayMain()
     sX += sW + 20;
   }
 
-
-
   tft.setTextFont(GLCD); // TODO: add fonts to the label class.
-  /*
-  for (Label l : labelsMain)
-  {
-    DisplayLabel(l);
-  }
-  */
+  buttons.DisplayButtons(int(PageId::All));
+  labels.DisplayLabels(int(PageId::All));
 }
 
 void DisplayHomePage()
@@ -196,28 +192,14 @@ void DisplayHomePage()
   // Progress bar.
   tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
 
-
-
-  /*
-  tft.setTextFont(GLCD); // TODO: add fonts to the label class.
-  for (Label l : labelsHome)
-  {
-    DisplayLabel(l);
-  }
-  */
+  labels.DisplayLabels(int(PageId::Home));
+  buttons.DisplayButtons(int(PageId::Home));
 }
 
 void DisplayConfigurationPage()
 {
-
-
-  /*
-  tft.setFreeFont(FF21); // TODO: add fonts to the label class.
-  for (auto const &l : labelsConfiguration)
-  {
-    DisplayLabel(l);
-  }
-  */
+  labels.DisplayLabels(int(PageId::Configuration));
+  buttons.DisplayButtons(int(PageId::Configuration));
 }
 
 void UpdateScreen()
@@ -227,12 +209,6 @@ void UpdateScreen()
   if (previousPageId != pageId)
   {
     previousPageId = pageId;
-
-    labels.DisplayLabels(int(pageId));
- buttons.DisplayButtons(int(pageId));
-
-
-
 
     if (pageId == PageId::Home)
     {
@@ -253,6 +229,51 @@ void UpdateScreen()
 
 void CheckTouchScreen()
 {
+
+  uint16_t x, y;
+   signed id = -1;
+
+  if (millis() - touchDebounceMillis > 250)
+  {
+    takeTouchReadings = true;
+  }
+
+  if (takeTouchReadings)
+  {
+   
+    if (buttons.IsButtonPressed(int(PageId::All), &id))
+    {
+      takeTouchReadings = false;
+      touchDebounceMillis = millis();
+
+      if (b.buttonId == ButtonId::Home)
+      {
+        pageId = PageId::Home;
+      }
+      else if (b.buttonId == ButtonId::Calibration)
+      {
+        pageId = PageId::Calibration;
+      }
+      else if (b.buttonId == ButtonId::Configuration)
+      {
+        pageId = PageId::Configuration;
+      }
+    }
+
+    if (buttons.IsButtonPressed(int(pageId), &id))
+    {
+
+      Serial.println("Button pressed");
+      Serial.println(id);
+    }
+  }
+
+  if (id != -1)
+  {
+    takeTouchReadings = false;
+    touchDebounceMillis = millis();
+  }
+
   /*
   uint16_t x, y;
 
@@ -489,20 +510,12 @@ void setup(void)
   SDInit();
 
   ScreenInit();
-
-  DisplayMain();
-
   InitScreenElements();
 
   DisplayHomePage();
-
-
-   labels.DisplayLabels(int(pageId));
- buttons.DisplayButtons(int(pageId));
-
+  DisplayMain();
 
   Serial.println("Screen printed.");
-
 }
 
 void loop()
