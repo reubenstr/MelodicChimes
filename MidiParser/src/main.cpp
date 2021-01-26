@@ -78,10 +78,6 @@ const char *tuneList[] =
   "JZBUMBLE.MID",
 };
 
-// These don't play as they need more than 16 tracks but will run if MIDIFile.h is changed
-//#define MIDI_FILE  "SYMPH9.MID"     // 29 tracks
-//#define MIDI_FILE  "CHATCHOO.MID"   // 17 tracks
-//#define MIDI_FILE  "STRIPPER.MID"   // 25 tracks
 
 SdFat	SD;
 MD_MIDIFile SMF;
@@ -91,15 +87,6 @@ void midiCallback(midi_event *pev)
 // thru the midi communications interface.
 // This callback is set up in the setup() function.
 {
-#if USE_MIDI
-  if ((pev->data[0] >= 0x80) && (pev->data[0] <= 0xe0))
-  {
-    Serial.write(pev->data[0] | pev->channel);
-    Serial.write(&pev->data[1], pev->size-1);
-  }
-  else
-    Serial.write(pev->data, pev->size);
-#endif
   DEBUG("\n");
   DEBUG(millis());
   DEBUG("\tM T");
@@ -179,17 +166,6 @@ void tickMetronome(void)
 
 void setup(void)
 {
-  // Set up LED pins
-  pinMode(READY_LED, OUTPUT);
-  pinMode(SD_ERROR_LED, OUTPUT);
-  pinMode(SMF_ERROR_LED, OUTPUT);
-  pinMode(BEAT_LED, OUTPUT);
-
-  // reset LEDs
-  digitalWrite(READY_LED, LOW);
-  digitalWrite(SD_ERROR_LED, LOW);
-  digitalWrite(SMF_ERROR_LED, LOW);
-  digitalWrite(BEAT_LED, LOW);
   
   Serial.begin(SERIAL_RATE);
 

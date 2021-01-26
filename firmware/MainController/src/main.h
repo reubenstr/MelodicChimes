@@ -23,10 +23,12 @@ enum class GFXItemId
 
   // Labels.
   PlayState,
+  Beat,
   Clock,
   SD,
   Wifi,
   Time,
+
   SongTitle,
   SongLength,
   SongNumber
@@ -40,11 +42,20 @@ enum class PageId
   Configuration
 };
 
+enum class MidiState
+{
+  Idle, 
+  Load,
+  Play,
+  Stop,
+  Wait
+};
+
 enum class PlayState
 {
   Default,
   Play,
-  Pause,
+  Pause, 
   Stop
 };
 

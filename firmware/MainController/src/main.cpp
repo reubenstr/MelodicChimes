@@ -1,4 +1,28 @@
-// Crude proof of concept.
+/*  
+  Melodic Chimes
+
+  Four auto-tuning strings playing melodic music from custom MIDI files.
+
+  MCUs:
+      1x ESP32 (DevkitV1) : Main controller parsing MIDI files and fetching time from WiFi.
+      2x Teensy 3.2 : Each determines frequency of two strings and controls two chimes.
+
+  Hardware:
+      TFT Touch Screen : Sole user interface.
+      SD-Card : contains MIDI files.
+      12x Stepper Motors : 4x tuning, 4x muting, 4x picking.
+      12x Stepper motor drivers.
+      
+  Notes:
+
+    TODO
+
+
+   MD_MIDIFile.h line 899 fix:
+    void setFileFolder(const char* apath) { if (apath != nullptr) _sd->chdir(apath); }
+
+
+*/
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -6,6 +30,7 @@
 #include "Free_Fonts.h"
 #include "msTimer.h"
 #include <SdFat.h>
+#include "sdios.h"
 #include <list>
 #include <vector>
 #include <map>
@@ -13,6 +38,9 @@
 #include "main.h"
 #include "graphicsMethods.h"
 
+#include <MD_MIDIFile.h>
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 // TFT Screen.
 // TFT configuration contained in User_Setup.h in the local library.
@@ -22,9 +50,9 @@ unsigned long touchDebounceMillis = millis();
 
 // SD Card.
 const uint8_t SD_SELECT = 8;
-SdFat32 SD;
-File32 dir;
-File32 file;
+SdFat SD;
+SdFile dir;
+SdFile file;
 
 // General system.
 PageId pageId = PageId::Home;
@@ -33,6 +61,9 @@ PlayState playState = PlayState::Stop;
 // MIDI system.
 std::vector<String> midiFiles;
 unsigned int selectedFileId = 0;
+MD_MIDIFile SMF;
+MidiState midiState = MidiState::Idle;
+unsigned long midiWaitMillis = 0;
 
 // Configuration.
 struct Configuration
@@ -45,12 +76,20 @@ struct Configuration
   String songName = "Default Song";
 } configuration;
 
-
 GFXItems gfxItems(&tft);
 
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UpdateMidiInfo(bool updateScreenFlag = true)
+{
+  gfxItems.GetGfxItemById(int(GFXItemId::SongTitle)).text = midiFiles[selectedFileId];
+  gfxItems.GetGfxItemById(int(GFXItemId::SongNumber)).text = String(String(selectedFileId + 1) + " of " + midiFiles.size());
+  if (updateScreenFlag)
+  {
+    gfxItems.DisplayGfxItem(int(GFXItemId::SongTitle));
+    gfxItems.DisplayGfxItem(int(GFXItemId::SongNumber));
+  }
+}
 
 void UpdateScreen()
 {
@@ -110,10 +149,7 @@ void ProcessPressedButton(int id)
       selectedFileId = midiFiles.size() - 1;
     }
 
-    gfxItems.GetGfxItemById(int(GFXItemId::SongTitle)).text = midiFiles[selectedFileId];
-    gfxItems.GetGfxItemById(int(GFXItemId::SongNumber)).text = String(String(selectedFileId + 1) + " of " + midiFiles.size());
-    gfxItems.DisplayGfxItem(int(GFXItemId::SongTitle));
-    gfxItems.DisplayGfxItem(int(GFXItemId::SongNumber));
+    UpdateMidiInfo();
   }
   else if ((GFXItemId)id == GFXItemId::Next)
   {
@@ -123,10 +159,7 @@ void ProcessPressedButton(int id)
     {
       selectedFileId = 0;
     }
-    gfxItems.GetGfxItemById(int(GFXItemId::SongTitle)).text = midiFiles[selectedFileId];
-    gfxItems.GetGfxItemById(int(GFXItemId::SongNumber)).text = String(String(selectedFileId + 1) + " of " + midiFiles.size());
-    gfxItems.DisplayGfxItem(int(GFXItemId::SongTitle));
-    gfxItems.DisplayGfxItem(int(GFXItemId::SongNumber));
+    UpdateMidiInfo();
   }
   else if ((GFXItemId)id == GFXItemId::Play)
   {
@@ -170,9 +203,6 @@ void CheckTouchScreen()
   }
 }
 
-
-
-// Initialize SD Card
 void SDInit()
 {
   if (!SD.begin(SD_SELECT, SPI_FULL_SPEED))
@@ -218,9 +248,116 @@ void SDInit()
   }
 }
 
+void midiCallback(midi_event *pev)
+{
+
+  Serial.printf("%u | Track: %u | Channel: %u | Data: ", millis(), pev->track, pev->channel + 1);
+
+  for (uint8_t i = 0; i < pev->size; i++)
+  {
+    Serial.print(pev->data[i]);
+  }
+  Serial.println("");
+}
+
+void sysexCallback(sysex_event *pev)
+{
+  Serial.printf("*** Sysex event | Track %u | Data: ", pev->track);
+
+  for (uint8_t i = 0; i < pev->size; i++)
+  {
+    Serial.print(pev->data[i]);
+  }
+  Serial.println("");
+}
+
+void tickMetronome()
+{
+  static unsigned long lastBeatTime = 0;
+  static boolean inBeat = false;
+  uint16_t beatTime = 60000 / SMF.getTempo(); // msec/beat = ((60sec/min)*(1000 ms/sec))/(beats/min)
+
+  // TODO: make the beat indicator actually flash on the beat.
+  // getTempoAdjust
+
+  inBeat = !inBeat;
+
+  if (!inBeat)
+  {
+    if ((millis() - lastBeatTime) >= beatTime)
+    {
+      lastBeatTime = millis();
+      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_CYAN;
+      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
+    }
+  }
+  else
+  {
+    if ((millis() - lastBeatTime) >= 100)
+    {
+      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_SKYBLUE;
+      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
+    }
+  }
+}
+
+void ProcessMIDI()
+{
+  if (midiState == MidiState::Idle)
+  {
+    if (playState == PlayState::Play)
+    {
+      midiState = MidiState::Load;
+    }
+  }
+  else if (midiState == MidiState::Load)
+  {
+    Serial.printf("Midi: loading file: %s (%u)\n", midiFiles[selectedFileId].c_str(), selectedFileId);
+
+    int errorCode = SMF.load(midiFiles[selectedFileId].c_str());
+    if (errorCode != MD_MIDIFile::E_OK)
+    {
+      Serial.printf("Midi: Error when loading file: %u\n", errorCode);
+      midiWaitMillis = millis();
+      midiState = MidiState::Wait;
+    }
+    else
+    {
+      midiState = MidiState::Play;
+    }
+  }
+  else if (midiState == MidiState::Play)
+  {
+    if (!SMF.isEOF())
+    {
+      if (SMF.getNextEvent())
+      {
+        tickMetronome();
+      }
+    }
+    else
+    {
+      playState = PlayState::Stop;
+      midiState = MidiState::Stop;
+    }
+  }
+  else if (midiState == MidiState::Stop)
+  {
+    SMF.close();
+    midiState = MidiState::Idle;
+  }
+  else if (midiState == MidiState::Wait)
+  {
+    if (millis() - midiWaitMillis > 2000)
+    {
+      midiState = MidiState::Idle;
+    }
+  }
+}
+
 void setup(void)
 {
-  delay(1000);
+  delay(2000);
   Serial.begin(115200);
   Serial.println("Melodic Chimes starting up.");
 
@@ -228,9 +365,17 @@ void setup(void)
 
   SDInit();
 
+  // Initialize MIDIFile
+  SMF.begin(&SD);
+  SMF.setMidiHandler(midiCallback);
+  SMF.setSysexHandler(sysexCallback);
+
   InitScreenElements();
 
+  UpdateMidiInfo(false);
+
   DisplayMain();
+
   DisplayHomePage();
 }
 
@@ -239,4 +384,6 @@ void loop()
   CheckTouchScreen();
 
   UpdateScreen();
+
+  ProcessMIDI();
 }
