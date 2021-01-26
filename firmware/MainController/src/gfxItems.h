@@ -83,6 +83,18 @@ struct GFXItem
         this->justification = justification;
         this->gfxFont = gfxFont;
     }
+
+    bool IsPointInBoundry(int xTest, int yTest)
+    {
+        if (xTest >= x && xTest <= (x + w))
+        {
+            if (yTest >= y && yTest <= (y + h))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 class GFXItems
@@ -93,7 +105,7 @@ public:
     void AddElementToGroup(int groupId, int id);
     void DisplayGfxItem(int id);
     void DisplayGroup(int groupId);
-    bool IsButtonInGroupPressed(int key, int *id);
+    bool IsItemInGroupPressed(int key, int *id);
     GFXItem &GetGfxItemById(int id);
 
 private:

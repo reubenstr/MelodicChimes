@@ -18,8 +18,11 @@
     TODO
 
 
-   MD_MIDIFile.h line 899 fix:
-    void setFileFolder(const char* apath) { if (apath != nullptr) _sd->chdir(apath); }
+    MD_MIDIFile.h line 899 fix:
+        void setFileFolder(const char* apath) { if (apath != nullptr) _sd->chdir(apath); }
+
+  Online Tools:
+      MID to JSON: https://tonejs.github.io/Midi/
 
 
 */
@@ -184,11 +187,11 @@ void CheckTouchScreen()
     takeTouchReadings = true;
   }
 
-  gfxItems.IsButtonInGroupPressed(int(PageId::All), &id);
+  gfxItems.IsItemInGroupPressed(int(PageId::All), &id);
 
   if (pageId == PageId::Home)
   {
-    gfxItems.IsButtonInGroupPressed(int(PageId::Home), &id);
+    gfxItems.IsItemInGroupPressed(int(PageId::Home), &id);
   }
 
   if (takeTouchReadings)
@@ -251,13 +254,31 @@ void SDInit()
 void midiCallback(midi_event *pev)
 {
 
-  Serial.printf("%u | Track: %u | Channel: %u | Data: ", millis(), pev->track, pev->channel + 1);
+  //Serial.printf("%u | Track: %u | Channel: %u | Data: ", millis(), pev->track, pev->channel + 1);
 
   for (uint8_t i = 0; i < pev->size; i++)
   {
-    Serial.print(pev->data[i]);
+    //Serial.print(" ");
+    //Serial.print(pev->data[i] , HEX);
+    //Serial.printf(" %u" ,pev->data[i]);
   }
-  Serial.println("");
+  //Serial.println("");
+  const char *onOfText[] = {"OFF ", "ON"};
+
+  bool noteState = false;
+  int noteId = pev->data[1];
+
+  if (pev->data[0] == 128) // off
+  {
+    noteState = false;
+  }
+
+  if (pev->data[0] == 144) // on
+  {
+    noteState = true;
+  }
+
+  Serial.printf("%u | Track: %u | Channel: %u | %u | %s\n", millis(), pev->track, pev->channel + 1, noteId, onOfText[noteState]);
 }
 
 void sysexCallback(sysex_event *pev)
@@ -273,6 +294,38 @@ void sysexCallback(sysex_event *pev)
 
 void tickMetronome()
 {
+  static uint32_t lastBeatTime = 0;
+  static boolean inBeat = false;
+  uint16_t beatTime;
+  static int beatLed;
+  static int beatCounter = 1;
+
+  beatTime = 60000 / SMF.getTempo(); // msec/beat = ((60sec/min)*(1000 ms/sec))/(beats/min)
+  if (!inBeat)
+  {
+    if ((millis() - lastBeatTime) >= beatTime)
+    {
+      lastBeatTime = millis();
+      if (++beatCounter > (SMF.getTimeSignature() & 0xf))
+        beatCounter = 1;
+      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_CYAN;
+      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
+
+      inBeat = true;
+    }
+  }
+  else
+  {
+    if ((millis() - lastBeatTime) >= 50) // keep the flash on for 50ms only
+    {
+      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_SKYBLUE;
+      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
+      inBeat = false;
+    }
+  }
+
+  /*
+
   static unsigned long lastBeatTime = 0;
   static boolean inBeat = false;
   uint16_t beatTime = 60000 / SMF.getTempo(); // msec/beat = ((60sec/min)*(1000 ms/sec))/(beats/min)
@@ -299,6 +352,7 @@ void tickMetronome()
       gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
     }
   }
+  */
 }
 
 void ProcessMIDI()

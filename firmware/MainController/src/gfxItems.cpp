@@ -109,7 +109,7 @@ void GFXItems::DisplayGroup(int groupId)
   }
 }
 
-bool GFXItems::IsButtonInGroupPressed(int groupId, int *id)
+bool GFXItems::IsItemInGroupPressed(int groupId, int *id)
 {
   uint16_t x, y;
   bool buttonPressedFlag = false;
@@ -120,29 +120,18 @@ bool GFXItems::IsButtonInGroupPressed(int groupId, int *id)
     {
       for (auto const &eId : groups[groupId])
       {
-        GFXItem &b = GetGfxItemById(eId);
-        if (b.isPressable)
+        GFXItem &gfxItem = GetGfxItemById(eId);
+        if (gfxItem.isPressable)
         {
-          bool isButtonPressed = false;
-
-          // Check if touch is contained in the boundry of the button.
-          if (x >= b.x && x <= (b.x + b.w))
-          {
-            if (y >= b.y && y <= (b.y + b.h))
-            {
-              isButtonPressed = true;
-            }
-          }
-
-          if (isButtonPressed)
+          if (gfxItem.IsPointInBoundry(x, y))
           {
             buttonPressedFlag = true;
-            *id = b.id;
+            *id = gfxItem.id;
             // Prevent button flashing when being held down.
-            if (!b.isPressed)
+            if (!gfxItem.isPressed)
             {
-              b.isPressed = true;
-              DisplayElement(b);
+              gfxItem.isPressed = true;
+              DisplayElement(gfxItem);
             }
           }
         }
@@ -154,14 +143,14 @@ bool GFXItems::IsButtonInGroupPressed(int groupId, int *id)
     // No touch detected, depress all buttons.
     if (groups.find(groupId) != groups.end())
     {
-      for (auto const &gfxItemId : groups[groupId])
+      for (auto const &eId : groups[groupId])
       {
 
-        GFXItem &b = GetGfxItemById(gfxItemId);
-        if (b.isPressed)
+        GFXItem &gfxItem = GetGfxItemById(eId);
+        if (gfxItem.isPressed)
         {
-          b.isPressed = false;
-          DisplayElement(b);
+          gfxItem.isPressed = false;
+          DisplayElement(gfxItem);
         }
       }
     }
