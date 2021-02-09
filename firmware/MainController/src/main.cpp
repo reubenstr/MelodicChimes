@@ -27,7 +27,6 @@
 
 */
 
-
 /*
 // tft esp pins
 #define ILI9488_DRIVER 
@@ -42,7 +41,6 @@
 
 #define TOUCH_CS 22     // Chip select pin (T_CS) of touch screen
 */
-
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -98,7 +96,26 @@ struct Configuration
 
 GFXItems gfxItems(&tft);
 
+const char delimiter = ':';
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+void SendCalibrationCommand(int chime, Direction direction)
+{
+  Serial.print(int(Commands::Calibrate));
+  Serial.print(delimiter);
+  Serial.print(chime);
+  Serial.print(delimiter);
+  Serial.print(int(direction));
+  Serial.println();
+}
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
 {
@@ -141,6 +158,7 @@ void UpdateScreen()
     else if (pageId == PageId::Calibration)
     {
       DisplayClearPartial();
+      DisplayCalibrationPage();
     }
   }
 }
@@ -193,6 +211,16 @@ void ProcessPressedButton(int id)
   {
     playState = PlayState::Stop;
   }
+
+  // Calibration.
+  if ((GFXItemId)id == GFXItemId::Chime_1_up)
+  {
+    SendCalibrationCommand(1, Direction::Up);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_1_down)
+  {
+    SendCalibrationCommand(1, Direction::Down);
+  }
 }
 
 void CheckTouchScreen()
@@ -210,12 +238,19 @@ void CheckTouchScreen()
   {
     gfxItems.IsItemInGroupPressed(int(PageId::Home), &id);
   }
+  else if (pageId == PageId::Configuration)
+  {
+    gfxItems.IsItemInGroupPressed(int(PageId::Configuration), &id);
+  }
+  else if (pageId == PageId::Calibration)
+  {
+    gfxItems.IsItemInGroupPressed(int(PageId::Calibration), &id);
+  }
 
   if (takeTouchReadings)
   {
     if (id != -1)
     {
-
       ProcessPressedButton(id);
       takeTouchReadings = false;
       touchDebounceMillis = millis();
@@ -431,6 +466,8 @@ void setup(void)
   delay(2000);
   Serial.begin(115200);
   Serial.println("Melodic Chimes starting up.");
+
+  Serial2.begin(115200);
 
   ScreenInit();
 

@@ -31,15 +31,26 @@ enum class GFXItemId
 
   SongTitle,
   SongLength,
-  SongNumber
+  SongNumber,
+
+  // Calibration
+  Chime_1_down,
+  Chime_1_up,
+  Chime_2_down,
+  Chime_2_up,
+   Chime_3_down,
+  Chime_3_up,
+  Chime_4_down,
+  Chime_4_up
+  
 };
 
 enum class PageId
 {
   All,
   Home,
-  Calibration,
-  Configuration
+  Configuration,
+    Calibration
 };
 
 enum class MidiState
@@ -59,7 +70,21 @@ enum class PlayState
   Stop
 };
 
-static const char *playStateText[4] = {"", "Play ", "Pause", "Stop "};
+static const char *playStateText[4] = {"", "PLAY ", "PAUSE", "STOP "};
 const uint32_t playStateFillColor[4] = {TFT_BLACK, TFT_GREEN, TFT_YELLOW, TFT_RED};
+
+enum class Commands
+{
+  Calibrate,
+  Tune
+};
+
+enum class Direction
+{
+  Up,
+  Down
+};
+
+
 
 #endif

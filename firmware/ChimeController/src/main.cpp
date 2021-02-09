@@ -47,7 +47,7 @@ movingAvg avg(20);
 
     A weak magnet for the coil is has a low signal to noise ratio.
 	A stronger magnet provides a high signal to noise ration.
-	An overly strong magnet over dampens the string vibrations reducing the length of the signal.
+	An overly strong magnet dampens the string vibrations reducing the length of the signal.
 
     Tuning:
     Two types of tuning tested: free tuning, direct steps tuning
@@ -60,17 +60,39 @@ movingAvg avg(20);
 
 */
 
-#define PIN_STEPPER_TUNE_STEP 14
-#define PIN_STEPPER_TUNE_DIRECTION 15
-#define PIN_STEPPER_PICK_STEP 18
-#define PIN_STEPPER_PICK_DIRECTION 19
-#define PIN_STEPPER_MUTE_STEP 9
-#define PIN_STEPPER_MUTE_DIRECTION 8
+// Note: each chime will have a unique id which indicates the note range and EEPROM storage location for config params.
+// Select the controller's chimes.
+#define CHIME_SET_0_AND_1
+// #define CHIME_SET_3_AND_4
 
-const int numChimes = 1;
-Chime chimes[1] = {Chime(0, PIN_STEPPER_TUNE_STEP, PIN_STEPPER_TUNE_DIRECTION,
-                         PIN_STEPPER_PICK_STEP, PIN_STEPPER_PICK_DIRECTION,
-                         PIN_STEPPER_MUTE_STEP, PIN_STEPPER_MUTE_DIRECTION)};
+#if defined CHIME_SET_0_AND_1
+#define CHIME_A_ID 0
+#define CHIME_B_ID 1
+#elif defined CHIME_SET_3_AND_4
+#define CHIME_A_ID 2
+#define CHIME_B_ID 3
+#endif
+
+#define PIN_STEPPER_TUNE_STEP_A 0
+#define PIN_STEPPER_TUNE_DIRECTION_A 6
+#define PIN_STEPPER_TUNE_STEP_B 1
+#define PIN_STEPPER_TUNE_DIRECTION_B 7
+#define PIN_STEPPER_MUTE_STEP_A 2
+#define PIN_STEPPER_MUTE_DIRECTION_A 8
+#define PIN_STEPPER_MUTE_STEP_B 3
+#define PIN_STEPPER_MUTE_DIRECTION_B 11
+#define PIN_STEPPER_PICK_STEP_A 4
+#define PIN_STEPPER_PICK_DIRECTION_A 12
+#define PIN_STEPPER_PICK_STEP_B 5
+#define PIN_STEPPER_PICK_DIRECTION_B 23
+
+Chime chimeA = {Chime(CHIME_A_ID, PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
+                      PIN_STEPPER_PICK_STEP_A, PIN_STEPPER_PICK_DIRECTION_A,
+                      PIN_STEPPER_MUTE_STEP_A, PIN_STEPPER_MUTE_DIRECTION_A)};
+
+Chime chimeB = {Chime(CHIME_B_ID, PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
+                      PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
+                      PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
 
 AudioInputAnalogStereo adcs1;
 AudioAnalyzeNoteFrequency notefreq2;
@@ -80,6 +102,22 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 //float detectedFrequencies[numChimes];
 volatile float frequencyFromSerial[2];
+
+// Serial variables.
+String uartData = "";
+const char delimiter = ':';
+
+enum class Commands
+{
+    Calibrate,
+    Tune
+};
+
+enum class Direction
+{
+    Up,
+    Down
+};
 
 ////////////////////////////////////////////////////////////////////////
 // Flash onboard LED to show activity
@@ -103,6 +141,24 @@ void Halt()
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+String getValue(String data, char separator, int index)
+{
+    int found = 0;
+    int strIndex[] = {0, -1};
+    int maxIndex = data.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++)
+    {
+        if (data.charAt(i) == separator || i == maxIndex)
+        {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i + 1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
 
 ////////////////////////////////////////////////////////////////////////
 float GetFrequency(int freqNoteSelect)
@@ -184,15 +240,18 @@ void setup()
     delay(1000);
 
     Serial.begin(115200);
-    Serial.println("Teensy starting up.");
+    Serial.println("Chime controller startup.");
+
+    Serial2.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
 
     AudioMemory(120);
     notefreq1.begin(.15);
-    // notefreq2.begin(.25);
+    notefreq2.begin(.15);
 
-    //////////////////////////    
+    //////////////////////////
+    /*
     int c = 0;
     bool completeFlag = false;
     chimes[c].PrepareFrequencyPerStep();
@@ -204,6 +263,7 @@ void setup()
     while (true)
     {
     }
+    */
     //////////////////////////
 
     //////////////////////////
@@ -229,7 +289,7 @@ void setup()
     //////////////////////////
 
     //////////////////////////
-/*
+    /*
     unsigned long start = millis();
     int c = 0;
     int n = 62;
@@ -272,6 +332,49 @@ void setup()
 void loop()
 {
     FlashOnboardLED();
+
+    static unsigned long start = millis();
+
+    if (millis() - start > 2000)
+    {
+        start = millis();
+        chimeA.Pick();
+        chimeB.Pick();
+    }
+
+    chimeA.Tick();
+    chimeB.Tick();
+
+    while (Serial2.available() > 0)
+    {
+        char readChar = Serial2.read();
+        uartData += (char)readChar;
+
+        if (readChar == '\r')
+        {
+            int commandInt = getValue(uartData, delimiter, 0).toInt();
+
+            if (commandInt == int(Commands::Tune))
+            {
+            }
+            else if (commandInt == int(Commands::Calibrate))
+            {
+                int chimeInt= getValue(uartData, delimiter, 1).toInt();
+                int directionInt = getValue(uartData, delimiter, 2).toInt();
+
+                Serial.printf("Command: Calibrate, Chime: %u, Direction: %u", chimeInt, directionInt);
+            }
+
+            uartData = "";
+        }
+
+        // Prevent buffer blowout.
+        if (uartData.length() > 100)
+        {
+            uartData = "";
+        }
+
+    }
 
     /*
     float targetFrequency = C;
