@@ -100,21 +100,12 @@ const char delimiter = ':';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-void SendCalibrationCommand(int chime, Direction direction)
+void SendRestringCommand(int chime, Direction direction)
 {
-  Serial.print(int(Commands::Calibrate));
-  Serial.print(delimiter);
-  Serial.print(chime);
-  Serial.print(delimiter);
-  Serial.print(int(direction));
-  Serial.println();
+  char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u:%u:%u\n", int(Commands::Restring), chime, int(direction));
+  Serial.print(buffer);
+  Serial2.print(buffer);
 }
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
@@ -165,7 +156,7 @@ void UpdateScreen()
 
 void ProcessPressedButton(int id)
 {
-
+  // All page.
   if ((GFXItemId)id == GFXItemId::Home)
   {
     pageId = PageId::Home;
@@ -179,6 +170,7 @@ void ProcessPressedButton(int id)
     pageId = PageId::Configuration;
   }
 
+  // Home page.
   if ((GFXItemId)id == GFXItemId::Previous)
   {
     playState = PlayState::Stop;
@@ -212,14 +204,22 @@ void ProcessPressedButton(int id)
     playState = PlayState::Stop;
   }
 
-  // Calibration.
+  // Calibration page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
-    SendCalibrationCommand(1, Direction::Up);
+    SendRestringCommand(1, Direction::Up);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_1_down)
   {
-    SendCalibrationCommand(1, Direction::Down);
+    SendRestringCommand(1, Direction::Down);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_2_up)
+  {
+    SendRestringCommand(2, Direction::Up);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_2_down)
+  {
+    SendRestringCommand(2, Direction::Down);
   }
 }
 

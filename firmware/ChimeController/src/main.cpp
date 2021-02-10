@@ -13,6 +13,14 @@
 #include <JC_Button.h> // https://github.com/JChristensen/JC_Button
 #include "movingAvg.h" // Local class.
 
+    #include "TeensyTimerTool.h"
+
+using namespace TeensyTimerTool;
+ Timer t1; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
+  
+
+
+
 #define C 261.6
 #define Cs 277.2
 #define D 293.7
@@ -62,15 +70,15 @@ movingAvg avg(20);
 
 // Note: each chime will have a unique id which indicates the note range and EEPROM storage location for config params.
 // Select the controller's chimes.
-#define CHIME_SET_0_AND_1
+#define CHIME_SET_1_AND_2
 // #define CHIME_SET_3_AND_4
 
-#if defined CHIME_SET_0_AND_1
-#define CHIME_A_ID 0
-#define CHIME_B_ID 1
+#if defined CHIME_SET_1_AND_2
+#define CHIME_A_ID 1
+#define CHIME_B_ID 2
 #elif defined CHIME_SET_3_AND_4
-#define CHIME_A_ID 2
-#define CHIME_B_ID 3
+#define CHIME_A_ID 3
+#define CHIME_B_ID 4
 #endif
 
 #define PIN_STEPPER_TUNE_STEP_A 0
@@ -109,7 +117,7 @@ const char delimiter = ':';
 
 enum class Commands
 {
-    Calibrate,
+    Restring,
     Tune
 };
 
@@ -180,6 +188,8 @@ float GetFrequency(int freqNoteSelect)
         float frequency = notefreq1.read();
         float probability = notefreq1.probability();
 
+        //Serial.printf("Detected: %3.2f | Probability %1.2f \n", frequency, probability);
+
         if (probability > acceptableProbability)
         {
             if (frequency > max)
@@ -233,6 +243,13 @@ bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolera
     return fabs(frequency1 - frequency1) < tolerance;
 }
 
+void TimerCallback()
+{
+     chimeA.Tick();
+    chimeB.Tick();
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 void setup()
 {
@@ -249,6 +266,9 @@ void setup()
     AudioMemory(120);
     notefreq1.begin(.15);
     notefreq2.begin(.15);
+
+
+     t1.beginPeriodic(TimerCallback, 250); // microseconds.
 
     //////////////////////////
     /*
@@ -333,36 +353,67 @@ void loop()
 {
     FlashOnboardLED();
 
+    /*
     static unsigned long start = millis();
-
     if (millis() - start > 2000)
     {
         start = millis();
-        chimeA.Pick();
-        chimeB.Pick();
+        //chimeA.Pick();
+        //chimeB.Pick();
+    }
+    */
+
+
+
+    float targetFrequency;
+
+    static unsigned long start = millis();
+    static bool toggle = false;
+    if (millis() - start > 2000)
+    {
+        start = millis();
+        toggle = !toggle;
     }
 
-    chimeA.Tick();
-    chimeB.Tick();
+    targetFrequency = toggle ? 146.8 : 196.0;
+
+   float detectedFrequency = GetDetectedFrequency(0);
+    if (detectedFrequency > 0)
+    {
+        Serial.println(detectedFrequency);
+
+        chimeB.TuneFrequency(detectedFrequency, targetFrequency);
+    }
+
+   
 
     while (Serial2.available() > 0)
     {
         char readChar = Serial2.read();
         uartData += (char)readChar;
 
-        if (readChar == '\r')
+        if (readChar == '\n')
         {
             int commandInt = getValue(uartData, delimiter, 0).toInt();
 
             if (commandInt == int(Commands::Tune))
             {
             }
-            else if (commandInt == int(Commands::Calibrate))
+            else if (commandInt == int(Commands::Restring))
             {
-                int chimeInt= getValue(uartData, delimiter, 1).toInt();
-                int directionInt = getValue(uartData, delimiter, 2).toInt();
+                int chimeId = getValue(uartData, delimiter, 1).toInt();
+                int direction = getValue(uartData, delimiter, 2).toInt();
 
-                Serial.printf("Command: Calibrate, Chime: %u, Direction: %u", chimeInt, directionInt);
+                Serial.printf("Command received: Calibrate | Chime: %u, Direction: %u\n", chimeId, direction);
+
+                if (chimeId == 1 || chimeId == 3)
+                {
+                    chimeA.Retring(direction);
+                }
+                else if (chimeId == 2 || chimeId == 4)
+                {
+                    chimeB.Retring(direction);
+                }
             }
 
             uartData = "";
@@ -373,7 +424,6 @@ void loop()
         {
             uartData = "";
         }
-
     }
 
     /*

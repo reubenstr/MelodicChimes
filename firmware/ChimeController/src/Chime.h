@@ -2,12 +2,12 @@
 #include <AccelStepper.h>
 #include <Audio.h>
 #include "movingAvg.h"
+
+
 /*
-
     Pick Stepper:
-    200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev
+    OUTDATED::: 200 steps/rev, 1/4 steps, 20/10 gearbox, 3 plectrum/rev
     = 132 steps per pick
-
 */
 
 class Chime
@@ -30,6 +30,8 @@ public:
     void PrepareCalibratePick();
     bool CalibratePick(float detectedFrequency);
 
+    void Retring(bool direction);
+
     void Pick();
     void Mute();
     void Tick();
@@ -40,6 +42,9 @@ public:
 private:
     void SetStepperParameters();
     void MuteTick();
+    
+
+   
 
     int _chimeId;
     int stepsToNotes[80];
@@ -52,6 +57,8 @@ private:
 
     int _lowestNote = 60;
     int _highestNote = 69;
+
+    const int _stepsPerRestringCommand = 800;
 
     // Pick Stepper:  200 steps/rev, 1/4 steps, 10/20 gearbox, 6 plectrum/rev
     // 200 * 4 * 0.5 / 6 = 66.666
