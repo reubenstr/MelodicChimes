@@ -3,7 +3,6 @@
 #include <Audio.h>
 #include "movingAvg.h"
 
-
 /*
     Pick Stepper:
     200 steps/rev, 1/2 steps, 20:30 pulley (20 teeth on drive, 30 teeth on pick), 8 plectrum/rev
@@ -18,19 +17,16 @@ public:
 
     float NoteIdToFrequency(float noteId);
 
-    bool TuneNote(float detectedFrequency, int noteId);
-    bool TuneFrequency(float targetFrequency);
+    void SetTargetFrequency(float frequency);
 
     void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
 
-    void PrepareFrequencyPerStep();
-    bool CalibrateFrequencyPerStep(float detectedFrequency);
+    void CalibrateFrequencyPerStep();
 
-    void PrepareCalibratePick();
-    bool CalibratePick(float detectedFrequency);
+    bool CalibratePick();
 
-    void Retring(bool direction);
+    void ReString(bool direction);
 
     void Pick();
     void Mute();
@@ -40,17 +36,30 @@ public:
     int setTime;
 
 private:
+    bool TuneNote(float detectedFrequency, int noteId);
+    bool TuneFrequency(float targetFrequency);
+
     float GetFrequency();
     void SetStepperParameters();
     void MuteTick();
-    
+
+    // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
-   
+    float _targetFrequency;
+    float _detectedFrequency;
+
+    // Positions.
+    const int _stepsPerRestringCommand = 800;
+    const int _stepsPerPick = 75;
+    const int _stepsPerMute = 50;
+
+    // Mute.
+    bool _muteReturnToOpenFlag;
 
     int _chimeId;
     int stepsToNotes[80];
 
-    // Cailbration variables.
+    // Cailbration.
     unsigned long frequencyDetectionTimeoutMillis = millis();
     const int frequencyDetectionTimeoutMs = 1000;
     int noteId;
@@ -59,15 +68,9 @@ private:
     int _lowestNote = 60;
     int _highestNote = 69;
 
-    const int _stepsPerRestringCommand = 800;
-
-    const int _stepsPerPick = 75;
-
     AccelStepper _tuneStepper;
     AccelStepper _pickStepper;
     AccelStepper _muteStepper;
-
-    float _targetFrequency;
 
     uint8_t _pinMotorPickLimit;
     const int _motorPickIndexActivated = 1;
@@ -87,7 +90,7 @@ private:
     TuneStates _tuneState = FreeTune;
     int _currentNoteId = 0;
 
-    // FrequenctPerStep variables
+    // FrequenctPerStep.
     enum FreqPerStepStates
     {
         Home,

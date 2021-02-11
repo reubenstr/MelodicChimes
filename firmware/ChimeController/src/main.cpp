@@ -9,11 +9,10 @@
 #include <SPI.h>
 #include <SD.h>
 #include <SerialFlash.h>
-#include "Chime.h"     // Local class.
-#include <JC_Button.h> // https://github.com/JChristensen/JC_Button
-#include "movingAvg.h" // Local class.
-
-#include "TeensyTimerTool.h"
+#include "Chime.h"           // Local class.
+#include "movingAvg.h"       // Local class.
+#include <JC_Button.h>       // https://github.com/JChristensen/JC_Button
+#include "TeensyTimerTool.h" // https://github.com/luni64/TeensyTimerTool
 
 using namespace TeensyTimerTool;
 Timer t1; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
@@ -35,31 +34,18 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 #define Gs 415.3
 #define A 440.0
 
-const int numNotes = 9;
-float notes[numNotes] = {E, f, G, E, f, D, E, C, D};
-//float notesChromatic[10] = {C, Cs, D, Eb, E, F, Fs, G, Gs, A};
-// int delays[numNotes] = {750, 750, 750, 750, 750, 750, 750, 750, 750};
-// int delays[numNotes] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
-
-Button buttonStep(2);
-movingAvg avg(20);
-
 /*
     DEVELOPMENT NOTES
-
 	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
 	faster analysis at the sacrafice of less lower frequency detection
 	which is not required for this application.
-
 	Blocks : lowest frequncy (rough estimate) : milliseconds per note
 	3 : 233hz : 9
 	4 : 174hz : 12
 	5 : 139hz : 15
-
     A weak magnet for the coil is has a low signal to noise ratio.
 	A stronger magnet provides a high signal to noise ration.
 	An overly strong magnet dampens the string vibrations reducing the length of the signal.
-
     Tuning:
     Two types of tuning tested: free tuning, direct steps tuning
         Direct step tuning (using a look up table for steps between notes) was tested to allow for maximuim
@@ -68,7 +54,6 @@ movingAvg avg(20);
         The variation was further confirmed when attemping to tune using the steps to note lookup table. Some occasions, 
         while tuning, only a few steps were needed for final tune correction while on most occasions the steps required
         where relatively many.
-
 */
 
 // Note: each chime will have a unique id which indicates the note range and EEPROM storage location for config params.
@@ -97,7 +82,7 @@ movingAvg avg(20);
 #define PIN_STEPPER_PICK_STEP_B 5
 #define PIN_STEPPER_PICK_DIRECTION_B 23
 
-Chime chimeA = {Chime(CHIME_A_ID, notefreq1,
+Chime chimeA = {Chime(CHIME_A_ID, notefreq2,
                       PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
                       PIN_STEPPER_PICK_STEP_A, PIN_STEPPER_PICK_DIRECTION_A,
                       PIN_STEPPER_MUTE_STEP_A, PIN_STEPPER_MUTE_DIRECTION_A)};
@@ -118,12 +103,6 @@ enum class Commands
 {
     Restring,
     Tune
-};
-
-enum class Direction
-{
-    Up,
-    Down
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -168,222 +147,9 @@ String getValue(String data, char separator, int index)
 }
 
 ////////////////////////////////////////////////////////////////////////
-float GetFrequency(int freqNoteSelect)
+
+void ProcessUart()
 {
-    const float noFrequencyDetected = 0;
-    const float acceptableProbability = 0.995;
-    static int timeElapsed = millis();
-
-    static float min = 2048;
-    static float max = 0;
-
-    if (freqNoteSelect != 0 && freqNoteSelect != 1)
-    {
-        return noFrequencyDetected;
-    }
-
-    if (notefreq1.available())
-    {
-        float frequency = notefreq1.read();
-        float probability = notefreq1.probability();
-
-        //Serial.printf("Detected: %3.2f | Probability %1.2f \n", frequency, probability);
-
-        if (probability > acceptableProbability)
-        {
-            if (frequency > max)
-                max = frequency;
-
-            if (frequency < min)
-                min = frequency;
-
-            // Serial.printf("Detected: %3.2f | Probability %1.2f | Time: %ums \n", note, prob, millis() - timeElapsed);
-            // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
-
-            timeElapsed = millis();
-
-            return frequency;
-        }
-
-        timeElapsed = millis();
-    }
-
-    return noFrequencyDetected;
-}
-
-float GetDetectedFrequency(int sourceId)
-{
-    if (sourceId == 0)
-    {
-        return GetFrequency(0);
-    }
-
-    // detectedFrequencies[1] = GetFrequency(1);
-    //cli(); // Disable interrupts;
-    //detectedFrequencies[3] = frequencyFromSerial[0];
-    //detectedFrequencies[4] = frequencyFromSerial[1];
-    //sei();	// Enable interrupts;
-}
-
-void CalibratePick()
-{
-    /*
-    bool freqencyDetectedFlag = false;
-    while (!freqencyDetectedFlag)
-    {
-        freqencyDetectedFlag = GetFrequency() > 0;
-        chime.CalibratePick(freqencyDetectedFlag);
-    }
-    */
-}
-
-bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolerance)
-{
-    return fabs(frequency1 - frequency1) < tolerance;
-}
-
-void TimerCallback()
-{
-    chimeA.Tick();
-    chimeB.Tick();
-}
-
-////////////////////////////////////////////////////////////////////////
-void setup()
-{
-    // Give platformio time to switch back to the terminal.
-    delay(1000);
-
-    Serial.begin(115200);
-    Serial.println("Chime controller startup.");
-
-    Serial2.begin(115200);
-
-    pinMode(LED_BUILTIN, OUTPUT);
-
-    AudioMemory(120);
-    //notefreq1.begin(.15);
-    //notefreq2.begin(.15);
-
-    t1.beginPeriodic(TimerCallback, 250); // microseconds.
-
-    //////////////////////////
-    /*
-    int c = 0;
-    bool completeFlag = false;
-    chimes[c].PrepareFrequencyPerStep();
-    while (!completeFlag)
-    {
-        completeFlag = chimes[c].CalibrateFrequencyPerStep(GetDetectedFrequency(c));
-    }
-
-    while (true)
-    {
-    }
-    */
-    //////////////////////////
-
-    //////////////////////////
-    // Calibration tests
-    /*
-    int c = 0;
-    bool completeFlag = false;
-
-    chimes[c].PrepareCalibratePick();
-    while (!completeFlag)
-    {
-        completeFlag = chimes[c].CalibratePick(GetDetectedFrequency(c));
-    }
-
-    completeFlag = false;
-
-    chimes[c].PrepareCalibrateStepsToNotes();
-    while (!completeFlag)
-    {
-        completeFlag = chimes[c].CalibrateStepsToNotes(GetDetectedFrequency(c));
-    }
-    */
-    //////////////////////////
-
-    //////////////////////////
-    /*
-    unsigned long start = millis();
-    int c = 0;
-    int n = 62;
-    bool pickFlag = false;
-    unsigned long pickMillis = millis();
-    while (true)
-    {
-
-        chimes[c].TuneNote(GetDetectedFrequency(c), n);
-        chimes[c].Tick();
-
-        if (millis() - start > 2000)
-        {
-            start = millis();
-            n++;
-            if (n == 70)
-            {
-                Serial.println("STOPPED");
-                while (true)
-                {
-                }
-            }
-
-            Serial.printf("New note: %u\n", n);
-            pickFlag = true;
-            pickMillis = millis();
-        }
-
-        // Delay pick for n milliseconds.
-        if (pickFlag && millis() - pickMillis > 100)
-        {
-            chimes[c].Pick();
-            pickFlag = false;
-        }
-    }
-    //////////////////////////
-    */
-}
-
-void loop()
-{
-    FlashOnboardLED();
-
-    static unsigned long startc = millis();
-    if (millis() - startc > 5000)
-    {
-        startc = millis();
-        //chimeA.Pick();
-        //chimeB.Pick();
-    }
-    /* */
-
-    float targetFrequency;
-
-    static unsigned long start = millis();
-    static bool toggle = false;
-    if (millis() - start > 2000)
-    {
-        start = millis();
-        toggle = !toggle;
-    }
-
-    targetFrequency = toggle ? 146.8 : 196.0;
-    chimeB.TuneFrequency(targetFrequency);
-
-    //chimeA.TuneFrequency(329.63);
-
-/*
-    float detectedFrequency = GetDetectedFrequency(0);
-    if (detectedFrequency > 0)
-    {
-        Serial.println(detectedFrequency);
-
-        chimeB.TuneFrequency(targetFrequency);
-    }
-    */
-
     while (Serial2.available() > 0)
     {
         char readChar = Serial2.read();
@@ -405,35 +171,105 @@ void loop()
 
                 if (chimeId == 1 || chimeId == 3)
                 {
-                    chimeA.Retring(direction);
+                    chimeA.ReString(direction);
                 }
                 else if (chimeId == 2 || chimeId == 4)
                 {
-                    chimeB.Retring(direction);
+                    chimeB.ReString(direction);
                 }
             }
 
             uartData = "";
         }
 
-        // Prevent buffer blowout.
+        // Prevent runaway memory allocation.
         if (uartData.length() > 100)
         {
             uartData = "";
         }
     }
+}
 
+void TimerCallback()
+{
+    chimeA.Tick();
+    chimeB.Tick();
+}
+
+////////////////////////////////////////////////////////////////////////
+void setup()
+{
+    // Give platformio time to switch back to the terminal.
+    delay(1000);
+
+    // Serial connection to terminal for debugging.
+    Serial.begin(115200);
+    Serial.println("Chime controller startup.");
+
+    // Serial connection to main controller.
+    Serial2.begin(115200);
+
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    AudioMemory(120);
+
+    t1.beginPeriodic(TimerCallback, 250); // microseconds.
+
+    //////////////////////////
     /*
-    float targetFrequency = C;
-
-    for (int c = 0; c < numChimes; c++)
+	
+	OLD TUNE NOTE HELPER TEST
+	
+    unsigned long start = millis();
+    int c = 0;
+    int n = 62;
+    bool pickFlag = false;
+    unsigned long pickMillis = millis();
+    while (true)
     {
-        chimes[c].TuneFrequency(GetDetectedFrequency(c), targetFrequency);
-    }
-
-    for (int c = 0; c < numChimes; c++)
-    {
+        chimes[c].TuneNote(GetDetectedFrequency(c), n);
         chimes[c].Tick();
+        if (millis() - start > 2000)
+        {
+            start = millis();
+            n++;
+            if (n == 70)
+            {
+                Serial.println("STOPPED");
+                while (true)
+                {
+                }
+            }
+            Serial.printf("New note: %u\n", n);
+            pickFlag = true;
+            pickMillis = millis();
+        }
+        // Delay pick for n milliseconds.
+        if (pickFlag && millis() - pickMillis > 100)
+        {
+            chimes[c].Pick();
+            pickFlag = false;
+        }
     }
+    //////////////////////////
     */
+}
+
+void loop()
+{
+    FlashOnboardLED();
+
+    ProcessUart();
+
+    float targetFrequency;
+    static unsigned long start = millis();
+    static bool toggle = false;
+    if (millis() - start > 2000)
+    {
+        start = millis();
+        toggle = !toggle;
+
+        targetFrequency = toggle ? 146.8 : 196.0;
+        chimeB.SetTargetFrequency(targetFrequency);
+    }
 }

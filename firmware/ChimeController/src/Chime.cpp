@@ -1,4 +1,3 @@
-
 #include "Arduino.h"
 #include "Chime.h"
 
@@ -51,43 +50,30 @@ void Chime::SetStepperParameters()
 }
 
 // Convert MIDI note number to frequency.
+// https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
 float Chime::NoteIdToFrequency(float noteId)
 {
-    // https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
     return 440 * pow(2, (noteId - 69) / 12);
 }
 
+/*
+bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolerance)
+{
+    return fabs(frequency1 - frequency1) < tolerance;
+}
+*/
+
 float Chime::GetFrequency()
 {
-    const float noFrequencyDetected = 0;
+    const float noFrequencyDetected = 0.0;
     const float acceptableProbability = 0.995;
-    static int timeElapsed = millis();
-
-    static float min = 2048;
-    static float max = 0;
 
     if (notefreq->available())
     {
-        float frequency = notefreq->read();
-        float probability = notefreq->probability();        
-
-        if (probability > acceptableProbability)
+        if (notefreq->probability() > acceptableProbability)
         {
-            if (frequency > max)
-                max = frequency;
-
-            if (frequency < min)
-                min = frequency;
-
-            // Serial.printf("Detected: %3.2f | Probability %1.2f | Time: %ums \n", note, prob, millis() - timeElapsed);
-            // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
-
-            timeElapsed = millis();
-
-            return frequency;
+            return notefreq->read();
         }
-
-        timeElapsed = millis();
     }
 
     return noFrequencyDetected;
@@ -171,6 +157,8 @@ bool Chime::TuneFrequency(float targetFrequency)
     float frequencyTolerance = 1.0;
     char directionText[5];
 
+    // TODO: check if target frequency is within chime's range.
+
     float detectedFrequency = GetFrequency();
 
     // Return if frequency was not detected.
@@ -179,11 +167,10 @@ bool Chime::TuneFrequency(float targetFrequency)
         return false;
     }
 
-    //float runTimeCoef = 2;
-    //float targetPosition = runTimeCoef * (targetFrequency - detectedFrequency);
+    _detectedFrequency = detectedFrequency;
 
     // Based on linear regression test.
-    float targetPosition = int((targetFrequency - detectedFrequency) * 4.54);
+    float targetPosition = int(4.54 * (targetFrequency - detectedFrequency));
 
     int minPos = 1;
     int maxPos = 100;
@@ -230,7 +217,7 @@ bool Chime::TuneFrequency(float targetFrequency)
     return frequencyWithinTolerance;
 }
 
-void Chime::Retring(bool direction)
+void Chime::ReString(bool direction)
 {
     if (direction)
     {
@@ -252,30 +239,25 @@ void Chime::Pick()
     }
 }
 
+// Mute the string briefly.
 void Chime::Mute()
 {
-    /*
-    _muteStepper.SetCurrentPosition(0);
-    _muteStepper.SetTargetPosition(400);
+    _muteStepper.setCurrentPosition(0);
+    _muteStepper.moveTo(_stepsPerMute);
 
     _muteReturnToOpenFlag = true;
-
     _startMute = millis();
-    */
 }
 
+// Unmute string after muting.
 void Chime::MuteTick()
 {
-    /*
-    _muteStepper.Tick();
-
-    if (_muteReturnToOpenFlag && _muteStepper.IsAtPosition())
+    if (_muteReturnToOpenFlag && _muteStepper.distanceToGo() == 0)
     {
         _muteReturnToOpenFlag = false;
-        _muteStepper.SetCurrentPosition(0);
-        _muteStepper.SetTargetPosition(-400);
+        _muteStepper.setCurrentPosition(0);
+        _muteStepper.moveTo(-_stepsPerMute);
     }
-    */
 }
 
 void Chime::PrepareCalibrateStepsToNotes()
@@ -295,25 +277,19 @@ bool Chime::CalibrateStepsToNotes(float detectedFrequency)
     if (TuneFrequency(detectedFrequency, targetFrequency))
     {
         Serial.printf("Target of %3.2f found with %i steps over %u milliseconds.\n", targetFrequency, _tuneStepper.currentPosition(), millis() - betweenNotesMillis);
-
         betweenNotesMillis = millis();
         stepsToNotes[noteId] = _tuneStepper.currentPosition();
-
         if (noteId++ == _highestNote)
         {
             Serial.println("CalibrateStepsToNotes complete.");
-
             for (int i = _lowestNote - 1; i < _highestNote + 1; i++)
             {
                 Serial.println(stepsToNotes[i]);
             }
-
             return true;
         }
-
         _tuneStepper.setCurrentPosition(0);
     }
-
     // Check if string needs picked.
     if (detectedFrequency > 0)
     {
@@ -327,123 +303,123 @@ bool Chime::CalibrateStepsToNotes(float detectedFrequency)
             Pick();
         }
     }
-
     Tick();
     */
 }
 
-void Chime::PrepareFrequencyPerStep()
+// Takes an averaged frequency reading per n steps.
+// Used for linear regression calculation for tuning P-controller coefficient.
+void Chime::CalibrateFrequencyPerStep()
 {
     _freqPerStepState = FreqPerStepStates::Home;
     _totalReadingsCount = 0;
+
     _tuneStepper.setMaxSpeed(500);
     _tuneStepper.setAcceleration(250);
-}
 
-bool Chime::CalibrateFrequencyPerStep(float detectedFrequency)
-{
-/*
-    if (_freqPerStepState == FreqPerStepStates::Home)
+    while (1)
     {
-        float targetFrequency = NoteIdToFrequency(_lowestNote);
-        if (TuneFrequency(detectedFrequency, targetFrequency))
-        {
-            _freqPerStepState = FreqPerStepStates::Move;
-        }
-    }
-    else if (_freqPerStepState == FreqPerStepStates::Move)
-    {
-        _tuneStepper.setCurrentPosition(0);
-        _tuneStepper.moveTo(_stepsBetweenReadings);
-        _freqPerStepState = FreqPerStepStates::WaitForMove;
-    }
-    else if (_freqPerStepState == FreqPerStepStates::WaitForMove)
-    {
-        if (_tuneStepper.distanceToGo() == 0)
-        {
-            _readingsCount = 0;
-            _freqPerStepState = FreqPerStepStates::WaitForReading;
-        }
-    }
-    else if (_freqPerStepState == FreqPerStepStates::WaitForReading)
-    {
+        float detectedFrequency = GetFrequency();
 
+        if (_freqPerStepState == FreqPerStepStates::Home)
+        {
+            float targetFrequency = NoteIdToFrequency(_lowestNote);
+            if (TuneFrequency(targetFrequency))
+            {
+                _freqPerStepState = FreqPerStepStates::Move;
+            }
+        }
+        else if (_freqPerStepState == FreqPerStepStates::Move)
+        {
+            _tuneStepper.setCurrentPosition(0);
+            _tuneStepper.moveTo(_stepsBetweenReadings);
+            _freqPerStepState = FreqPerStepStates::WaitForMove;
+        }
+        else if (_freqPerStepState == FreqPerStepStates::WaitForMove)
+        {
+            if (_tuneStepper.distanceToGo() == 0)
+            {
+                _readingsCount = 0;
+                _freqPerStepState = FreqPerStepStates::WaitForReading;
+            }
+        }
+        else if (_freqPerStepState == FreqPerStepStates::WaitForReading)
+        {
+            if (detectedFrequency > 0)
+            {
+                _freqAverage.reading(detectedFrequency);
+                _readingsCount++;
+            }
+            if (_readingsCount == _numReadingsToAverage)
+            {
+                frequencyReadings[_totalReadingsCount] = _freqAverage.getAvg();
+                _totalReadingsCount++;
+                if (detectedFrequency > NoteIdToFrequency(_highestNote))
+                {
+                    Serial.printf("Chime %u finished with FrequencyPerStep.\n", _chimeId);
+                    for (int i = 0; i < _totalReadingsCount; i++)
+                    {
+                        Serial.printf("%3.2f\n", frequencyReadings[i]);
+                    }
+                    // TODO: save values if used for actual tuning.
+                    break;
+                }
+                _freqPerStepState = FreqPerStepStates::Move;
+            }
+        }
+        // Check if string needs picked.
         if (detectedFrequency > 0)
         {
-            _freqAverage.reading(detectedFrequency);
-
-            _readingsCount++;
-        }
-
-        if (_readingsCount == _numReadingsToAverage)
-        {
-            frequencyReadings[_totalReadingsCount] = _freqAverage.getAvg();
-            _totalReadingsCount++;
-
-            if (detectedFrequency > NoteIdToFrequency(_highestNote))
-            {
-
-                Serial.printf("Chime %u finished with FrequencyPerStep.\n", _chimeId);
-
-                for (int i = 0; i < _totalReadingsCount; i++)
-                {
-                    Serial.printf("%3.2f\n", frequencyReadings[i]);
-                }
-                return true;
-            }
-
-            _freqPerStepState = FreqPerStepStates::Move;
-        }
-    }
-
-    // Check if string needs picked.
-    if (detectedFrequency > 0)
-    {
-        frequencyDetectionTimeoutMillis = millis();
-    }
-    else
-    {
-        if (millis() - frequencyDetectionTimeoutMillis > frequencyDetectionTimeoutMs)
-        {
             frequencyDetectionTimeoutMillis = millis();
-            Pick();
+        }
+        else
+        {
+            if (millis() - frequencyDetectionTimeoutMillis > frequencyDetectionTimeoutMs)
+            {
+                frequencyDetectionTimeoutMillis = millis();
+                Pick();
+            }
         }
     }
-
-    Tick();
-
-    return false;
-    */
 }
 
-void Chime::PrepareCalibratePick()
+// Calibrate pick to known position.
+// Blocking routine until a frequency is detected or timeout.
+bool Chime::CalibratePick()
 {
     _pickStepper.setMaxSpeed(125);
     _pickStepper.setAcceleration(1000);
+
     _pickStepper.setCurrentPosition(0);
     _pickStepper.moveTo(_stepsPerPick * 4);
-}
 
-// Returns true when calibration is complete.
-// Call this method contiuously until calibration is complete.
-// Start calling when string is not producing a frequency.
-bool Chime::CalibratePick(float detectedFrequency)
-{
-    if (detectedFrequency > 0)
+    float detectedFrequency = 0.0;
+
+    while (detectedFrequency == 0)
     {
-        _pickStepper.moveTo(_pickStepper.currentPosition() + _stepsPerPick / 8);
-        _pickStepper.runToPosition();
+        detectedFrequency = GetFrequency();
 
-        SetStepperParameters();
-        return true;
+        if (_pickStepper.distanceToGo() == 0)
+        {
+            return false;
+        }
     }
 
-    _pickStepper.run();
-    return false;
+    _pickStepper.moveTo(_pickStepper.currentPosition() + _stepsPerPick / 16);
+
+    SetStepperParameters();
+
+    return true;
+}
+
+void Chime::SetTargetFrequency(float frequency)
+{
+    _targetFrequency = frequency;
 }
 
 void Chime::Tick()
 {
+    TuneFrequency(_targetFrequency);
 
     _tuneStepper.run();
     _pickStepper.run();
