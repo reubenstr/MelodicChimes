@@ -2,7 +2,8 @@
 #include "Arduino.h"
 #include "Chime.h"
 
-Chime::Chime(int chimeId, uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection,
+Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
+             uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection,
              uint8_t pinStepperPickStep, uint8_t pinStepperPickDirection,
              uint8_t pinStepperMuteStep, uint8_t pinStepperMuteDirection)
     : _tuneStepper(AccelStepper::DRIVER, pinStepperTuneStep, pinStepperTuneDirection),
@@ -25,7 +26,10 @@ Chime::Chime(int chimeId, uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDire
     stepsToNotes[68] = 108;
     stepsToNotes[69] = 139;
 
-  _freqAverage.begin();
+    _freqAverage.begin();
+
+    this->notefreq = &notefreq;
+    this->notefreq->begin(0.15);
 }
 
 void Chime::SetStepperParameters()
@@ -35,10 +39,10 @@ void Chime::SetStepperParameters()
     _tuneStepper.setAcceleration(8000);
 
     // TEMP FOR RESTRING TEST
-        _tuneStepper.setMaxSpeed(1500);
+    _tuneStepper.setMaxSpeed(1500);
     _tuneStepper.setAcceleration(3000);
 
-    _pickStepper.setPinsInverted(true, false, false);
+    _pickStepper.setPinsInverted(false, false, false);
     _pickStepper.setMaxSpeed(10000);
     _pickStepper.setAcceleration(4000);
 
@@ -46,13 +50,47 @@ void Chime::SetStepperParameters()
     _muteStepper.setAcceleration(20000);
 }
 
-
-
 // Convert MIDI note number to frequency.
 float Chime::NoteIdToFrequency(float noteId)
 {
     // https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
     return 440 * pow(2, (noteId - 69) / 12);
+}
+
+float Chime::GetFrequency()
+{
+    const float noFrequencyDetected = 0;
+    const float acceptableProbability = 0.995;
+    static int timeElapsed = millis();
+
+    static float min = 2048;
+    static float max = 0;
+
+    if (notefreq->available())
+    {
+        float frequency = notefreq->read();
+        float probability = notefreq->probability();        
+
+        if (probability > acceptableProbability)
+        {
+            if (frequency > max)
+                max = frequency;
+
+            if (frequency < min)
+                min = frequency;
+
+            // Serial.printf("Detected: %3.2f | Probability %1.2f | Time: %ums \n", note, prob, millis() - timeElapsed);
+            // Serial.printf("Min %3.2f | Max: %3.2f | Delta: %3.2f | Count %u\n", min, max, max - min, count);
+
+            timeElapsed = millis();
+
+            return frequency;
+        }
+
+        timeElapsed = millis();
+    }
+
+    return noFrequencyDetected;
 }
 
 // Predicts steps needed to hit the frequency.
@@ -81,7 +119,7 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
     if (_tuneState == TuneStates::FreeTune)
     {
         float targetFrequency = NoteIdToFrequency(newNoteId);
-        TuneFrequency(detectedFrequency, targetFrequency);
+        //TuneFrequency(detectedFrequency, targetFrequency);
         _currentNoteId = newNoteId;
     }
     // Tune directly by using the steps to note look up table.
@@ -124,7 +162,7 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
 }
 
 // No step prediction, just tune right away (P-controller).
-bool Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
+bool Chime::TuneFrequency(float targetFrequency)
 {
     static unsigned int detectionCount = 0;
     static unsigned long startTimeNewTarget = millis();
@@ -132,6 +170,8 @@ bool Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
     bool frequencyWithinTolerance = false;
     float frequencyTolerance = 1.0;
     char directionText[5];
+
+    float detectedFrequency = GetFrequency();
 
     // Return if frequency was not detected.
     if (detectedFrequency == 0)
@@ -191,7 +231,7 @@ bool Chime::TuneFrequency(float detectedFrequency, float targetFrequency)
 }
 
 void Chime::Retring(bool direction)
-{  
+{
     if (direction)
     {
         _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestringCommand);
@@ -248,6 +288,7 @@ void Chime::PrepareCalibrateStepsToNotes()
 // Call in a loop until the return is true.
 bool Chime::CalibrateStepsToNotes(float detectedFrequency)
 {
+    /*
     // Tune string to target frequency.
     // Check if frequency is within tolerance.
     float targetFrequency = NoteIdToFrequency(noteId);
@@ -288,6 +329,7 @@ bool Chime::CalibrateStepsToNotes(float detectedFrequency)
     }
 
     Tick();
+    */
 }
 
 void Chime::PrepareFrequencyPerStep()
@@ -300,7 +342,7 @@ void Chime::PrepareFrequencyPerStep()
 
 bool Chime::CalibrateFrequencyPerStep(float detectedFrequency)
 {
-
+/*
     if (_freqPerStepState == FreqPerStepStates::Home)
     {
         float targetFrequency = NoteIdToFrequency(_lowestNote);
@@ -371,6 +413,7 @@ bool Chime::CalibrateFrequencyPerStep(float detectedFrequency)
     Tick();
 
     return false;
+    */
 }
 
 void Chime::PrepareCalibratePick()
@@ -401,10 +444,8 @@ bool Chime::CalibratePick(float detectedFrequency)
 
 void Chime::Tick()
 {
-    
 
-
-   _tuneStepper.run();    
+    _tuneStepper.run();
     _pickStepper.run();
     _muteStepper.run();
 

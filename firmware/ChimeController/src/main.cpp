@@ -13,13 +13,16 @@
 #include <JC_Button.h> // https://github.com/JChristensen/JC_Button
 #include "movingAvg.h" // Local class.
 
-    #include "TeensyTimerTool.h"
+#include "TeensyTimerTool.h"
 
 using namespace TeensyTimerTool;
- Timer t1; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
-  
+Timer t1; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
 
-
+AudioInputAnalogStereo adcs1;
+AudioAnalyzeNoteFrequency notefreq2;
+AudioAnalyzeNoteFrequency notefreq1;
+AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
+AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 #define C 261.6
 #define Cs 277.2
@@ -94,19 +97,15 @@ movingAvg avg(20);
 #define PIN_STEPPER_PICK_STEP_B 5
 #define PIN_STEPPER_PICK_DIRECTION_B 23
 
-Chime chimeA = {Chime(CHIME_A_ID, PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
+Chime chimeA = {Chime(CHIME_A_ID, notefreq1,
+                      PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
                       PIN_STEPPER_PICK_STEP_A, PIN_STEPPER_PICK_DIRECTION_A,
                       PIN_STEPPER_MUTE_STEP_A, PIN_STEPPER_MUTE_DIRECTION_A)};
 
-Chime chimeB = {Chime(CHIME_B_ID, PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
+Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
+                      PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
                       PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
                       PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
-
-AudioInputAnalogStereo adcs1;
-AudioAnalyzeNoteFrequency notefreq2;
-AudioAnalyzeNoteFrequency notefreq1;
-AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
-AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 //float detectedFrequencies[numChimes];
 volatile float frequencyFromSerial[2];
@@ -245,10 +244,9 @@ bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolera
 
 void TimerCallback()
 {
-     chimeA.Tick();
+    chimeA.Tick();
     chimeB.Tick();
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 void setup()
@@ -264,11 +262,10 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
 
     AudioMemory(120);
-    notefreq1.begin(.15);
-    notefreq2.begin(.15);
+    //notefreq1.begin(.15);
+    //notefreq2.begin(.15);
 
-
-     t1.beginPeriodic(TimerCallback, 250); // microseconds.
+    t1.beginPeriodic(TimerCallback, 250); // microseconds.
 
     //////////////////////////
     /*
@@ -353,17 +350,14 @@ void loop()
 {
     FlashOnboardLED();
 
-    /*
-    static unsigned long start = millis();
-    if (millis() - start > 2000)
+    static unsigned long startc = millis();
+    if (millis() - startc > 5000)
     {
-        start = millis();
+        startc = millis();
         //chimeA.Pick();
         //chimeB.Pick();
     }
-    */
-
-
+    /* */
 
     float targetFrequency;
 
@@ -376,16 +370,19 @@ void loop()
     }
 
     targetFrequency = toggle ? 146.8 : 196.0;
+    chimeB.TuneFrequency(targetFrequency);
 
-   float detectedFrequency = GetDetectedFrequency(0);
+    //chimeA.TuneFrequency(329.63);
+
+/*
+    float detectedFrequency = GetDetectedFrequency(0);
     if (detectedFrequency > 0)
     {
         Serial.println(detectedFrequency);
 
-        chimeB.TuneFrequency(detectedFrequency, targetFrequency);
+        chimeB.TuneFrequency(targetFrequency);
     }
-
-   
+    */
 
     while (Serial2.available() > 0)
     {
