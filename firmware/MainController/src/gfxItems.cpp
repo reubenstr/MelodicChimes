@@ -13,19 +13,6 @@ void GFXItems::Add(GFXItem gfxItem)
   gfxItems.push_back(gfxItem);
 }
 
-void GFXItems::AddElementToGroup(int groupId, int eId)
-{
-  if (groups.find(groupId) != groups.end())
-  {
-    groups[groupId].push_back(eId);
-  }
-  else
-  {
-    std::vector<int> newVector{eId};
-    groups.insert(std::make_pair(groupId, newVector));
-  }
-}
-
 GFXItem &GFXItems::GetGfxItemById(int eId)
 {
   for (auto &b : gfxItems)
@@ -94,17 +81,11 @@ void GFXItems::DisplayGfxItem(int id)
 
 void GFXItems::DisplayGroup(int groupId)
 {
-  if (groups.find(groupId) != groups.end())
+  for (auto &gfxItem : gfxItems)
   {
-    for (auto const &gfxItemId : groups[groupId])
+    if (gfxItem.groupId == groupId)
     {
-      for (auto &b : gfxItems)
-      {
-        if (b.id == gfxItemId)
-        {
-          DisplayElement(b);
-        }
-      }
+      DisplayElement(gfxItem);
     }
   }
 }
@@ -116,11 +97,10 @@ bool GFXItems::IsItemInGroupPressed(int groupId, int *id)
 
   if (tft->getTouch(&x, &y, 20))
   {
-    if (groups.find(groupId) != groups.end())
+    for (auto &gfxItem : gfxItems)
     {
-      for (auto const &eId : groups[groupId])
+      if (gfxItem.groupId == groupId)
       {
-        GFXItem &gfxItem = GetGfxItemById(eId);
         if (gfxItem.isPressable)
         {
           if (gfxItem.IsPointInBoundry(x, y))
@@ -141,12 +121,11 @@ bool GFXItems::IsItemInGroupPressed(int groupId, int *id)
   else
   {
     // No touch detected, depress all buttons.
-    if (groups.find(groupId) != groups.end())
-    {
-      for (auto const &eId : groups[groupId])
-      {
 
-        GFXItem &gfxItem = GetGfxItemById(eId);
+    for (auto &gfxItem : gfxItems)
+    {
+      if (gfxItem.groupId == groupId)
+      {
         if (gfxItem.isPressed)
         {
           gfxItem.isPressed = false;

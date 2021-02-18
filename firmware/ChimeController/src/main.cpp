@@ -125,7 +125,9 @@ const char delimiter = ':';
 enum class Commands
 {
     Restring,
-    Tune
+    Tune,
+    Mute,
+    Pick
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -181,25 +183,36 @@ void ProcessUart()
         if (readChar == '\n')
         {
             int commandInt = getValue(uartData, delimiter, 0).toInt();
+            int chimeId = getValue(uartData, delimiter, 1).toInt();
+            Chime *chime;
+
+            if (chimeId == 1 || chimeId == 3)
+            {
+                chime = &chimeA;
+            }
+            else if (chimeId == 2 || chimeId == 4)
+            {
+                chime = &chimeB;
+            }
 
             if (commandInt == int(Commands::Tune))
             {
             }
             else if (commandInt == int(Commands::Restring))
             {
-                int chimeId = getValue(uartData, delimiter, 1).toInt();
                 int direction = getValue(uartData, delimiter, 2).toInt();
 
                 Serial.printf("Command received: Calibrate | Chime: %u, Direction: %u\n", chimeId, direction);
 
-                if (chimeId == 1 || chimeId == 3)
-                {
-                    chimeA.ReString(direction);
-                }
-                else if (chimeId == 2 || chimeId == 4)
-                {
-                    chimeB.ReString(direction);
-                }
+                chime->ReString(direction);
+            }
+            else if (commandInt == int(Commands::Mute))
+            {
+                chime->Mute();
+            }
+            else if (commandInt == int(Commands::Pick))
+            {
+                chime->Pick();
             }
 
             uartData = "";

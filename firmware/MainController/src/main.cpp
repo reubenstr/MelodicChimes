@@ -72,6 +72,10 @@
 
 #include <MD_MIDIFile.h>
 
+#define PIN_UART1_TX 33
+#define PIN_UART1_RX 25
+#define PIN_UART2_TX 26
+#define PIN_UART2_RX 27
 //#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 // TFT Screen.
@@ -114,11 +118,21 @@ const char delimiter = ':';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SendRestringCommand(int chime, Direction direction)
+void SendRestringCommand(Direction direction, int chime)
 {
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%u:%u:%u\n", int(Commands::Restring), chime, int(direction));
   Serial.print(buffer);
+  Serial1.print(buffer);
+  Serial2.print(buffer);
+}
+
+void SendCommand(Commands command, int chime)
+{
+  char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
+  Serial.print(buffer);
+  Serial1.print(buffer);
   Serial2.print(buffer);
 }
 
@@ -134,6 +148,7 @@ void UpdateMidiInfo(bool updateScreenFlag = true)
   }
 }
 
+//
 void UpdateScreen()
 {
   static PlayState previousPlayState = PlayState::Default;
@@ -146,25 +161,20 @@ void UpdateScreen()
     gfxItems.DisplayGfxItem(int(GFXItemId::PlayState));
   }
 
-  static PageId previousPageId = pageId;
+  static PageId previousPageId = PageId::Development;
   if (previousPageId != pageId)
   {
     previousPageId = pageId;
 
+    DisplayClearPartial();
+    gfxItems.DisplayGroup(int(pageId));
+
     if (pageId == PageId::Home)
     {
-      DisplayClearPartial();
-      DisplayHomePage();
-    }
-    else if (pageId == PageId::Configuration)
-    {
-      DisplayClearPartial();
-      DisplayConfigurationPage();
-    }
-    else if (pageId == PageId::Calibration)
-    {
-      DisplayClearPartial();
-      DisplayCalibrationPage();
+      // Song border.
+      tft.drawRect(20, 70, 440, 40, TFT_LIGHTGREY);
+      // Progress bar.
+      tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
     }
   }
 }
@@ -176,13 +186,15 @@ void ProcessPressedButton(int id)
   {
     pageId = PageId::Home;
   }
-  else if ((GFXItemId)id == GFXItemId::Calibration)
-  {
-    pageId = PageId::Calibration;
-  }
   else if ((GFXItemId)id == GFXItemId::Configuration)
   {
     pageId = PageId::Configuration;
+  }
+  else if ((GFXItemId)id == GFXItemId::Calibration)
+  {
+    static bool pageToggle = false;
+    pageToggle = !pageToggle;
+    pageId = pageToggle ? PageId::Calibration : PageId::Development;
   }
 
   // Home page.
@@ -222,19 +234,77 @@ void ProcessPressedButton(int id)
   // Calibration page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
-    SendRestringCommand(1, Direction::Up);
+    SendRestringCommand(Direction::Up, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_1_down)
   {
-    SendRestringCommand(1, Direction::Down);
+    SendRestringCommand(Direction::Down, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_up)
   {
-    SendRestringCommand(2, Direction::Up);
+    SendRestringCommand(Direction::Up, 2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_down)
   {
-    SendRestringCommand(2, Direction::Down);
+    SendRestringCommand(Direction::Down, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_3_up)
+  {
+    SendRestringCommand(Direction::Up, 3);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_3_down)
+  {
+    SendRestringCommand(Direction::Down, 3);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_4_up)
+  {
+    SendRestringCommand(Direction::Up, 4);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime_4_down)
+  {
+    SendRestringCommand(Direction::Down, 4);
+  }
+
+  // Development page.
+  if ((GFXItemId)id == GFXItemId::Chime1mute)
+  {
+    SendCommand(Commands::Mute, 1);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime1pick)
+  {
+    SendCommand(Commands::Pick, 1);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime2mute)
+  {
+    SendCommand(Commands::Mute, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime2pick)
+  {
+    SendCommand(Commands::Pick, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime2mute)
+  {
+    SendCommand(Commands::Mute, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime2pick)
+  {
+    SendCommand(Commands::Pick, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime3mute)
+  {
+    SendCommand(Commands::Mute, 3);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime3pick)
+  {
+    SendCommand(Commands::Pick, 3);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime4mute)
+  {
+    SendCommand(Commands::Mute, 4);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime4pick)
+  {
+    SendCommand(Commands::Pick, 4);
   }
 }
 
@@ -249,18 +319,7 @@ void CheckTouchScreen()
 
   gfxItems.IsItemInGroupPressed(int(PageId::All), &id);
 
-  if (pageId == PageId::Home)
-  {
-    gfxItems.IsItemInGroupPressed(int(PageId::Home), &id);
-  }
-  else if (pageId == PageId::Configuration)
-  {
-    gfxItems.IsItemInGroupPressed(int(PageId::Configuration), &id);
-  }
-  else if (pageId == PageId::Calibration)
-  {
-    gfxItems.IsItemInGroupPressed(int(PageId::Calibration), &id);
-  }
+  gfxItems.IsItemInGroupPressed(int(pageId), &id);
 
   if (takeTouchReadings)
   {
@@ -482,7 +541,10 @@ void setup(void)
   Serial.begin(115200);
   Serial.println("Melodic Chimes starting up.");
 
-  Serial2.begin(115200);
+  //Serial2.begin(115200);
+
+  Serial1.begin(115200, SERIAL_8N1, PIN_UART1_RX, PIN_UART1_TX);
+  Serial2.begin(115200, SERIAL_8N1, PIN_UART2_RX, PIN_UART2_TX);
 
   ScreenInit();
 
@@ -496,8 +558,6 @@ void setup(void)
   InitScreenElements();
   //UpdateMidiInfo(false);
   DisplayMain();
-  DisplayHomePage();
- 
 }
 
 void loop()

@@ -19,6 +19,7 @@ struct GFXItem
 {
     String text;
     int id;
+    int groupId;
     bool isPressable = true;
     int x, y;
     int w = 0;
@@ -45,11 +46,12 @@ struct GFXItem
     GFXItem();
 
     // Candidate for buttons.
-    GFXItem(int id, String text, int x, int y, int w, int h,
+    GFXItem(int id, int groupId, String text, int x, int y, int w, int h,
             uint32_t textColor, uint32_t fillColor, uint32_t activeColor,
             uint32_t borderColor, const GFXfont *gfxFont = nullptr)
     {
         this->text = text;
+        this->groupId = groupId;
         this->id = id;
         this->x = x;
         this->y = y;
@@ -67,11 +69,12 @@ struct GFXItem
     }
 
     // Candidate for labels.
-    GFXItem(int id, String text, int textSize, int x, int y, int w, int h,
+    GFXItem(int id, int groupId, String text, int textSize, int x, int y, int w, int h,
             uint32_t textColor, uint32_t fillColor,
             Justification justification, const GFXfont *gfxFont = nullptr)
     {
         this->id = id;
+        this->groupId = groupId;
         this->text = text;
         this->textSize = textSize;
         this->x = x;
@@ -102,7 +105,7 @@ class GFXItems
 public:
     GFXItems(TFT_eSPI *tft);
     void Add(GFXItem gfxItem);
-    void AddElementToGroup(int groupId, int id);
+
     void DisplayGfxItem(int id);
     void DisplayGroup(int groupId);
     bool IsItemInGroupPressed(int key, int *id);
@@ -110,8 +113,7 @@ public:
 
 private:
     TFT_eSPI *tft;
-    std::vector<GFXItem> gfxItems;
-    std::map<int, std::vector<int>> groups;
+    std::vector<GFXItem> gfxItems;    
 
     void DisplayElement(GFXItem b);
 

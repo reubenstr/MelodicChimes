@@ -16,93 +16,61 @@ void InitScreenElements()
   const GFXfont *gfxFont = FF22;
 
   // All.
-  gfxItems.Add(GFXItem(int(GFXItemId::Home), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Configuration), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Calibration), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Play), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Pause), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Stop), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Previous), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Next), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Home), int(PageId::All), "HOME", 30, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Configuration), int(PageId::All), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Calibration), int(PageId::All), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Play), int(PageId::Home), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Pause), int(PageId::Home), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Stop), int(PageId::Home), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Previous), int(PageId::Home), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Next), int(PageId::Home), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
 
   // Configuration.
-  gfxItems.Add(GFXItem(int(GFXItemId::Hourly), "Yes", 20, 90, buttonMainW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::StartHour), "900", 180, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::EndHour), "1300", 340, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::TimeZone), "EST -4 GMT", 20, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Startup), "Yes", 180, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Song), "Random", 20, 230, 270, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Hourly), int(PageId::Configuration), "Yes", 20, 90, buttonMainW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::StartHour), int(PageId::Configuration), "900", 180, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::EndHour), int(PageId::Configuration), "1300", 340, 90, buttonMainW, 35, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::TimeZone), int(PageId::Configuration), "EST -4 GMT", 20, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Startup), int(PageId::Configuration), "Yes", 180, 160, buttonMainW, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Song), int(PageId::Configuration), "Random", 20, 230, 270, 35, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
 
   // Calibration.
   const int buttonCalW = 85;
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_1_up), "UP", 40, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_2_up), "UP", 140, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_3_up), "UP", 240, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_4_up), "UP", 340, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_1_up), int(PageId::Calibration), "UP", 40, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_2_up), int(PageId::Calibration), "UP", 140, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_3_up), int(PageId::Calibration), "UP", 240, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_4_up), int(PageId::Calibration), "UP", 340, 110, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_1_down), int(PageId::Calibration), "DOWN", 40, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_2_down), int(PageId::Calibration), "DOWN", 140, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_3_down), int(PageId::Calibration), "DOWN", 240, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime_4_down), int(PageId::Calibration), "DOWN", 340, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
 
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_1_down), "DOWN", 40, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_2_down), "DOWN", 140, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_3_down), "DOWN", 240, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Chime_4_down), "DOWN", 340, 170, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-
-  // Add buttons to groups.
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Home));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Configuration));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Calibration));
-
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::Play));
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::Pause));
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::Stop));
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::Previous));
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::Next));
-
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Hourly));
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::StartHour));
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::EndHour));
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::TimeZone));
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Startup));
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Song));
-
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_1_up));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_2_up));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_3_up));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_4_up));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_1_down));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_2_down));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_3_down));
-  gfxItems.AddElementToGroup(int(PageId::Calibration), int(GFXItemId::Chime_4_down));
-
+  // Dev.
+  const int buttonDevW = 85;
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime4mute), int(PageId::Development), "M4", 40, 110, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime3mute), int(PageId::Development), "M3", 140, 110, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime2mute), int(PageId::Development), "M2", 240, 110, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime1mute), int(PageId::Development), "M1", 340, 110, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime4pick), int(PageId::Development), "P4", 40, 170, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime3pick), int(PageId::Development), "P3", 140, 170, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime2pick), int(PageId::Development), "P2", 240, 170, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
+  gfxItems.Add(GFXItem(int(GFXItemId::Chime1pick), int(PageId::Development), "P1", 340, 170, buttonDevW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
 
   // Create and add labels.
-  gfxItems.Add(GFXItem(int(GFXItemId::PlayState), "State", 2, 20, 294, 70, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Beat), "BEAT", 2, 100, 294, 55, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Clock), "12:47", 2, 390, 294, 60, 20, TFT_WHITE, TFT_BLACK, Justification::Right));
-  gfxItems.Add(GFXItem(int(GFXItemId::SD), "SD", 2, 170, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Wifi), "WIFI", 2, 245, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Time), "TIME", 2, 320, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::SongTitle), "Song Title 2", 3, 25, 72, 420, 35, TFT_GREEN, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::SongLength), "Length", 2, 175, 160, 120, 25, TFT_GREEN, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::SongNumber), "Count", 2, 175, 185, 120, 25, TFT_GREEN, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Default), "Hourly", 2, 20, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
-  gfxItems.Add(GFXItem(int(GFXItemId::Default), "Start Hour", 2, 180, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
-  gfxItems.Add(GFXItem(int(GFXItemId::Default), "End Hour", 2, 340, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
-  gfxItems.Add(GFXItem(int(GFXItemId::Default), "Time Zone", 2, 20, 140, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
-  gfxItems.Add(GFXItem(int(GFXItemId::Default), "On Startup", 2, 180, 140, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
-  gfxItems.Add(GFXItem(int(GFXItemId::Default), "Song", 2, 20, 210, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
-
-  // Add labels to groups.
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::PlayState));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Beat));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Clock));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::SD));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Wifi));
-  gfxItems.AddElementToGroup(int(PageId::All), int(GFXItemId::Time));
-
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::SongTitle));
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::SongLength));
-  gfxItems.AddElementToGroup(int(PageId::Home), int(GFXItemId::SongNumber));
-
-  gfxItems.AddElementToGroup(int(PageId::Configuration), int(GFXItemId::Default));
+  gfxItems.Add(GFXItem(int(GFXItemId::PlayState), int(PageId::All), "State", 2, 20, 294, 70, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::Beat), int(PageId::All), "BEAT", 2, 100, 294, 55, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::Clock), int(PageId::All), "12:47", 2, 390, 294, 60, 20, TFT_WHITE, TFT_BLACK, Justification::Right));
+  gfxItems.Add(GFXItem(int(GFXItemId::SD), int(PageId::All), "SD", 2, 170, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::Wifi), int(PageId::All), "WIFI", 2, 245, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::Time), int(PageId::All), "TIME", 2, 320, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::SongTitle), int(PageId::Home), "Song Title 2", 3, 25, 72, 420, 35, TFT_GREEN, TFT_BLACK, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::SongLength), int(PageId::Home), "Length", 2, 175, 160, 120, 25, TFT_GREEN, TFT_BLACK, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::SongNumber), int(PageId::Home), "Count", 2, 175, 185, 120, 25, TFT_GREEN, TFT_BLACK, Justification::Center));
+  gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Configuration), "Hourly", 2, 20, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Configuration), "Start Hour", 2, 180, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Configuration), "End Hour", 2, 340, 70, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Configuration), "Time Zone", 2, 20, 140, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Configuration), "On Startup", 2, 180, 140, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
+  gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Configuration), "Song", 2, 20, 210, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
 }
 
 void DisplayFatalError(int error)
@@ -148,31 +116,13 @@ void DisplayMain()
   gfxItems.DisplayGroup(int(PageId::All));
 }
 
-void DisplayHomePage()
-{
-  // Song border.
-  tft.drawRect(20, 70, 440, 40, TFT_LIGHTGREY);
 
-  // Progress bar.
-  tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
 
-  gfxItems.DisplayGroup(int(PageId::Home));
-}
-
-void DisplayConfigurationPage()
-{
-  gfxItems.DisplayGroup(int(PageId::Configuration));
-}
-
-void DisplayCalibrationPage()
-{
-  gfxItems.DisplayGroup(int(PageId::Calibration));
-}
 
 void ScreenInit()
-{ 
+{
   tft.init();
-   delay(150); // TFT driver needs time to process command.
+  delay(150); // TFT driver needs time to process command.
   tft.setRotation(3);
   delay(150); // TFT driver needs time to process command.
 
