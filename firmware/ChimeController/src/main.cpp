@@ -15,7 +15,7 @@
 #include "TeensyTimerTool.h" // https://github.com/luni64/TeensyTimerTool
 
 using namespace TeensyTimerTool;
-Timer t1; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
+Timer tickTimer; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
 
 AudioInputAnalogStereo adcs1;
 AudioAnalyzeNoteFrequency notefreq2;
@@ -54,6 +54,29 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
         The variation was further confirmed when attemping to tune using the steps to note lookup table. Some occasions, 
         while tuning, only a few steps were needed for final tune correction while on most occasions the steps required
         where relatively many.
+
+
+
+    RPM Calcs for system understanding.
+
+    // RPM from steps/sec (accelStepper's speed units).
+    //For tick interupt timing optimization.
+    (n steps/ms * 1000) / (200 steps/rev * 0.5 halfsteps) * 60 = RPM
+
+    // At 1000us between steps
+    (1 * 1000) / (400) * 60 = 150 RPM
+    
+    // At 250us between steps
+    (4 * 1000) / (400) * 60 = 600 RPM
+
+    // 1000 steps / sec
+    (5000 steps/sec) / (400) * (60) = 150 RPM
+
+    // 4000 steps / sec
+    (4000 steps/sec) / (400) * (60) = 600 RPM
+
+
+
 */
 
 // Note: each chime will have a unique id which indicates the note range and EEPROM storage location for config params.
@@ -63,7 +86,7 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 #if defined CHIME_SET_1_AND_2
 #define CHIME_A_ID 1
-#define CHIME_B_ID 2
+#define CHIME_B_ID 4 // Testing, actual should be 2
 #elif defined CHIME_SET_3_AND_4
 #define CHIME_A_ID 3
 #define CHIME_B_ID 4
@@ -82,12 +105,12 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 #define PIN_STEPPER_PICK_STEP_B 5
 #define PIN_STEPPER_PICK_DIRECTION_B 23
 
-Chime chimeA = {Chime(CHIME_A_ID, notefreq2,
+Chime chimeA = {Chime(CHIME_A_ID, notefreq1,
                       PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
                       PIN_STEPPER_PICK_STEP_A, PIN_STEPPER_PICK_DIRECTION_A,
                       PIN_STEPPER_MUTE_STEP_A, PIN_STEPPER_MUTE_DIRECTION_A)};
 
-Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
+Chime chimeB = {Chime(CHIME_B_ID, notefreq2,
                       PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
                       PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
                       PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
@@ -190,7 +213,7 @@ void ProcessUart()
     }
 }
 
-void TimerCallback()
+void TickTimerCallback()
 {
     chimeA.Tick();
     chimeB.Tick();
@@ -213,46 +236,7 @@ void setup()
 
     AudioMemory(120);
 
-    t1.beginPeriodic(TimerCallback, 250); // microseconds.
-
-    //////////////////////////
-    /*
-	
-	OLD TUNE NOTE HELPER TEST
-	
-    unsigned long start = millis();
-    int c = 0;
-    int n = 62;
-    bool pickFlag = false;
-    unsigned long pickMillis = millis();
-    while (true)
-    {
-        chimes[c].TuneNote(GetDetectedFrequency(c), n);
-        chimes[c].Tick();
-        if (millis() - start > 2000)
-        {
-            start = millis();
-            n++;
-            if (n == 70)
-            {
-                Serial.println("STOPPED");
-                while (true)
-                {
-                }
-            }
-            Serial.printf("New note: %u\n", n);
-            pickFlag = true;
-            pickMillis = millis();
-        }
-        // Delay pick for n milliseconds.
-        if (pickFlag && millis() - pickMillis > 100)
-        {
-            chimes[c].Pick();
-            pickFlag = false;
-        }
-    }
-    //////////////////////////
-    */
+    tickTimer.beginPeriodic(TickTimerCallback, 250); // microseconds.
 }
 
 void loop()
@@ -261,7 +245,13 @@ void loop()
 
     ProcessUart();
 
-    float targetFrequency;
+    static unsigned long startP = millis();
+    if (millis() - startP > 5000)
+    {
+        startP = millis();
+        //chimeB.Pick();
+    }
+
     static unsigned long start = millis();
     static bool toggle = false;
     if (millis() - start > 2000)
@@ -269,7 +259,10 @@ void loop()
         start = millis();
         toggle = !toggle;
 
-        targetFrequency = toggle ? 146.8 : 196.0;
-        chimeB.SetTargetFrequency(targetFrequency);
+        int targetNoteA = toggle ? chimeA.LowestNote() : chimeA.HighestNote();
+        chimeA.SetTargetNote(targetNoteA);
+
+        int targetNoteB = toggle ? chimeB.LowestNote() : chimeB.HighestNote();
+        chimeB.SetTargetNote(targetNoteB);
     }
 }

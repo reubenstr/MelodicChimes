@@ -3,6 +3,9 @@
 #include <Audio.h>
 #include "movingAvg.h"
 
+
+// Notes conform to MIDI note numbers, example: https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
+
 /*
     Pick Stepper:
     200 steps/rev, 1/2 steps, 20:30 pulley (20 teeth on drive, 30 teeth on pick), 8 plectrum/rev
@@ -15,37 +18,40 @@ class Chime
 public:
     Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq, uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute);
 
-    float NoteIdToFrequency(float noteId);
-
-    void SetTargetFrequency(float frequency);
+    void SetTargetNote(float frequency);
 
     void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
-
     void CalibrateFrequencyPerStep();
 
-    bool CalibratePick();
-
     void ReString(bool direction);
-
+    bool CalibratePick();
     void Pick();
     void Mute();
     void Tick();
+
+    int LowestNote();
+    int HighestNote();
 
     unsigned long temp;
     int setTime;
 
 private:
-    bool TuneNote(float detectedFrequency, int noteId);
-    bool TuneFrequency(float targetFrequency);
-
+    bool TuneNote(int targetNoteId);
+    float NoteIdToFrequency(float noteId);
     float GetFrequency();
     void SetStepperParameters();
     void MuteTick();
 
+    // Chime.
+    int _chimeId;
+    
+    const int highestNote[5] = {0, 69, 64, 60, 55};
+    const int lowestNote[5] = {0, 60, 55, 51, 50};
+
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
-    float _targetFrequency;
+    float _targetNoteId;
     float _detectedFrequency;
 
     // Positions.
@@ -55,9 +61,6 @@ private:
 
     // Mute.
     bool _muteReturnToOpenFlag;
-
-    int _chimeId;
-    int stepsToNotes[80];
 
     // Cailbration.
     unsigned long frequencyDetectionTimeoutMillis = millis();
@@ -105,4 +108,6 @@ private:
     const int _stepsBetweenReadings = 20;
     movingAvg _freqAverage = movingAvg(_numReadingsToAverage);
     float frequencyReadings[200];
+
+    int stepsToNotes[80];
 };

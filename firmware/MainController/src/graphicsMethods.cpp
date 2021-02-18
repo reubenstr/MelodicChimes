@@ -170,19 +170,27 @@ void DisplayCalibrationPage()
 }
 
 void ScreenInit()
-{
+{ 
   tft.init();
-  tft.setRotation(1);
-  delay(20); // TFT driver needs time to process command.
+   delay(150); // TFT driver needs time to process command.
+  tft.setRotation(3);
+  delay(150); // TFT driver needs time to process command.
 
-  uint16_t calibrationData[5] = {300, 3617, 237, 3558, 7};
+  uint16_t calibrationData[5] = {298, 3574, 266, 3542, 1};
   // Below line calls calibration routine.
-  /* 
-  tft.calibrateTouch(calibrationData, TFT_WHITE, TFT_RED, 15);
+  /*   
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextFont(GLCD);
+  tft.setTextColor(TFT_GREEN);
+  tft.setTextSize(2);
+  tft.drawString("Calibrate display's touch sensor: ", 25, 50);
+  tft.drawString("touch each of the four corners in order. ", 25, 75);
+  tft.calibrateTouch(calibrationData, TFT_WHITE, TFT_RED, 20);
   for(int i = 0; i < 5; i ++)
   {
     Serial.println(calibrationData[i]);
   }
+  // TODO: give user indication calibration is complete.
   while(true);
   */
 

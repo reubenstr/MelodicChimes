@@ -1,14 +1,13 @@
 /*  
-  Melodic Chimes
-
-  Four auto-tuning strings playing melodic music from custom MIDI files.
+  Project: Melodic Chimes
+  Description: Four auto-tuning strings playing melodic music from custom MIDI files.
 
   MCUs:
       1x ESP32 (DevkitV1) : Main controller parsing MIDI files and fetching time from WiFi.
       2x Teensy 3.2 : Each determines frequency of two strings and controls two chimes.
 
   Hardware:
-      TFT Touch Screen : Sole user interface.
+      TFT Touch Screen : User interface.
       SD-Card : contains MIDI files.
       12x Stepper Motors : 4x tuning, 4x muting, 4x picking.
       12x Stepper motor drivers.
@@ -42,6 +41,21 @@
 #define TOUCH_CS 22     // Chip select pin (T_CS) of touch screen
 */
 
+/*
+// tft teensy pins
+#define ILI9488_DRIVER 
+#define TFT_WIDTH  320
+#define TFT_HEIGHT 480
+#define TFT_CS 4
+#define TFT_DC 6
+#define TFT_SCLK 13
+#define TFT_MOSI 11
+#define TFT_MISO 12
+#define TFT_RST 5
+
+#define TOUCH_CS 3      // Chip select pin (T_CS) of touch screen
+*/
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
@@ -58,7 +72,7 @@
 
 #include <MD_MIDIFile.h>
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+//#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 // TFT Screen.
 // TFT configuration contained in User_Setup.h in the local library.
@@ -110,6 +124,7 @@ void SendRestringCommand(int chime, Direction direction)
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
 {
+  // TODO: check vector before attemping access.
   gfxItems.GetGfxItemById(int(GFXItemId::SongTitle)).text = midiFiles[selectedFileId];
   gfxItems.GetGfxItemById(int(GFXItemId::SongNumber)).text = String(String(selectedFileId + 1) + " of " + midiFiles.size());
   if (updateScreenFlag)
@@ -471,20 +486,18 @@ void setup(void)
 
   ScreenInit();
 
-  SDInit();
+  //SDInit();
 
   // Initialize MIDIFile
-  SMF.begin(&SD);
-  SMF.setMidiHandler(midiCallback);
-  SMF.setSysexHandler(sysexCallback);
+  //SMF.begin(&SD);
+  //SMF.setMidiHandler(midiCallback);
+  //SMF.setSysexHandler(sysexCallback);
 
   InitScreenElements();
-
-  UpdateMidiInfo(false);
-
+  //UpdateMidiInfo(false);
   DisplayMain();
-
   DisplayHomePage();
+ 
 }
 
 void loop()
@@ -493,5 +506,5 @@ void loop()
 
   UpdateScreen();
 
-  ProcessMIDI();
+  //ProcessMIDI();
 }

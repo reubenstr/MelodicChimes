@@ -36,17 +36,16 @@ void Chime::SetStepperParameters()
     _tuneStepper.setPinsInverted(true, false, false);
     _tuneStepper.setMaxSpeed(4000);
     _tuneStepper.setAcceleration(8000);
-
     // TEMP FOR RESTRING TEST
     _tuneStepper.setMaxSpeed(1500);
     _tuneStepper.setAcceleration(3000);
 
     _pickStepper.setPinsInverted(false, false, false);
-    _pickStepper.setMaxSpeed(10000);
-    _pickStepper.setAcceleration(4000);
+    _pickStepper.setMaxSpeed(4000);
+    _pickStepper.setAcceleration(8000);
 
-    _muteStepper.setMaxSpeed(20000);
-    _muteStepper.setAcceleration(20000);
+    _muteStepper.setMaxSpeed(4000);
+    _muteStepper.setAcceleration(8000);
 }
 
 // Convert MIDI note number to frequency.
@@ -55,6 +54,19 @@ float Chime::NoteIdToFrequency(float noteId)
 {
     return 440 * pow(2, (noteId - 69) / 12);
 }
+
+
+int Chime::LowestNote()
+{
+    return lowestNote[_chimeId];
+}
+
+int Chime::HighestNote()
+{
+    return highestNote[_chimeId];
+}
+
+
 
 /*
 bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolerance)
@@ -79,6 +91,7 @@ float Chime::GetFrequency()
     return noFrequencyDetected;
 }
 
+/*
 // Predicts steps needed to hit the frequency.
 bool Chime::TuneNote(float detectedFrequency, int newNoteId)
 {
@@ -146,9 +159,10 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
         }
     }
 }
+*/
 
 // No step prediction, just tune right away (P-controller).
-bool Chime::TuneFrequency(float targetFrequency)
+bool Chime::TuneNote(int targetNoteId)
 {
     static unsigned int detectionCount = 0;
     static unsigned long startTimeNewTarget = millis();
@@ -168,6 +182,13 @@ bool Chime::TuneFrequency(float targetFrequency)
     }
 
     _detectedFrequency = detectedFrequency;
+  
+    if (targetNoteId < lowestNote[_chimeId] || targetNoteId > highestNote[_chimeId])
+    {
+        return false;
+    }
+
+    float targetFrequency = NoteIdToFrequency(targetNoteId);
 
     // Based on linear regression test.
     float targetPosition = int(4.54 * (targetFrequency - detectedFrequency));
@@ -209,8 +230,8 @@ bool Chime::TuneFrequency(float targetFrequency)
     if (millis() - startTimeBetweenFreqDetections > 100)
         detectionCount = 0;
 
-    Serial.printf("%4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
-                  detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, targetFrequency - detectedFrequency, int(targetPosition), directionText, _tuneStepper.speed(), _tuneStepper.currentPosition());
+    Serial.printf("[%u] | %4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
+                 _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, targetFrequency - detectedFrequency, int(targetPosition), directionText, _tuneStepper.speed(), _tuneStepper.currentPosition());
 
     startTimeBetweenFreqDetections = millis();
 
@@ -322,9 +343,8 @@ void Chime::CalibrateFrequencyPerStep()
         float detectedFrequency = GetFrequency();
 
         if (_freqPerStepState == FreqPerStepStates::Home)
-        {
-            float targetFrequency = NoteIdToFrequency(_lowestNote);
-            if (TuneFrequency(targetFrequency))
+        {         
+            if (TuneNote(_lowestNote))
             {
                 _freqPerStepState = FreqPerStepStates::Move;
             }
@@ -412,14 +432,14 @@ bool Chime::CalibratePick()
     return true;
 }
 
-void Chime::SetTargetFrequency(float frequency)
+void Chime::SetTargetNote(float noteId)
 {
-    _targetFrequency = frequency;
+    _targetNoteId = noteId;
 }
 
 void Chime::Tick()
 {
-    TuneFrequency(_targetFrequency);
+    TuneNote(_targetNoteId);
 
     _tuneStepper.run();
     _pickStepper.run();
