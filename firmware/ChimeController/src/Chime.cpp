@@ -56,14 +56,19 @@ float Chime::NoteIdToFrequency(float noteId)
 }
 
 
-int Chime::LowestNote()
+int Chime::GetLowestNote()
 {
     return lowestNote[_chimeId];
 }
 
-int Chime::HighestNote()
+int Chime::GetHighestNote()
 {
     return highestNote[_chimeId];
+}
+
+int Chime::GetChimeId()
+{
+    return _chimeId;
 }
 
 
@@ -161,6 +166,14 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
 }
 */
 
+
+void Chime::PretuneNote(int noteId)
+{
+  
+    // tODO: 
+}
+
+
 // No step prediction, just tune right away (P-controller).
 bool Chime::TuneNote(int targetNoteId)
 {
@@ -238,16 +251,20 @@ bool Chime::TuneNote(int targetNoteId)
     return frequencyWithinTolerance;
 }
 
-void Chime::ReString(bool direction)
+
+void Chime::SetVibrato(bool flag)
 {
-    if (direction)
-    {
-        _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestringCommand);
-    }
-    else
-    {
-        _tuneStepper.moveTo(_tuneStepper.currentPosition() - _stepsPerRestringCommand);
-    }
+    _vibrato = flag;
+}
+
+void Chime::RestringTighten()
+{
+    _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestringCommand);
+}
+
+void Chime::RestringLoosen()
+{
+    _tuneStepper.moveTo(_tuneStepper.currentPosition() - _stepsPerRestringCommand);
 }
 
 // Pick the string if the pick motor is not in motion.
@@ -432,7 +449,7 @@ bool Chime::CalibratePick()
     return true;
 }
 
-void Chime::SetTargetNote(float noteId)
+void Chime::SetTargetNote(int noteId)
 {
     _targetNoteId = noteId;
 }

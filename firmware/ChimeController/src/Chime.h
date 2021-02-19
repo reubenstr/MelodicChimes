@@ -3,7 +3,6 @@
 #include <Audio.h>
 #include "movingAvg.h"
 
-
 // Notes conform to MIDI note numbers, example: https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
 
 /*
@@ -18,20 +17,25 @@ class Chime
 public:
     Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq, uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute);
 
-    void SetTargetNote(float frequency);
-
     void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
     void CalibrateFrequencyPerStep();
 
-    void ReString(bool direction);
-    bool CalibratePick();
-    void Pick();
+    void RestringTighten();
+    void RestringLoosen();
+    void SetTargetNote(int noteId);
+    void PretuneNote(int noteId);
+    void SetVibrato(bool flag);
+
+        void Pick();
     void Mute();
     void Tick();
 
-    int LowestNote();
-    int HighestNote();
+    bool CalibratePick();
+
+    int GetLowestNote();
+    int GetHighestNote();
+    int GetChimeId();
 
     unsigned long temp;
     int setTime;
@@ -45,7 +49,8 @@ private:
 
     // Chime.
     int _chimeId;
-    
+    bool _vibrato;
+
     const int highestNote[5] = {0, 69, 64, 60, 55};
     const int lowestNote[5] = {0, 60, 55, 51, 50};
 

@@ -119,13 +119,15 @@ Chime chimeB = {Chime(CHIME_B_ID, notefreq2,
 volatile float frequencyFromSerial[2];
 
 // Serial variables.
-String uartData = "";
+
 const char delimiter = ':';
 
 enum class Commands
 {
-    Restring,
-    Tune,
+    RestringTighten,
+    RestringLoosen,
+    SetTargetNote,
+    PretuneNote,
     Mute,
     Pick
 };
@@ -173,8 +175,63 @@ String getValue(String data, char separator, int index)
 
 ////////////////////////////////////////////////////////////////////////
 
+void ProcessCommand(String command)
+{
+    int commandInt = getValue(command, delimiter, 0).toInt();
+    int chimeId = getValue(command, delimiter, 1).toInt();
+
+    Chime *chime = nullptr;
+    if (chimeA.GetChimeId() == chimeId)
+        chime = &chimeA;
+    else if (chimeB.GetChimeId() == chimeId)
+        chime = &chimeB;
+
+    if (chime == nullptr) 
+    {        
+        return;
+    }  
+
+    if (commandInt == int(Commands::RestringTighten))
+    {
+        Serial.printf("[%u] Command: RestringTighten %u\n", chimeId);
+        chime->RestringTighten();
+    }
+    else if (commandInt == int(Commands::RestringLoosen))
+    {
+        Serial.printf("[%u] Command: RestringLoosen\n", chimeId);
+        chime->RestringLoosen();
+    }
+    else if (commandInt == int(Commands::SetTargetNote))
+    {
+        int noteId = getValue(command, delimiter, 2).toInt();
+        int vibrato = getValue(command, delimiter, 3).toInt();
+        Serial.printf("[%u] Command: SetTargetNote, Note ID: %u, Vibrato: %s\n", chimeId, noteId, vibrato ? "True" : "False");
+        chime->SetTargetNote(noteId);
+        chime->SetVibrato(vibrato);
+
+    }
+    else if (commandInt == int(Commands::PretuneNote))
+    {
+        int noteId = getValue(command, delimiter, 2).toInt();
+        Serial.printf("[%u] Command: PretuneNote, Note ID: %u\n", chimeId, noteId);
+        chime->PretuneNote(noteId);
+    }
+    else if (commandInt == int(Commands::Mute))
+    {
+        Serial.printf("[%u] Command: Mute\n", chimeId);
+        chime->Mute();
+    }
+    else if (commandInt == int(Commands::Pick))
+    {
+        Serial.printf("[%u] Command: Pick\n", chimeId);
+        chime->Pick();
+    }
+}
+
 void ProcessUart()
 {
+    static String uartData = "";
+
     while (Serial2.available() > 0)
     {
         char readChar = Serial2.read();
@@ -182,39 +239,7 @@ void ProcessUart()
 
         if (readChar == '\n')
         {
-            int commandInt = getValue(uartData, delimiter, 0).toInt();
-            int chimeId = getValue(uartData, delimiter, 1).toInt();
-            Chime *chime;
-
-            if (chimeId == 1 || chimeId == 3)
-            {
-                chime = &chimeA;
-            }
-            else if (chimeId == 2 || chimeId == 4)
-            {
-                chime = &chimeB;
-            }
-
-            if (commandInt == int(Commands::Tune))
-            {
-            }
-            else if (commandInt == int(Commands::Restring))
-            {
-                int direction = getValue(uartData, delimiter, 2).toInt();
-
-                Serial.printf("Command received: Calibrate | Chime: %u, Direction: %u\n", chimeId, direction);
-
-                chime->ReString(direction);
-            }
-            else if (commandInt == int(Commands::Mute))
-            {
-                chime->Mute();
-            }
-            else if (commandInt == int(Commands::Pick))
-            {
-                chime->Pick();
-            }
-
+            ProcessCommand(uartData);
             uartData = "";
         }
 
@@ -272,10 +297,10 @@ void loop()
         start = millis();
         toggle = !toggle;
 
-        int targetNoteA = toggle ? chimeA.LowestNote() : chimeA.HighestNote();
+        int targetNoteA = toggle ? chimeA.GetLowestNote() : chimeA.GetHighestNote();
         chimeA.SetTargetNote(targetNoteA);
 
-        int targetNoteB = toggle ? chimeB.LowestNote() : chimeB.HighestNote();
+        int targetNoteB = toggle ? chimeB.GetLowestNote() : chimeB.GetHighestNote();
         chimeB.SetTargetNote(targetNoteB);
     }
 }
