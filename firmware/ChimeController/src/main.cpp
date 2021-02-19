@@ -119,7 +119,6 @@ Chime chimeB = {Chime(CHIME_B_ID, notefreq2,
 volatile float frequencyFromSerial[2];
 
 // Serial variables.
-
 const char delimiter = ':';
 
 enum class Commands
@@ -186,10 +185,10 @@ void ProcessCommand(String command)
     else if (chimeB.GetChimeId() == chimeId)
         chime = &chimeB;
 
-    if (chime == nullptr) 
-    {        
+    if (chime == nullptr)
+    {
         return;
-    }  
+    }
 
     if (commandInt == int(Commands::RestringTighten))
     {
@@ -206,15 +205,30 @@ void ProcessCommand(String command)
         int noteId = getValue(command, delimiter, 2).toInt();
         int vibrato = getValue(command, delimiter, 3).toInt();
         Serial.printf("[%u] Command: SetTargetNote, Note ID: %u, Vibrato: %s\n", chimeId, noteId, vibrato ? "True" : "False");
-        chime->SetTargetNote(noteId);
-        chime->SetVibrato(vibrato);
 
+        if (chime->IsNoteWithinChimesRange(noteId))
+        {
+            chime->SetTargetNote(noteId);
+            chime->SetVibrato(vibrato);
+        }
+        else
+        {
+            Serial.printf("Error: target note with ID %u is outside chime's range", noteId);
+        }
     }
     else if (commandInt == int(Commands::PretuneNote))
     {
         int noteId = getValue(command, delimiter, 2).toInt();
         Serial.printf("[%u] Command: PretuneNote, Note ID: %u\n", chimeId, noteId);
-        chime->PretuneNote(noteId);
+
+        if (chime->IsNoteWithinChimesRange(noteId))
+        {
+            chime->PretuneNote(noteId);
+        }
+        else
+        {
+            Serial.printf("Error: pretune target note with ID %u is outside chime's range", noteId);
+        }
     }
     else if (commandInt == int(Commands::Mute))
     {
@@ -244,7 +258,7 @@ void ProcessUart()
         }
 
         // Prevent runaway memory allocation.
-        if (uartData.length() > 100)
+        if (uartData.length() > 64)
         {
             uartData = "";
         }

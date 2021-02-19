@@ -27,7 +27,7 @@ public:
     void PretuneNote(int noteId);
     void SetVibrato(bool flag);
 
-        void Pick();
+    void Pick();
     void Mute();
     void Tick();
 
@@ -57,7 +57,10 @@ private:
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
     float _targetNoteId;
-    float _detectedFrequency;
+    //float _detectedFrequency;
+    int _lockedNoteId;
+    const float _regressionCoef = 4.54;
+    const int nullNoteId = 0;
 
     // Positions.
     const int _stepsPerRestringCommand = 800;
@@ -106,6 +109,7 @@ private:
         WaitForMove,
         WaitForReading
     };
+
     FreqPerStepStates _freqPerStepState = FreqPerStepStates::Home;
     int _readingsCount;
     int _totalReadingsCount;
