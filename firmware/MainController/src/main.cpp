@@ -118,14 +118,25 @@ const char delimiter = ':';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SendRestringCommand(Direction direction, int chime)
+
+void SendRestringTightenCommand(int chime)
 {
   char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u:%u\n", int(Commands::Restring), chime, int(direction));
+  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(Commands::RestringTighten), chime);
   Serial.print(buffer);
   Serial1.print(buffer);
   Serial2.print(buffer);
 }
+
+void SendRestringLoosenCommand(int chime)
+{
+  char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(Commands::RestringLoosen), chime);
+  Serial.print(buffer);
+  Serial1.print(buffer);
+  Serial2.print(buffer);
+}
+
 
 void SendCommand(Commands command, int chime)
 {
@@ -234,35 +245,35 @@ void ProcessPressedButton(int id)
   // Calibration page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
-    SendRestringCommand(Direction::Up, 1);
+    SendRestringTightenCommand(1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_1_down)
   {
-    SendRestringCommand(Direction::Down, 1);
+    SendRestringLoosenCommand(1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_up)
   {
-    SendRestringCommand(Direction::Up, 2);
+    SendRestringTightenCommand(2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_down)
   {
-    SendRestringCommand(Direction::Down, 2);
+    SendRestringLoosenCommand(2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_up)
   {
-    SendRestringCommand(Direction::Up, 3);
+    SendRestringTightenCommand(3);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_down)
   {
-    SendRestringCommand(Direction::Down, 3);
+    SendRestringLoosenCommand(3);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_4_up)
   {
-    SendRestringCommand(Direction::Up, 4);
+    SendRestringTightenCommand(4);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_4_down)
   {
-    SendRestringCommand(Direction::Down, 4);
+    SendRestringLoosenCommand(4);
   }
 
   // Development page.
@@ -273,15 +284,7 @@ void ProcessPressedButton(int id)
   else if ((GFXItemId)id == GFXItemId::Chime1pick)
   {
     SendCommand(Commands::Pick, 1);
-  }
-  else if ((GFXItemId)id == GFXItemId::Chime2mute)
-  {
-    SendCommand(Commands::Mute, 2);
-  }
-  else if ((GFXItemId)id == GFXItemId::Chime2pick)
-  {
-    SendCommand(Commands::Pick, 2);
-  }
+  }  
   else if ((GFXItemId)id == GFXItemId::Chime2mute)
   {
     SendCommand(Commands::Mute, 2);

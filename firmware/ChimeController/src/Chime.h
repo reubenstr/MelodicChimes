@@ -37,6 +37,8 @@ public:
     int GetHighestNote();
     int GetChimeId();
 
+    bool IsNoteWithinChimesRange(int noteId);
+
     unsigned long temp;
     int setTime;
 
@@ -46,6 +48,7 @@ private:
     float GetFrequency();
     void SetStepperParameters();
     void MuteTick();
+    
 
     // Chime.
     int _chimeId;
@@ -58,7 +61,7 @@ private:
     AudioAnalyzeNoteFrequency *notefreq;
     float _targetNoteId;
     //float _detectedFrequency;
-    int _lockedNoteId;
+    int _lockedInNoteId;
     const float _regressionCoef = 4.54;
     const int nullNoteId = 0;
 

@@ -192,19 +192,19 @@ void ProcessCommand(String command)
 
     if (commandInt == int(Commands::RestringTighten))
     {
-        Serial.printf("[%u] Command: RestringTighten %u\n", chimeId);
+        Serial.printf("[%u] Command: RestringTighten.\n", chimeId);
         chime->RestringTighten();
     }
     else if (commandInt == int(Commands::RestringLoosen))
     {
-        Serial.printf("[%u] Command: RestringLoosen\n", chimeId);
+        Serial.printf("[%u] Command: RestringLoosen.\n", chimeId);
         chime->RestringLoosen();
     }
     else if (commandInt == int(Commands::SetTargetNote))
     {
         int noteId = getValue(command, delimiter, 2).toInt();
         int vibrato = getValue(command, delimiter, 3).toInt();
-        Serial.printf("[%u] Command: SetTargetNote, Note ID: %u, Vibrato: %s\n", chimeId, noteId, vibrato ? "True" : "False");
+        Serial.printf("[%u] Command: SetTargetNote, Note ID: %u, Vibrato: %s.\n", chimeId, noteId, vibrato ? "True" : "False");
 
         if (chime->IsNoteWithinChimesRange(noteId))
         {
@@ -213,13 +213,13 @@ void ProcessCommand(String command)
         }
         else
         {
-            Serial.printf("Error: target note with ID %u is outside chime's range", noteId);
+            Serial.printf("Error: target note with ID %u is outside chime's range.", noteId);
         }
     }
     else if (commandInt == int(Commands::PretuneNote))
     {
         int noteId = getValue(command, delimiter, 2).toInt();
-        Serial.printf("[%u] Command: PretuneNote, Note ID: %u\n", chimeId, noteId);
+        Serial.printf("[%u] Command: PretuneNote, Note ID: %u.\n", chimeId, noteId);
 
         if (chime->IsNoteWithinChimesRange(noteId))
         {
@@ -227,17 +227,17 @@ void ProcessCommand(String command)
         }
         else
         {
-            Serial.printf("Error: pretune target note with ID %u is outside chime's range", noteId);
+            Serial.printf("Error: pretune target note with ID %u is outside chime's range.", noteId);
         }
     }
     else if (commandInt == int(Commands::Mute))
     {
-        Serial.printf("[%u] Command: Mute\n", chimeId);
+        Serial.printf("[%u] Command: Mute.\n", chimeId);
         chime->Mute();
     }
     else if (commandInt == int(Commands::Pick))
     {
-        Serial.printf("[%u] Command: Pick\n", chimeId);
+        Serial.printf("[%u] Command: Pick.\n", chimeId);
         chime->Pick();
     }
 }

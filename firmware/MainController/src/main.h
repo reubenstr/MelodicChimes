@@ -86,16 +86,14 @@ const uint32_t playStateFillColor[4] = {TFT_BLACK, TFT_GREEN, TFT_YELLOW, TFT_RE
 
 enum class Commands
 {
-  Restring,
-  Tune,
-  Mute, 
-  Pick
+    RestringTighten,
+    RestringLoosen,
+    SetTargetNote,
+    PretuneNote,
+    Mute,
+    Pick
 };
 
-enum class Direction
-{
-  Down,
-  Up
-};
+
 
 #endif

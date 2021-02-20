@@ -464,15 +464,16 @@ void Chime::SetTargetNote(int noteId)
 
 void Chime::Tick()
 {
-    static _previousNoteId;
+    static int _previousNoteId;
     if (_previousNoteId != _targetNoteId)
     {
         _previousNoteId = _targetNoteId;
         _lockedInNoteId = nullNoteId;
     }
+
     if (TuneNote(_targetNoteId))
     {
-        _lockedInNoteId = targetNoteId;
+        _lockedInNoteId = _targetNoteId;
     }
 
     _tuneStepper.run();
