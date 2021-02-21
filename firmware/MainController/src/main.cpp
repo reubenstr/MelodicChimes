@@ -69,6 +69,7 @@
 #include "gfxItems.h" // local libray
 #include "main.h"
 #include "graphicsMethods.h"
+#include "cppQueue.h"
 
 #include <MD_MIDIFile.h>
 
@@ -100,6 +101,25 @@ unsigned int selectedFileId = 0;
 MD_MIDIFile SMF;
 unsigned long midiWaitMillis = 0;
 
+struct QCommand
+{
+  unsigned long sendTime;
+  String command;
+
+  QCommand()
+  {
+  }
+
+  QCommand(unsigned long sendTime, String command)
+  {
+    this->sendTime = sendTime;
+    this->command = command;
+  }
+};
+
+// Commands.
+cppQueue queue(sizeof(QCommand), 50, enumcppQueueType::FIFO);
+
 // Configuration.
 struct Configuration
 {
@@ -117,26 +137,41 @@ const char delimiter = ':';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SendCommand(Commands command, int chime)
+String SendCommand(Commands command, int chime)
 {
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
   Serial.print(buffer);
+  /*
   if (chime == 1 || chime == 2)
     Serial1.print(buffer);
   if (chime == 3 || chime == 4)
     Serial2.print(buffer);
+    */
+
+  return String(buffer);
 }
 
-void SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
+String SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
 {
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato));
   Serial.print(buffer);
+  /*
   if (chime == 1 || chime == 2)
     Serial1.print(buffer);
   if (chime == 3 || chime == 4)
     Serial2.print(buffer);
+    */
+
+  return String(buffer);
+}
+
+void SendCommandString(String commandString)
+{
+    Serial.printf("Sending command: %s", commandString);
+  Serial1.print(commandString);
+  Serial2.print(commandString);
 }
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
@@ -410,21 +445,28 @@ void midiCallback(midi_event *pev)
   ////////////////////////////////////////////
   int chimeId = channel + 1;
 
-
   // TODO: develop a queueing system for note events to allow for pretuning.
 
   // Play note.
   if (noteState == true && velocity > 0)
   {
     // SendTuneCommand(Commands::PretuneNote, chimeId, noteId);
-    SendTuneCommand(Commands::SetTargetNote, chimeId, noteId);
-    SendCommand(Commands::Pick, chimeId);
+
+    String commandString1 = SendTuneCommand(Commands::SetTargetNote, chimeId, noteId);
+    QCommand qCommand1(millis() + 1000, commandString1);
+    queue.push(&qCommand1);
+
+    String commandString2 = SendCommand(Commands::Pick, chimeId);
+    QCommand qCommand2(millis() + 1000, commandString2);
+    queue.push(&qCommand2);
   }
 
   // End note.
   if (noteState == false || velocity == 0)
   {
-    // SendCommand(Commands::Mute, chimeId);
+    String commandString = SendCommand(Commands::Mute, chimeId);
+    QCommand qCommand(millis(), commandString);
+    queue.push(&qCommand);
   }
 }
 
@@ -434,7 +476,7 @@ void sysexCallback(sysex_event *pev)
   Serial.printf("*** Sysex event | Track %u | Data: ", pev->track);
 
   for (uint8_t i = 0; i < pev->size; i++)
-  {   
+  {
     Serial.printf(" %u", pev->data[i]);
   }
   Serial.println();
@@ -506,17 +548,27 @@ void ProcessMIDI()
       {
         tickMetronome();
       }
+
+      QCommand qCommand;
+      if (queue.peek(&qCommand))
+      {
+        if (millis() - qCommand.sendTime > 1000)
+        {         
+          SendCommandString(qCommand.command);   
+           queue.pop(&qCommand);       
+        }
+      }
     }
     else
     {
-      playState = PlayState::Stop;   
+      playState = PlayState::Stop;
     }
   }
   else if (playState == PlayState::Stop)
   {
     SMF.close();
     playState = PlayState::Idle;
-  } 
+  }
 }
 
 void setup(void)

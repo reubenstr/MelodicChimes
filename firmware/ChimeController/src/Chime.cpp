@@ -34,11 +34,10 @@ Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
 void Chime::SetStepperParameters()
 {
     _tuneStepper.setPinsInverted(true, false, false);
-    _tuneStepper.setMaxSpeed(4000);
-    _tuneStepper.setAcceleration(8000);
-    // TEMP FOR RESTRING TEST
-    _tuneStepper.setMaxSpeed(1500);
-    _tuneStepper.setAcceleration(3000);
+    //_tuneStepper.setMaxSpeed(4000);
+    //_tuneStepper.setAcceleration(8000);    
+    _tuneStepper.setMaxSpeed(2000);
+    _tuneStepper.setAcceleration(4000);
 
     _pickStepper.setPinsInverted(false, false, false);
     _pickStepper.setMaxSpeed(4000);
@@ -78,10 +77,7 @@ bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolera
 */
 
 float Chime::GetFrequency()
-{
-    const float noFrequencyDetected = 0.0;
-    const float acceptableProbability = 0.995;
-
+{  
     if (notefreq->available())
     {
         if (notefreq->probability() > acceptableProbability)

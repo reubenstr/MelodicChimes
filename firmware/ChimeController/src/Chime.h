@@ -51,6 +51,8 @@ private:
     
 
     // Chime.
+     const float noFrequencyDetected = 0.0;
+    const float acceptableProbability = 0.995;
     int _chimeId;
     bool _vibrato;
 
