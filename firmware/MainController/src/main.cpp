@@ -169,7 +169,7 @@ String SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = f
 
 void SendCommandString(String commandString)
 {
-    Serial.printf("Sending command: %s", commandString);
+  Serial.printf("Sending command: %s", commandString);
   Serial1.print(commandString);
   Serial2.print(commandString);
 }
@@ -432,14 +432,18 @@ void midiCallback(midi_event *pev)
     noteState = true;
   }
 
-  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %u | Velocity: %3u | ", millis(), track, channel, onOfText[noteState], noteId, velocity);
+  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %u | Velocity: %3u | Data: [", millis(), track, channel, onOfText[noteState], noteId, velocity);
 
   for (uint8_t i = 0; i < pev->size; i++)
   {
     //Serial.print(pev->data[i] , HEX);
-    Serial.printf(" %3u", pev->data[i]);
+    Serial.printf("%3u", pev->data[i]);
+    if (i < pev->size - 1)
+    {
+      Serial.print(",");
+    }
   }
-  Serial.println();
+  Serial.println("]");
 
   // Interpret MIDI commands for chime system.
   ////////////////////////////////////////////
@@ -542,7 +546,11 @@ void ProcessMIDI()
   }
   else if (playState == PlayState::Play)
   {
-    if (!SMF.isEOF())
+    if (SMF.isEOF() && queue.isEmpty())
+    {
+      playState = PlayState::Stop;
+    }
+    else
     {
       if (SMF.getNextEvent())
       {
@@ -552,16 +560,12 @@ void ProcessMIDI()
       QCommand qCommand;
       if (queue.peek(&qCommand))
       {
-        if (millis() - qCommand.sendTime > 1000)
-        {         
-          SendCommandString(qCommand.command);   
-           queue.pop(&qCommand);       
+        if (millis() - qCommand.sendTime > 250)
+        {
+          SendCommandString(qCommand.command);
+          queue.pop(&qCommand);
         }
       }
-    }
-    else
-    {
-      playState = PlayState::Stop;
     }
   }
   else if (playState == PlayState::Stop)
