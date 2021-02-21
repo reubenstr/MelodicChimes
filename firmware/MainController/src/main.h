@@ -64,25 +64,19 @@ enum class PageId
   Development
 };
 
-enum class MidiState
-{
-  Idle,
-  Load,
-  Play,
-  Stop,
-  Wait
-};
-
 enum class PlayState
 {
   Default,
+  Idle,
+  Load,
   Play,
   Pause,
   Stop
 };
 
-static const char *playStateText[4] = {"", "PLAY ", "PAUSE", "STOP "};
-const uint32_t playStateFillColor[4] = {TFT_BLACK, TFT_GREEN, TFT_YELLOW, TFT_RED};
+// Order of text and colors need to match order of PlayState.
+static const char *playStateText[6] = {"", "IDLE", "LOAD", "PLAY ", "PAUSE", "STOP "};
+const uint32_t playStateFillColor[6] = {TFT_BLACK, TFT_SKYBLUE, TFT_BLUE, TFT_GREEN, TFT_YELLOW, TFT_RED};
 
 enum class Commands
 {

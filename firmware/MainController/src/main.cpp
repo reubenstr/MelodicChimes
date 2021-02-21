@@ -92,13 +92,12 @@ SdFile file;
 
 // General system.
 PageId pageId = PageId::Home;
-PlayState playState = PlayState::Stop;
+PlayState playState = PlayState::Idle;
 
 // MIDI system.
 std::vector<String> midiFiles;
 unsigned int selectedFileId = 0;
 MD_MIDIFile SMF;
-MidiState midiState = MidiState::Idle;
 unsigned long midiWaitMillis = 0;
 
 // Configuration.
@@ -224,7 +223,7 @@ void ProcessPressedButton(int id)
   }
   else if ((GFXItemId)id == GFXItemId::Play)
   {
-    playState = PlayState::Play;
+    playState = PlayState::Load;
   }
   else if ((GFXItemId)id == GFXItemId::Pause)
   {
@@ -409,7 +408,7 @@ void midiCallback(midi_event *pev)
 
   // Interpret MIDI commands for chime system.
   ////////////////////////////////////////////
-  int chimeId = channel;
+  int chimeId = channel + 1;
 
 
   // TODO: develop a queueing system for note events to allow for pretuning.
@@ -419,13 +418,13 @@ void midiCallback(midi_event *pev)
   {
     // SendTuneCommand(Commands::PretuneNote, chimeId, noteId);
     SendTuneCommand(Commands::SetTargetNote, chimeId, noteId);
-    SendCommand(Commands::Pick, channel);
+    SendCommand(Commands::Pick, chimeId);
   }
 
   // End note.
   if (noteState == false || velocity == 0)
   {
-    // SendCommand(Commands::Mute, channel);
+    // SendCommand(Commands::Mute, chimeId);
   }
 }
 
@@ -435,10 +434,10 @@ void sysexCallback(sysex_event *pev)
   Serial.printf("*** Sysex event | Track %u | Data: ", pev->track);
 
   for (uint8_t i = 0; i < pev->size; i++)
-  {
-    Serial.print(pev->data[i]);
+  {   
+    Serial.printf(" %u", pev->data[i]);
   }
-  Serial.println("");
+  Serial.println();
 }
 
 // TODO: verify this is a real-time metronome.
@@ -479,14 +478,11 @@ void tickMetronome()
 
 void ProcessMIDI()
 {
-  if (midiState == MidiState::Idle)
+  if (playState == PlayState::Idle)
   {
-    if (playState == PlayState::Play)
-    {
-      midiState = MidiState::Load;
-    }
+    // Do nothing.
   }
-  else if (midiState == MidiState::Load)
+  else if (playState == PlayState::Load)
   {
     Serial.printf("Midi: loading file: %s (%u)\n", midiFiles[selectedFileId].c_str(), selectedFileId);
 
@@ -495,14 +491,14 @@ void ProcessMIDI()
     {
       Serial.printf("Midi: Error when loading file: %u\n", errorCode);
       midiWaitMillis = millis();
-      midiState = MidiState::Wait;
+      playState = PlayState::Idle;
     }
     else
     {
-      midiState = MidiState::Play;
+      playState = PlayState::Play;
     }
   }
-  else if (midiState == MidiState::Play)
+  else if (playState == PlayState::Play)
   {
     if (!SMF.isEOF())
     {
@@ -513,22 +509,14 @@ void ProcessMIDI()
     }
     else
     {
-      playState = PlayState::Stop;
-      midiState = MidiState::Stop;
+      playState = PlayState::Stop;   
     }
   }
-  else if (midiState == MidiState::Stop)
+  else if (playState == PlayState::Stop)
   {
     SMF.close();
-    midiState = MidiState::Idle;
-  }
-  else if (midiState == MidiState::Wait)
-  {
-    if (millis() - midiWaitMillis > 2000)
-    {
-      midiState = MidiState::Idle;
-    }
-  }
+    playState = PlayState::Idle;
+  } 
 }
 
 void setup(void)

@@ -247,8 +247,11 @@ bool Chime::TuneNote(int targetNoteId)
     if (millis() - startTimeBetweenFreqDetections > 100)
         detectionCount = 0;
 
-    Serial.printf("[%u] | %4u (%4ums) | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
-                  _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections, detectedFrequency, targetFrequency, targetFrequency - detectedFrequency, int(targetPosition), directionText, _tuneStepper.speed(), _tuneStepper.currentPosition());
+    Serial.printf("[%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
+                  _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections, 
+                  targetNoteId, detectedFrequency, targetFrequency, 
+                  targetFrequency - detectedFrequency, int(targetPosition), directionText, 
+                  _tuneStepper.speed(), _tuneStepper.currentPosition());
 
     startTimeBetweenFreqDetections = millis();
 
@@ -257,7 +260,7 @@ bool Chime::TuneNote(int targetNoteId)
 
 void Chime::SetVibrato(bool flag)
 {
-    _vibrato = flag;
+    _vibrato = flag; 
 }
 
 void Chime::RestringTighten()

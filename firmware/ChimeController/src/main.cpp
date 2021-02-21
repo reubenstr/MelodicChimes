@@ -86,7 +86,7 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 #if defined CHIME_SET_1_AND_2
 #define CHIME_A_ID 1
-#define CHIME_B_ID 4 // Testing, actual should be 2
+#define CHIME_B_ID 2
 #elif defined CHIME_SET_3_AND_4
 #define CHIME_A_ID 3
 #define CHIME_B_ID 4
@@ -296,7 +296,8 @@ void loop()
     FlashOnboardLED();
 
     ProcessUart();
-
+    
+  /*
     static unsigned long startP = millis();
     if (millis() - startP > 5000)
     {
@@ -304,6 +305,7 @@ void loop()
         //chimeB.Pick();
     }
 
+  
     static unsigned long start = millis();
     static bool toggle = false;
     if (millis() - start > 2000)
@@ -317,4 +319,5 @@ void loop()
         int targetNoteB = toggle ? chimeB.GetLowestNote() : chimeB.GetHighestNote();
         chimeB.SetTargetNote(targetNoteB);
     }
+    */
 }
