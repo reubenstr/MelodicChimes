@@ -85,8 +85,8 @@ bool takeTouchReadings = true;
 unsigned long touchDebounceMillis = millis();
 
 // SD Card.
-const uint8_t SD_SELECT = 8;
-SdFat SD;
+const uint8_t SD_SELECT = 15;
+SdFat32 SD;
 SdFile dir;
 SdFile file;
 
@@ -118,33 +118,26 @@ const char delimiter = ':';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-void SendRestringTightenCommand(int chime)
-{
-  char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(Commands::RestringTighten), chime);
-  Serial.print(buffer);
-  Serial1.print(buffer);
-  Serial2.print(buffer);
-}
-
-void SendRestringLoosenCommand(int chime)
-{
-  char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(Commands::RestringLoosen), chime);
-  Serial.print(buffer);
-  Serial1.print(buffer);
-  Serial2.print(buffer);
-}
-
-
 void SendCommand(Commands command, int chime)
 {
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
   Serial.print(buffer);
-  Serial1.print(buffer);
-  Serial2.print(buffer);
+  if (chime == 1 || chime == 2)
+    Serial1.print(buffer);
+  if (chime == 3 || chime == 4)
+    Serial2.print(buffer);
+}
+
+void SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
+{
+  char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato));
+  Serial.print(buffer);
+  if (chime == 1 || chime == 2)
+    Serial1.print(buffer);
+  if (chime == 3 || chime == 4)
+    Serial2.print(buffer);
 }
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
@@ -245,35 +238,35 @@ void ProcessPressedButton(int id)
   // Calibration page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
-    SendRestringTightenCommand(1);
+    SendCommand(Commands::RestringTighten, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_1_down)
   {
-    SendRestringLoosenCommand(1);
+    SendCommand(Commands::RestringLoosen, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_up)
   {
-    SendRestringTightenCommand(2);
+    SendCommand(Commands::RestringTighten, 2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_down)
   {
-    SendRestringLoosenCommand(2);
+    SendCommand(Commands::RestringLoosen, 2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_up)
   {
-    SendRestringTightenCommand(3);
+    SendCommand(Commands::RestringTighten, 3);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_down)
   {
-    SendRestringLoosenCommand(3);
+    SendCommand(Commands::RestringLoosen, 3);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_4_up)
   {
-    SendRestringTightenCommand(4);
+    SendCommand(Commands::RestringTighten, 4);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_4_down)
   {
-    SendRestringLoosenCommand(4);
+    SendCommand(Commands::RestringLoosen, 4);
   }
 
   // Development page.
@@ -284,7 +277,7 @@ void ProcessPressedButton(int id)
   else if ((GFXItemId)id == GFXItemId::Chime1pick)
   {
     SendCommand(Commands::Pick, 1);
-  }  
+  }
   else if ((GFXItemId)id == GFXItemId::Chime2mute)
   {
     SendCommand(Commands::Mute, 2);
@@ -337,7 +330,7 @@ void CheckTouchScreen()
 
 void SDInit()
 {
-  if (!SD.begin(SD_SELECT, SPI_FULL_SPEED))
+  if (!SD.begin(SD_SELECT, SPI_HALF_SPEED))
   {
     Serial.println("SD Card: init failed!");
     DisplayFatalError(1);
@@ -382,34 +375,61 @@ void SDInit()
 
 void midiCallback(midi_event *pev)
 {
-
-  //Serial.printf("%u | Track: %u | Channel: %u | Data: ", millis(), pev->track, pev->channel + 1);
-
-  for (uint8_t i = 0; i < pev->size; i++)
-  {
-    //Serial.print(" ");
-    //Serial.print(pev->data[i] , HEX);
-    //Serial.printf(" %u" ,pev->data[i]);
-  }
-  //Serial.println("");
-  const char *onOfText[] = {"OFF ", "ON"};
-
+  const char *onOfText[] = {"OFF", "ON "};
   bool noteState = false;
-  int noteId = pev->data[1];
 
-  if (pev->data[0] == 128) // off
+  if (pev->size < 3)
+  {
+    return;
+  }
+
+  int track = pev->track;
+  int channel = pev->channel;
+  int command = pev->data[0];
+  int noteId = pev->data[1];
+  int velocity = pev->data[2];
+
+  if (command == 128) // off
   {
     noteState = false;
   }
-
-  if (pev->data[0] == 144) // on
+  else if (command == 144) // on
   {
     noteState = true;
   }
 
-  Serial.printf("%u | Track: %u | Channel: %u | %u | %s\n", millis(), pev->track, pev->channel + 1, noteId, onOfText[noteState]);
+  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %u | Velocity: %3u | ", millis(), track, channel, onOfText[noteState], noteId, velocity);
+
+  for (uint8_t i = 0; i < pev->size; i++)
+  {
+    //Serial.print(pev->data[i] , HEX);
+    Serial.printf(" %3u", pev->data[i]);
+  }
+  Serial.println();
+
+  // Interpret MIDI commands for chime system.
+  ////////////////////////////////////////////
+  int chimeId = channel;
+
+
+  // TODO: develop a queueing system for note events to allow for pretuning.
+
+  // Play note.
+  if (noteState == true && velocity > 0)
+  {
+    // SendTuneCommand(Commands::PretuneNote, chimeId, noteId);
+    SendTuneCommand(Commands::SetTargetNote, chimeId, noteId);
+    SendCommand(Commands::Pick, channel);
+  }
+
+  // End note.
+  if (noteState == false || velocity == 0)
+  {
+    // SendCommand(Commands::Mute, channel);
+  }
 }
 
+// Unlikley to occur or even needed, therefore only display message for development purposes.
 void sysexCallback(sysex_event *pev)
 {
   Serial.printf("*** Sysex event | Track %u | Data: ", pev->track);
@@ -421,6 +441,7 @@ void sysexCallback(sysex_event *pev)
   Serial.println("");
 }
 
+// TODO: verify this is a real-time metronome.
 void tickMetronome()
 {
   static uint32_t lastBeatTime = 0;
@@ -436,7 +457,9 @@ void tickMetronome()
     {
       lastBeatTime = millis();
       if (++beatCounter > (SMF.getTimeSignature() & 0xf))
+      {
         beatCounter = 1;
+      }
       gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_CYAN;
       gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
 
@@ -452,36 +475,6 @@ void tickMetronome()
       inBeat = false;
     }
   }
-
-  /*
-
-  static unsigned long lastBeatTime = 0;
-  static boolean inBeat = false;
-  uint16_t beatTime = 60000 / SMF.getTempo(); // msec/beat = ((60sec/min)*(1000 ms/sec))/(beats/min)
-
-  // TODO: make the beat indicator actually flash on the beat.
-  // getTempoAdjust
-
-  inBeat = !inBeat;
-
-  if (!inBeat)
-  {
-    if ((millis() - lastBeatTime) >= beatTime)
-    {
-      lastBeatTime = millis();
-      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_CYAN;
-      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
-    }
-  }
-  else
-  {
-    if ((millis() - lastBeatTime) >= 100)
-    {
-      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_SKYBLUE;
-      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
-    }
-  }
-  */
 }
 
 void ProcessMIDI()
@@ -540,7 +533,7 @@ void ProcessMIDI()
 
 void setup(void)
 {
-  delay(2000);
+  delay(1000);
   Serial.begin(115200);
   Serial.println("Melodic Chimes starting up.");
 
@@ -551,15 +544,15 @@ void setup(void)
 
   ScreenInit();
 
-  //SDInit();
+  SDInit();
 
   // Initialize MIDIFile
-  //SMF.begin(&SD);
-  //SMF.setMidiHandler(midiCallback);
-  //SMF.setSysexHandler(sysexCallback);
+  SMF.begin(&SD);
+  SMF.setMidiHandler(midiCallback);
+  SMF.setSysexHandler(sysexCallback);
 
   InitScreenElements();
-  //UpdateMidiInfo(false);
+  UpdateMidiInfo(false);
   DisplayMain();
 }
 
@@ -569,5 +562,5 @@ void loop()
 
   UpdateScreen();
 
-  //ProcessMIDI();
+  ProcessMIDI();
 }

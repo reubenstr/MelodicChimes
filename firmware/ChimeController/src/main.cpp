@@ -309,7 +309,7 @@ void loop()
     if (millis() - start > 2000)
     {
         start = millis();
-        toggle = !toggle;
+        //toggle = !toggle;
 
         int targetNoteA = toggle ? chimeA.GetLowestNote() : chimeA.GetHighestNote();
         chimeA.SetTargetNote(targetNoteA);
