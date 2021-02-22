@@ -238,6 +238,7 @@ void ProcessCommand(String command)
     else if (commandInt == int(Commands::Pick))
     {
         Serial.printf("[%u] Command: Pick.\n", chimeId);
+        chime->UnMute();
         chime->Pick();
     }
 }
@@ -296,7 +297,7 @@ void loop()
     FlashOnboardLED();
 
     ProcessUart();
-    
+
   /*
     static unsigned long startP = millis();
     if (millis() - startP > 5000)

@@ -35,16 +35,17 @@ void Chime::SetStepperParameters()
 {
     _tuneStepper.setPinsInverted(true, false, false);
     //_tuneStepper.setMaxSpeed(4000);
-    //_tuneStepper.setAcceleration(8000);    
-    _tuneStepper.setMaxSpeed(2000);
-    _tuneStepper.setAcceleration(4000);
+    //_tuneStepper.setAcceleration(8000);
+    _tuneStepper.setMaxSpeed(4000);
+    _tuneStepper.setAcceleration(8000);
 
     _pickStepper.setPinsInverted(false, false, false);
     _pickStepper.setMaxSpeed(4000);
     _pickStepper.setAcceleration(8000);
 
-    _muteStepper.setMaxSpeed(4000);
-    _muteStepper.setAcceleration(8000);
+    _muteStepper.setPinsInverted(true, false, false);
+    _muteStepper.setMaxSpeed(8000);
+    _muteStepper.setAcceleration(25000);
 }
 
 // Convert MIDI note number to frequency.
@@ -77,7 +78,7 @@ bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolera
 */
 
 float Chime::GetFrequency()
-{  
+{
     if (notefreq->available())
     {
         if (notefreq->probability() > acceptableProbability)
@@ -163,6 +164,7 @@ void Chime::PretuneNote(int noteId)
 {
     if (_lockedInNoteId != nullNoteId)
     {
+        _chimeState = ChimeState::Pretune;
         _lockedInNoteId = noteId;
         float targetFrequency = NoteIdToFrequency(noteId);
         float detectedFrequency = NoteIdToFrequency(_lockedInNoteId);
@@ -181,9 +183,14 @@ bool Chime::TuneNote(int targetNoteId)
     float frequencyTolerance = 1.0;
     char directionText[5];
 
+    if (_chimeState != ChimeState::Tune)
+    {
+        return false;
+    }
+
     if (!IsNoteWithinChimesRange(targetNoteId))
     {
-        return;
+        return false;
     }
 
     float detectedFrequency = GetFrequency();
@@ -244,9 +251,9 @@ bool Chime::TuneNote(int targetNoteId)
         detectionCount = 0;
 
     Serial.printf("[%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
-                  _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections, 
-                  targetNoteId, detectedFrequency, targetFrequency, 
-                  targetFrequency - detectedFrequency, int(targetPosition), directionText, 
+                  _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections,
+                  targetNoteId, detectedFrequency, targetFrequency,
+                  targetFrequency - detectedFrequency, int(targetPosition), directionText,
                   _tuneStepper.speed(), _tuneStepper.currentPosition());
 
     startTimeBetweenFreqDetections = millis();
@@ -256,7 +263,7 @@ bool Chime::TuneNote(int targetNoteId)
 
 void Chime::SetVibrato(bool flag)
 {
-    _vibrato = flag; 
+    _vibrato = flag;
 }
 
 void Chime::RestringTighten()
@@ -279,25 +286,46 @@ void Chime::Pick()
     }
 }
 
-// Mute the string briefly.
 void Chime::Mute()
 {
+
+    if (!_muteState)
+    {
+        _muteState = true;
+        _muteStepper.setCurrentPosition(0);
+        _muteStepper.moveTo(_stepsPerMute);
+    }
+
+    /*
     _muteStepper.setCurrentPosition(0);
     _muteStepper.moveTo(_stepsPerMute);
 
     _muteReturnToOpenFlag = true;
     _startMute = millis();
+    */
 }
 
-// Unmute string after muting.
+void Chime::UnMute()
+{
+    if (_muteState)
+    {
+        _muteState = false;
+        _muteStepper.setCurrentPosition(0);
+        _muteStepper.moveTo(-_stepsPerMute);
+    }
+}
+
 void Chime::MuteTick()
 {
+
+    /*
     if (_muteReturnToOpenFlag && _muteStepper.distanceToGo() == 0)
     {
         _muteReturnToOpenFlag = false;
         _muteStepper.setCurrentPosition(0);
         _muteStepper.moveTo(-_stepsPerMute);
     }
+    */
 }
 
 void Chime::PrepareCalibrateStepsToNotes()
@@ -458,6 +486,7 @@ bool Chime::IsNoteWithinChimesRange(int noteId)
 
 void Chime::SetTargetNote(int noteId)
 {
+    _chimeState = ChimeState::Tune;
     _targetNoteId = noteId;
 }
 

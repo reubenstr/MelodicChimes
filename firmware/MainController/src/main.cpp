@@ -69,7 +69,6 @@
 #include "gfxItems.h" // local libray
 #include "main.h"
 #include "graphicsMethods.h"
-#include "cppQueue.h"
 
 #include <MD_MIDIFile.h>
 
@@ -101,6 +100,7 @@ unsigned int selectedFileId = 0;
 MD_MIDIFile SMF;
 unsigned long midiWaitMillis = 0;
 
+// Commands.
 struct QCommand
 {
   unsigned long sendTime;
@@ -115,10 +115,11 @@ struct QCommand
     this->sendTime = sendTime;
     this->command = command;
   }
+
+  bool operator==(const QCommand &qc) const { return sendTime == qc.sendTime && command == qc.command; }
 };
 
-// Commands.
-cppQueue queue(sizeof(QCommand), 50, enumcppQueueType::FIFO);
+std::list<QCommand> cList(100);
 
 // Configuration.
 struct Configuration
@@ -137,34 +138,16 @@ const char delimiter = ':';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-String SendCommand(Commands command, int chime)
+void SendCommand(Commands command, int chime)
 {
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
   Serial.print(buffer);
-  /*
+
   if (chime == 1 || chime == 2)
     Serial1.print(buffer);
   if (chime == 3 || chime == 4)
     Serial2.print(buffer);
-    */
-
-  return String(buffer);
-}
-
-String SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
-{
-  char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato));
-  Serial.print(buffer);
-  /*
-  if (chime == 1 || chime == 2)
-    Serial1.print(buffer);
-  if (chime == 3 || chime == 4)
-    Serial2.print(buffer);
-    */
-
-  return String(buffer);
 }
 
 void SendCommandString(String commandString)
@@ -172,6 +155,20 @@ void SendCommandString(String commandString)
   Serial.printf("Sending command: %s", commandString);
   Serial1.print(commandString);
   Serial2.print(commandString);
+}
+
+String CreateCommandString(Commands command, int chime)
+{
+  char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
+  return String(buffer);
+}
+
+String CreateTuneCommandString(Commands command, int chime, int nodeId, bool vibrato = false)
+{
+  char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato));
+  return String(buffer);
 }
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
@@ -453,24 +450,26 @@ void midiCallback(midi_event *pev)
 
   // Play note.
   if (noteState == true && velocity > 0)
-  {
-    // SendTuneCommand(Commands::PretuneNote, chimeId, noteId);
+  {  
 
-    String commandString1 = SendTuneCommand(Commands::SetTargetNote, chimeId, noteId);
-    QCommand qCommand1(millis() + 1000, commandString1);
-    queue.push(&qCommand1);
+    String commandString = CreateTuneCommandString(Commands::PretuneNote, chimeId, noteId - 1);
+    //cList.push_back(QCommand(millis() - 200, commandString));
 
-    String commandString2 = SendCommand(Commands::Pick, chimeId);
-    QCommand qCommand2(millis() + 1000, commandString2);
-    queue.push(&qCommand2);
+     commandString = CreateCommandString(Commands::Mute, chimeId);
+    //cList.push_back(QCommand(millis()- 200, commandString));
+
+    commandString = CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId);
+    cList.push_back(QCommand(millis(), commandString));
+
+    commandString = CreateCommandString(Commands::Pick, chimeId);
+    cList.push_back(QCommand(millis(), commandString));
   }
 
   // End note.
   if (noteState == false || velocity == 0)
   {
-    String commandString = SendCommand(Commands::Mute, chimeId);
-    QCommand qCommand(millis(), commandString);
-    queue.push(&qCommand);
+    String commandString = CreateCommandString(Commands::Mute, chimeId);
+    // cList.push_back(QCommand(millis(), commandString));
   }
 }
 
@@ -546,7 +545,7 @@ void ProcessMIDI()
   }
   else if (playState == PlayState::Play)
   {
-    if (SMF.isEOF() && queue.isEmpty())
+    if (SMF.isEOF() && cList.size() == 0)
     {
       playState = PlayState::Stop;
     }
@@ -557,19 +556,19 @@ void ProcessMIDI()
         tickMetronome();
       }
 
-      QCommand qCommand;
-      if (queue.peek(&qCommand))
+      for (QCommand qc : cList)
       {
-        if (millis() - qCommand.sendTime > 250)
+        if (millis() - qc.sendTime > 250)
         {
-          SendCommandString(qCommand.command);
-          queue.pop(&qCommand);
+          SendCommandString(qc.command);
+          cList.remove(qc);
         }
       }
     }
   }
   else if (playState == PlayState::Stop)
   {
+    cList.clear();
     SMF.close();
     playState = PlayState::Idle;
   }

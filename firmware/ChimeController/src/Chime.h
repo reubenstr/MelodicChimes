@@ -29,6 +29,7 @@ public:
 
     void Pick();
     void Mute();
+    void UnMute();
     void Tick();
 
     bool CalibratePick();
@@ -48,10 +49,9 @@ private:
     float GetFrequency();
     void SetStepperParameters();
     void MuteTick();
-    
 
     // Chime.
-     const float noFrequencyDetected = 0.0;
+    const float noFrequencyDetected = 0.0;
     const float acceptableProbability = 0.995;
     int _chimeId;
     bool _vibrato;
@@ -59,12 +59,22 @@ private:
     const int highestNote[5] = {0, 69, 64, 60, 55};
     const int lowestNote[5] = {0, 60, 55, 51, 50};
 
+    enum class ChimeState
+    {
+        Pretune,
+        Tune
+    } _chimeState;
+     
+
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
     float _targetNoteId;
     //float _detectedFrequency;
     int _lockedInNoteId;
-    const float _regressionCoef = 4.54;
+
+    //const float _regressionCoef = 4.54;
+  const float _regressionCoef = 3.05;
+
     const int nullNoteId = 0;
 
     // Positions.
@@ -74,6 +84,7 @@ private:
 
     // Mute.
     bool _muteReturnToOpenFlag;
+    bool _muteState;
 
     // Cailbration.
     unsigned long frequencyDetectionTimeoutMillis = millis();
