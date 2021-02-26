@@ -33,11 +33,12 @@ Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
 
 void Chime::SetStepperParameters()
 {
-    _tuneStepper.setPinsInverted(true, false, false);
-    //_tuneStepper.setMaxSpeed(4000);
-    //_tuneStepper.setAcceleration(8000);
-    _tuneStepper.setMaxSpeed(4000);
-    _tuneStepper.setAcceleration(8000);
+    _tuneStepper.setPinsInverted(false, false, false);
+    
+    // TEMP TEST
+    _tuneStepper.setMaxSpeed(20000);
+    _tuneStepper.setAcceleration(1000000);
+
 
     _pickStepper.setPinsInverted(false, false, false);
     _pickStepper.setMaxSpeed(4000);
@@ -165,15 +166,20 @@ void Chime::PretuneNote(int noteId)
     if (_lockedInNoteId != nullNoteId)
     {
         _chimeState = ChimeState::Pretune;
-        _lockedInNoteId = noteId;
         float targetFrequency = NoteIdToFrequency(noteId);
         float detectedFrequency = NoteIdToFrequency(_lockedInNoteId);
-        int targetPosition = _regressionCoef * (targetFrequency - detectedFrequency);
-        _tuneStepper.moveTo(_tuneStepper.currentPosition() + targetPosition);
+        int positionDelta = _regressionCoef * (targetFrequency - detectedFrequency);
+
+        Serial.printf("[Pretune] Locked: %3.2f | Target: %3.2f | positionDelta: %i\n",
+                      detectedFrequency, targetFrequency, positionDelta);
+
+        _tuneStepper.moveTo(_tuneStepper.currentPosition() + positionDelta);
+        _lockedInNoteId = noteId;
     }
 }
 
 // No step prediction, just tune right away (P-controller).
+// Return true of detected note is within tolerance of target note.
 bool Chime::TuneNote(int targetNoteId)
 {
     static unsigned int detectionCount = 0;
@@ -214,7 +220,7 @@ bool Chime::TuneNote(int targetNoteId)
     float targetPosition = int(_regressionCoef * (targetFrequency - detectedFrequency));
 
     int minPos = 1;
-    int maxPos = 100;
+    int maxPos = 1000;
 
     detectionCount++;
 
@@ -335,7 +341,6 @@ void Chime::PrepareCalibrateStepsToNotes()
     betweenNotesMillis = millis();
 }
 
-// Call in a loop until the return is true.
 bool Chime::CalibrateStepsToNotes(float detectedFrequency)
 {
     /*
@@ -487,17 +492,16 @@ bool Chime::IsNoteWithinChimesRange(int noteId)
 void Chime::SetTargetNote(int noteId)
 {
     _chimeState = ChimeState::Tune;
-    _targetNoteId = noteId;
+
+    if (_targetNoteId != noteId)
+    {
+        _targetNoteId = noteId;
+        _lockedInNoteId = nullNoteId;
+    }
 }
 
 void Chime::Tick()
 {
-    static int _previousNoteId;
-    if (_previousNoteId != _targetNoteId)
-    {
-        _previousNoteId = _targetNoteId;
-        _lockedInNoteId = nullNoteId;
-    }
 
     if (TuneNote(_targetNoteId))
     {
@@ -509,4 +513,51 @@ void Chime::Tick()
     _muteStepper.run();
 
     MuteTick();
+}
+
+// Methods for development testing.
+bool Chime::IsTargetNoteReached()
+{
+    return (_lockedInNoteId == _targetNoteId);
+}
+
+int Chime::GetTuneCurrentSteps()
+{
+    return _tuneStepper.currentPosition();
+}
+
+void Chime::TimeBetweenHighAndLowNotes()
+{
+    SetTargetNote(GetLowestNote());
+
+    startTimeout = millis();
+
+    //Pick();
+
+    while (true)
+    {
+
+        delay(1);
+
+        if (IsTargetNoteReached())
+        {
+            Serial.println("**** TARGET REACHED ****");
+
+
+            if (_targetNoteId == GetHighestNote())
+            {
+                break;
+            }
+            else if (_targetNoteId != GetHighestNote())
+            {
+                startTime = millis();
+                SetTargetNote(GetHighestNote());
+            }
+        }
+    }
+
+    PretuneNote(GetLowestNote());
+
+    Serial.printf("\nTime between lowest note (%u) and highest note (%u) on chime (%u): %ums\n\n",
+                  GetLowestNote(), GetHighestNote(), _chimeId, millis() - startTime);
 }

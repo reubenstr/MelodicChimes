@@ -27,6 +27,8 @@ public:
     void PretuneNote(int noteId);
     void SetVibrato(bool flag);
 
+    float NoteIdToFrequency(float noteId);
+
     void Pick();
     void Mute();
     void UnMute();
@@ -40,12 +42,20 @@ public:
 
     bool IsNoteWithinChimesRange(int noteId);
 
+    bool IsTargetNoteReached();
+
+    int GetTuneCurrentSteps();
+
+
+    // Mthods for development assistance.
+    void TimeBetweenHighAndLowNotes();
+
     unsigned long temp;
     int setTime;
 
 private:
     bool TuneNote(int targetNoteId);
-    float NoteIdToFrequency(float noteId);
+
     float GetFrequency();
     void SetStepperParameters();
     void MuteTick();
@@ -56,24 +66,24 @@ private:
     int _chimeId;
     bool _vibrato;
 
-    const int highestNote[5] = {0, 69, 64, 60, 55};
-    const int lowestNote[5] = {0, 60, 55, 51, 50};
+    const int highestNote[5] = {0, 68, 64, 60, 55};
+    const int lowestNote[5] = {0, 60, 56, 51, 50};
 
     enum class ChimeState
     {
         Pretune,
         Tune
     } _chimeState;
-     
 
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
-    float _targetNoteId;
-    //float _detectedFrequency;
+    int _targetNoteId;
+    int _previousNoteId;
     int _lockedInNoteId;
 
     //const float _regressionCoef = 4.54;
-  const float _regressionCoef = 3.05;
+    // PLanet test
+    const float _regressionCoef = 4.54 / 4; // / 5
 
     const int nullNoteId = 0;
 
@@ -135,4 +145,8 @@ private:
     float frequencyReadings[200];
 
     int stepsToNotes[80];
+
+    // Development vars.
+    unsigned long startTime;
+    unsigned long startTimeout;
 };

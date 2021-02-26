@@ -390,3 +390,61 @@ Note 6 from 349.20 to 370.00 with time  354ms | Steps: 0
 Note 7 from 370.00 to 392.00 with time  252ms | Steps: 0
 Note 8 from 392.00 to 415.30 with time  341ms | Steps: 0
 Note 9 from 415.30 to 440.00 with time  227ms | Steps: 0
+
+
+NEMA 14; 14HS13-0804S; 25.5oz.in
+1/2 STEP
+_regressionCoef = 3.05;
+_tuneStepper.setMaxSpeed(5000);
+_tuneStepper.setAcceleration(6000);
+_tuneStepper.setMinPulseWidth(3);
+// skipped steps when tuning highest note
+// Dropped A440 :( due to skipped steps)
+Note 59 from 246.94 to 261.63 with time 1520 | Steps: -694
+Note 60 from 261.63 to 277.18 with time  363 | Steps: 60
+Note 61 from 277.18 to 293.66 with time  319 | Steps: 54
+Note 62 from 293.66 to 311.13 with time  246 | Steps: 82
+Note 63 from 311.13 to 329.63 with time  233 | Steps: 77
+Note 64 from 329.63 to 349.23 with time  319 | Steps: 105
+Note 65 from 349.23 to 369.99 with time  317 | Steps: 118
+Note 66 from 369.99 to 392.00 with time  290 | Steps: 110
+Note 67 from 392.00 to 415.30 with time  247 | Steps: 99
+
+Note 59 from 246.94 to 261.63 with time  926 | Steps: -696
+Note 60 from 261.63 to 277.18 with time  203 | Steps: 66
+Note 61 from 277.18 to 293.66 with time  218 | Steps: 63
+Note 62 from 293.66 to 311.13 with time  188 | Steps: 64
+Note 63 from 311.13 to 329.63 with time  232 | Steps: 79
+Note 64 from 329.63 to 349.23 with time  290 | Steps: 106
+Note 65 from 349.23 to 369.99 with time  274 | Steps: 108
+Note 66 from 369.99 to 392.00 with time  246 | Steps: 114
+Note 67 from 392.00 to 415.30 with time  247 | Steps: 103
+
+_tuneStepper.setMaxSpeed(5000);
+_tuneStepper.setAcceleration(10000);
+Note 59 from 246.94 to 261.63 with time  883 | Steps: -689
+Note 60 from 261.63 to 277.18 with time  174 | Steps: 69
+Note 61 from 277.18 to 293.66 with time  116 | Steps: 60
+Note 62 from 293.66 to 311.13 with time  159 | Steps: 66
+Note 63 from 311.13 to 329.63 with time  174 | Steps: 81
+Note 64 from 329.63 to 349.23 with time  217 | Steps: 103
+Note 65 from 349.23 to 369.99 with time  318 | Steps: 116
+Note 66 from 369.99 to 392.00 with time  275 | Steps: 110
+Note 67 from 392.00 to 415.30 with time  189 | Steps: 98
+
+// Cleaned out machine heads and packed with  lubrication.
+// Machine heads were griding out.
+_tuneStepper.setMaxSpeed(5000);
+_tuneStepper.setAcceleration(10000);
+// Single string pick instead of frantic picks
+Note 59 from 246.94 to 261.63 with time 1535 | Steps: -595
+Note 60 from 261.63 to 277.18 with time  160 | Steps: 74
+Note 61 from 277.18 to 293.66 with time  261 | Steps: 45
+Note 62 from 293.66 to 311.13 with time  232 | Steps: 81
+Note 63 from 311.13 to 329.63 with time  261 | Steps: 64
+Note 64 from 329.63 to 349.23 with time  130 | Steps: 76
+Note 65 from 349.23 to 369.99 with time  114 | Steps: 77
+Note 66 from 369.99 to 392.00 with time  247 | Steps: 66
+Note 67 from 392.00 to 415.30 with time  203 | Steps: 110
+
+

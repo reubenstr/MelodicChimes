@@ -1,0 +1,26 @@
+Calculation notes.
+
+Calculated string tension using daddario branded string model #PL010 (0.010" diameter)
+Length = 13.7"
+UW = 0.00002215
+Note ID: 58, Frequency: 233.08, Tension: 2.34 lbs.
+Note ID: 59, Frequency: 246.94, Tension: 2.62 lbs.
+Note ID: 60, Frequency: 261.63, Tension: 2.95 lbs.
+Note ID: 61, Frequency: 277.18, Tension: 3.31 lbs.
+Note ID: 62, Frequency: 293.66, Tension: 3.71 lbs.
+Note ID: 63, Frequency: 311.13, Tension: 4.17 lbs.
+Note ID: 64, Frequency: 329.63, Tension: 4.68 lbs. // E
+Note ID: 65, Frequency: 349.23, Tension: 5.25 lbs.
+Note ID: 66, Frequency: 369.99, Tension: 5.89 lbs.
+Note ID: 67, Frequency: 392.00, Tension: 6.61 lbs.
+Note ID: 68, Frequency: 415.30, Tension: 7.42 lbs.
+Note ID: 69, Frequency: 440.00, Tension: 8.33 lbs. // A
+Note ID: 70, Frequency: 466.16, Tension: 9.35 lbs.
+Note ID: 71, Frequency: 493.88, Tension: 10.50 lbs.
+Note ID: 72, Frequency: 523.25, Tension: 11.78 lbs.
+
+
+// Torque on stepper
+// Directly attached to 0.200" diameter vertical shaft.
+4.68lbs = 74.88oz
+0.100 * 74.88 = 7.488oz/in

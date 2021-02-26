@@ -1,0 +1,41 @@
+
+
+NEMA 14; 14HS13-0804S; 25.5oz.in
+1/2 STEP
+_regressionCoef = 3.05;
+_tuneStepper.setMaxSpeed(5000);
+_tuneStepper.setAcceleration(10000);
+Time between lowest note (60) and highest note (68) on chime (1): 911ms
+Time between lowest note (60) and highest note (68) on chime (1): 811ms
+
+// not sure what changed in the system to increase the time this greatly.50
+Time between lowest note (60) and highest note (68) on chime (1): 1435ms
+
+// Replaced machine head, pinion gear was grinding and failed.
+Time between lowest note (60) and highest note (68) on chime (1): 782ms
+Time between lowest note (60) and highest note (68) on chime (1): 579ms
+Time between lowest note (60) and highest note (68) on chime (1): 666ms
+Time between lowest note (60) and highest note (68) on chime (1): 710ms
+
+// planetary gear stepper motor
+  _tuneStepper.setMaxSpeed(15000);
+  _tuneStepper.setAcceleration(100000);
+Time between lowest note (60) and highest note (68) on chime (1): 433ms
+
+_tuneStepper.setMaxSpeed(15000);
+_tuneStepper.setAcceleration(100000);
+const float _regressionCoef = 2;'
+// which is target based of raw 50ms for 22.5 degree on 82oz/in stepper no gearing
+// that timed at ~50 per cycle, so a 5:1 gear box should achieve a ~250 ms cycle.
+Time between lowest note (60) and highest note (68) on chime (1): 259ms
+
+
+
+
+
+
+
+
+
+
+

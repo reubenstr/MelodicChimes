@@ -450,13 +450,13 @@ void midiCallback(midi_event *pev)
 
   // Play note.
   if (noteState == true && velocity > 0)
-  {  
+  {
 
     String commandString = CreateTuneCommandString(Commands::PretuneNote, chimeId, noteId - 1);
     //cList.push_back(QCommand(millis() - 200, commandString));
 
-     commandString = CreateCommandString(Commands::Mute, chimeId);
-    //cList.push_back(QCommand(millis()- 200, commandString));
+    commandString = CreateCommandString(Commands::Mute, chimeId);
+    // cList.push_back(QCommand(millis() - 200, commandString));
 
     commandString = CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId);
     cList.push_back(QCommand(millis(), commandString));

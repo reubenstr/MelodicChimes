@@ -23,17 +23,6 @@ AudioAnalyzeNoteFrequency notefreq1;
 AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
 AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
-#define C 261.6
-#define Cs 277.2
-#define D 293.7
-#define Eb 311.1
-#define E 329.6
-#define f 349.2
-#define Fs 370.0
-#define G 392.0
-#define Gs 415.3
-#define A 440.0
-
 /*
     DEVELOPMENT NOTES
 	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
@@ -271,6 +260,48 @@ void TickTimerCallback()
     chimeA.Tick();
     chimeB.Tick();
 }
+////////////////////////////////////////////////////////////////////////
+
+// Time between note test.
+// Manual consist picking (to match previous tests.)
+void TimeBetweenNoteTest(Chime *chime)
+{
+    int times[10];
+    int steps[10];
+    unsigned long start = millis();
+    int index = 0;
+    int curSteps = 0;
+
+    int targetNote = chime->GetLowestNote();
+
+    while (targetNote < chime->GetHighestNote() + 1)
+    {
+        chime->SetTargetNote(targetNote);
+        if (chime->IsTargetNoteReached())
+        {
+            Serial.println("Note locked.");
+            times[index] = millis() - start;
+            start = millis();
+
+            steps[index] = chime->GetTuneCurrentSteps() - curSteps;
+
+            curSteps = chime->GetTuneCurrentSteps();
+
+            index++;
+            targetNote++;
+        }
+    }
+
+    Serial.println("TimeBetweenNoteTest finished.");
+    for (int i = 0; i < chime->GetHighestNote() - chime->GetLowestNote() + 1; i++)
+    {
+        char buf[256];
+        int nId = chimeA.GetLowestNote() + i - 1;
+        sprintf(buf, "Note %u from %3.2f to %3.2f with time %4u | Steps: %i\n",
+                nId, chimeA.NoteIdToFrequency(nId), chimeA.NoteIdToFrequency(nId + 1), times[i], steps[i]);
+        Serial.print(buf);
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////
 void setup()
@@ -289,7 +320,29 @@ void setup()
 
     AudioMemory(120);
 
-    tickTimer.beginPeriodic(TickTimerCallback, 250); // microseconds.
+    tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
+
+    chimeA.SetTargetNote(68);
+    chimeB.SetTargetNote(100);
+
+    /*
+    while(1)
+    {
+        Serial.println("****** TEST STARTING *******");
+        TimeBetweenNoteTest(&chimeA);
+        delay(3000);
+    }
+    */
+
+    /*
+    while (1)
+    {
+        Serial.println("****** TEST STARTING *******");
+        chimeA.TimeBetweenHighAndLowNotes();
+    }
+    */
+
+    //
 }
 
 void loop()
@@ -297,22 +350,20 @@ void loop()
     FlashOnboardLED();
 
     ProcessUart();
-
-  /*
+/*
     static unsigned long startP = millis();
-    if (millis() - startP > 5000)
+    if (millis() - startP > 2000)
     {
         startP = millis();
         //chimeB.Pick();
     }
 
-  
     static unsigned long start = millis();
     static bool toggle = false;
-    if (millis() - start > 2000)
+    if (millis() - start > 3000)
     {
         start = millis();
-        //toggle = !toggle;
+        toggle = !toggle;
 
         int targetNoteA = toggle ? chimeA.GetLowestNote() : chimeA.GetHighestNote();
         chimeA.SetTargetNote(targetNoteA);

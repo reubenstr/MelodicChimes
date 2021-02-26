@@ -169,6 +169,8 @@ starting to skips steps at 1/2 step 1000us step delay
 364 - 315 = 49 hz -> 0.98 steps per hz
 314 - 353 = 39 hz -> 0.78 steps per hz
 
+~0.5hz/step
+
 About one hz per full step.
 
 */
