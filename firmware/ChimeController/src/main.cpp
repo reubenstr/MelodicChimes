@@ -320,27 +320,30 @@ void setup()
 
     AudioMemory(120);
 
-    tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
+    tickTimer.beginPeriodic(TickTimerCallback, 50); // microseconds.
 
-    chimeA.SetTargetNote(68);
+    chimeA.SetTargetNote(63);
     chimeB.SetTargetNote(100);
 
-    /*
+    /*  
     while(1)
     {
         Serial.println("****** TEST STARTING *******");
         TimeBetweenNoteTest(&chimeA);
         delay(3000);
     }
-    */
+  */
 
-    /*
+    /**/
     while (1)
     {
         Serial.println("****** TEST STARTING *******");
         chimeA.TimeBetweenHighAndLowNotes();
     }
-    */
+    
+
+    // chimeA.CalibrateFrequencyPerStep();
+
 
     //
 }

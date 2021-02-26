@@ -1,5 +1,9 @@
-// MOTOR: N20 ~50RPM 
+After action comments:
+The data provided by these tests is a mediocre indication of performance
+due to many factors such as manual picking, pickup variations, etc.
 
+
+// MOTOR: N20 ~50RPM 
 Note 1 from 261.60 to 277.20 with time 0.
 Note 2 from 277.20 to 293.70 with time 0.
 Note 3 from 293.70 to 311.10 with time 596.
@@ -446,5 +450,44 @@ Note 64 from 329.63 to 349.23 with time  130 | Steps: 76
 Note 65 from 349.23 to 369.99 with time  114 | Steps: 77
 Note 66 from 369.99 to 392.00 with time  247 | Steps: 66
 Note 67 from 392.00 to 415.30 with time  203 | Steps: 110
+
+// Stepper with planetary gear, 5:1, ~30oz/in stepper, low coil amperage.
+_tuneStepper.setMaxSpeed(20000);
+_tuneStepper.setAcceleration(1000000);
+const float _regressionCoef = 4.54 / 4; // / 5
+
+Note 59 from 246.94 to 261.63 with time  809 | Steps: -2785
+Note 60 from 261.63 to 277.18 with time  131 | Steps: 63
+Note 61 from 277.18 to 293.66 with time  116 | Steps: 70
+Note 62 from 293.66 to 311.13 with time  130 | Steps: 83
+Note 63 from 311.13 to 329.63 with time  189 | Steps: 89
+Note 64 from 329.63 to 349.23 with time  159 | Steps: 101
+Note 65 from 349.23 to 369.99 with time  288 | Steps: 51
+Note 66 from 369.99 to 392.00 with time  276 | Steps: 132
+Note 67 from 392.00 to 415.30 with time  348 | Steps: 157
+Note 68 from 415.30 to 440.00 with time  377 | Steps: 171
+
+Note 59 from 246.94 to 261.63 with time  706 | Steps: -6008
+Note 60 from 261.63 to 277.18 with time  116 | Steps: 65
+Note 61 from 277.18 to 293.66 with time  116 | Steps: 70
+Note 62 from 293.66 to 311.13 with time  116 | Steps: 81
+Note 63 from 311.13 to 329.63 with time  189 | Steps: 89
+Note 64 from 329.63 to 349.23 with time  203 | Steps: 105
+Note 65 from 349.23 to 369.99 with time  201 | Steps: 114
+Note 66 from 369.99 to 392.00 with time  333 | Steps: 136
+Note 67 from 392.00 to 415.30 with time  290 | Steps: 149
+Note 68 from 415.30 to 440.00 with time  261 | Steps: 166
+
+const float _regressionCoef = 2;
+Note 59 from 246.94 to 261.63 with time  777 | Steps: -451
+Note 60 from 261.63 to 277.18 with time  261 | Steps: 43
+Note 61 from 277.18 to 293.66 with time  174 | Steps: 27
+Note 62 from 293.66 to 311.13 with time  116 | Steps: 59
+Note 63 from 311.13 to 329.63 with time  116 | Steps: 53
+Note 64 from 329.63 to 349.23 with time  131 | Steps: 62
+Note 65 from 349.23 to 369.99 with time  172 | Steps: 78
+Note 66 from 369.99 to 392.00 with time  188 | Steps: 94
+Note 67 from 392.00 to 415.30 with time  189 | Steps: 105
+Note 68 from 415.30 to 440.00 with time  217 | Steps: 111
 
 

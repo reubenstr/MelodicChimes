@@ -22,6 +22,7 @@ Time between lowest note (60) and highest note (68) on chime (1): 710ms
   _tuneStepper.setAcceleration(100000);
 Time between lowest note (60) and highest note (68) on chime (1): 433ms
 
+1/8 microsteps
 _tuneStepper.setMaxSpeed(15000);
 _tuneStepper.setAcceleration(100000);
 const float _regressionCoef = 2;'
@@ -30,7 +31,8 @@ const float _regressionCoef = 2;'
 Time between lowest note (60) and highest note (68) on chime (1): 259ms
 
 
-
+Time between lowest note (60) and highest note (69) on chime (1): 550ms
+Time between lowest note (60) and highest note (69) on chime (1): 549ms
 
 
 

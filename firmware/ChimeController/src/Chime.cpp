@@ -28,17 +28,16 @@ Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
     _freqAverage.begin();
 
     this->notefreq = &notefreq;
-    this->notefreq->begin(0.15);
+    this->notefreq->begin(0.15);    
 }
 
 void Chime::SetStepperParameters()
 {
     _tuneStepper.setPinsInverted(false, false, false);
-    
-    // TEMP TEST
-    _tuneStepper.setMaxSpeed(20000);
-    _tuneStepper.setAcceleration(1000000);
 
+    // TEMP TEST
+    _tuneStepper.setMaxSpeed(10000);
+    _tuneStepper.setAcceleration(10000000);
 
     _pickStepper.setPinsInverted(false, false, false);
     _pickStepper.setMaxSpeed(4000);
@@ -188,12 +187,7 @@ bool Chime::TuneNote(int targetNoteId)
     bool frequencyWithinTolerance = false;
     float frequencyTolerance = 1.0;
     char directionText[5];
-
-    if (_chimeState != ChimeState::Tune)
-    {
-        return false;
-    }
-
+  
     if (!IsNoteWithinChimesRange(targetNoteId))
     {
         return false;
@@ -203,6 +197,12 @@ bool Chime::TuneNote(int targetNoteId)
 
     // Return if frequency was not detected.
     if (detectedFrequency == 0)
+    {
+        return false;
+    }
+
+    // TEMP: EMI is causing false freq detections at ~140hz.
+    if (detectedFrequency < 230)
     {
         return false;
     }
@@ -386,9 +386,13 @@ void Chime::CalibrateFrequencyPerStep()
 {
     _freqPerStepState = FreqPerStepStates::Home;
     _totalReadingsCount = 0;
-
+   
     _tuneStepper.setMaxSpeed(500);
     _tuneStepper.setAcceleration(250);
+
+    SetTargetNote(GetLowestNote());
+
+    Serial.println("**** CALCULATE FREQUENCY PER STEPS ****");
 
     while (1)
     {
@@ -396,19 +400,25 @@ void Chime::CalibrateFrequencyPerStep()
 
         if (_freqPerStepState == FreqPerStepStates::Home)
         {
-            if (TuneNote(_lowestNote))
+            if (IsTargetNoteReached())
             {
+                 _tuneStepper.setCurrentPosition(0);
+                _chimeState = ChimeState::Calibrate;
                 _freqPerStepState = FreqPerStepStates::Move;
             }
         }
         else if (_freqPerStepState == FreqPerStepStates::Move)
-        {
-            _tuneStepper.setCurrentPosition(0);
-            _tuneStepper.moveTo(_stepsBetweenReadings);
+        {            
+            _tuneStepper.move(_stepsBetweenReadings);
             _freqPerStepState = FreqPerStepStates::WaitForMove;
         }
         else if (_freqPerStepState == FreqPerStepStates::WaitForMove)
         {
+            if (_tuneStepper.currentPosition() > _maxSteps)
+            {
+                Serial.println("**** MAX STEPS REACHED, HALTING ****");
+                break;
+            }
             if (_tuneStepper.distanceToGo() == 0)
             {
                 _readingsCount = 0;
@@ -424,11 +434,13 @@ void Chime::CalibrateFrequencyPerStep()
             }
             if (_readingsCount == _numReadingsToAverage)
             {
+                Serial.printf("Average frequency per step set: %3.2f, Step count: %u.\n", _freqAverage.getAvg(), _tuneStepper.currentPosition());
                 frequencyReadings[_totalReadingsCount] = _freqAverage.getAvg();
                 _totalReadingsCount++;
+
                 if (detectedFrequency > NoteIdToFrequency(_highestNote))
                 {
-                    Serial.printf("Chime %u finished with FrequencyPerStep.\n", _chimeId);
+                    Serial.printf("\n**** Chime %u finished with FrequencyPerStep. ****\n", _chimeId);
                     for (int i = 0; i < _totalReadingsCount; i++)
                     {
                         Serial.printf("%3.2f\n", frequencyReadings[i]);
@@ -453,6 +465,8 @@ void Chime::CalibrateFrequencyPerStep()
             }
         }
     }
+
+    _chimeState = ChimeState::Tune;
 }
 
 // Calibrate pick to known position.
@@ -502,10 +516,12 @@ void Chime::SetTargetNote(int noteId)
 
 void Chime::Tick()
 {
-
-    if (TuneNote(_targetNoteId))
+    if (_chimeState == ChimeState::Tune)
     {
-        _lockedInNoteId = _targetNoteId;
+        if (TuneNote(_targetNoteId))
+        {
+            _lockedInNoteId = _targetNoteId;
+        }
     }
 
     _tuneStepper.run();
@@ -542,7 +558,6 @@ void Chime::TimeBetweenHighAndLowNotes()
         if (IsTargetNoteReached())
         {
             Serial.println("**** TARGET REACHED ****");
-
 
             if (_targetNoteId == GetHighestNote())
             {

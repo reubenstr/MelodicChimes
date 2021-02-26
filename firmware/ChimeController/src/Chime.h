@@ -46,7 +46,6 @@ public:
 
     int GetTuneCurrentSteps();
 
-
     // Mthods for development assistance.
     void TimeBetweenHighAndLowNotes();
 
@@ -65,15 +64,15 @@ private:
     const float acceptableProbability = 0.995;
     int _chimeId;
     bool _vibrato;
-
-    const int highestNote[5] = {0, 68, 64, 60, 55};
-    const int lowestNote[5] = {0, 60, 56, 51, 50};
-
     enum class ChimeState
     {
+        Calibrate,
         Pretune,
         Tune
     } _chimeState;
+
+    const int highestNote[5] = {0, 69, 64, 60, 55};
+    const int lowestNote[5] = {0, 60, 56, 51, 50};
 
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
@@ -83,7 +82,8 @@ private:
 
     //const float _regressionCoef = 4.54;
     // PLanet test
-    const float _regressionCoef = 4.54 / 4; // / 5
+    //const float _regressionCoef = 0.28;
+const float _regressionCoef = 4;
 
     const int nullNoteId = 0;
 
@@ -98,7 +98,7 @@ private:
 
     // Cailbration.
     unsigned long frequencyDetectionTimeoutMillis = millis();
-    const int frequencyDetectionTimeoutMs = 1000;
+    const unsigned int frequencyDetectionTimeoutMs = 500;
     int noteId;
     int betweenNotesMillis;
 
@@ -139,8 +139,9 @@ private:
     FreqPerStepStates _freqPerStepState = FreqPerStepStates::Home;
     int _readingsCount;
     int _totalReadingsCount;
-    const int _numReadingsToAverage = 5;
-    const int _stepsBetweenReadings = 20;
+    const int _numReadingsToAverage = 10;
+    const int _stepsBetweenReadings = 10;
+    const int _maxSteps = 700;
     movingAvg _freqAverage = movingAvg(_numReadingsToAverage);
     float frequencyReadings[200];
 
