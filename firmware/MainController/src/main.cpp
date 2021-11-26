@@ -23,6 +23,9 @@
   Online Tools:
       MID to JSON: https://tonejs.github.io/Midi/
 
+  Bugs:
+    bootup fails when SD card does not have a .mid file. -> provide error message
+
 
 */
 
@@ -142,12 +145,17 @@ void SendCommand(Commands command, int chime)
 {
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
-  Serial.print(buffer);
+  Serial.print(buffer); // Terminal
 
+  Serial1.print(buffer);
+  Serial2.print(buffer);
+
+  /*
   if (chime == 1 || chime == 2)
     Serial1.print(buffer);
   if (chime == 3 || chime == 4)
     Serial2.print(buffer);
+    */
 }
 
 void SendCommandString(String commandString)
@@ -216,7 +224,7 @@ void UpdateScreen()
 
 void ProcessPressedButton(int id)
 {
-  // All page.
+  // All pages.
   if ((GFXItemId)id == GFXItemId::Home)
   {
     pageId = PageId::Home;
@@ -364,9 +372,7 @@ void SDInit()
   if (!SD.begin(SD_SELECT, SPI_HALF_SPEED))
   {
     Serial.println("SD Card: init failed!");
-    DisplayFatalError(1);
-    while (true)
-      ;
+    DisplayError(ErrorCodes::sdCardInitFailed);    
   }
 
   Serial.println("SD Card: init successful.");
@@ -396,6 +402,11 @@ void SDInit()
   else
   {
     Serial.printf("SD Card: %u .mid files found.\n", midiFiles.size());
+  }
+
+  if (midiFiles.size() == 0)
+  {
+    DisplayError(ErrorCodes::sdCardInitFailed); 
   }
 
   for (auto &s : midiFiles)

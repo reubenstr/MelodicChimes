@@ -27,14 +27,13 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
     DEVELOPMENT NOTES
 	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
 	faster analysis at the sacrafice of less lower frequency detection
-	which is not required for this application.
-	Blocks : lowest frequncy (rough estimate) : milliseconds per note
-	3 : 233hz : 9
-	4 : 174hz : 12
-	5 : 139hz : 15
+	which is not required for this application.	
+	3 blocks : 233hz : 9ms per detection
+	4 blocks : 174hz : 12ms per detection
+	5 blocks : 139hz : 15ms per detection
     A weak magnet for the coil is has a low signal to noise ratio.
 	A stronger magnet provides a high signal to noise ration.
-	An overly strong magnet dampens the string vibrations reducing the length of the signal.
+	An over strong magnet dampens the string vibrations reducing the length of the signal.
     Tuning:
     Two types of tuning tested: free tuning, direct steps tuning
         Direct step tuning (using a look up table for steps between notes) was tested to allow for maximuim
@@ -83,16 +82,19 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 #define PIN_STEPPER_TUNE_STEP_A 0
 #define PIN_STEPPER_TUNE_DIRECTION_A 6
-#define PIN_STEPPER_TUNE_STEP_B 1
-#define PIN_STEPPER_TUNE_DIRECTION_B 7
-#define PIN_STEPPER_MUTE_STEP_A 2
-#define PIN_STEPPER_MUTE_DIRECTION_A 8
-#define PIN_STEPPER_MUTE_STEP_B 3
-#define PIN_STEPPER_MUTE_DIRECTION_B 11
-#define PIN_STEPPER_PICK_STEP_A 4
-#define PIN_STEPPER_PICK_DIRECTION_A 12
+#define PIN_STEPPER_MUTE_STEP_A 1
+#define PIN_STEPPER_MUTE_DIRECTION_A 7
+#define PIN_STEPPER_PICK_STEP_A 2
+#define PIN_STEPPER_PICK_DIRECTION_A 8
+
+#define PIN_STEPPER_TUNE_STEP_B 3
+#define PIN_STEPPER_TUNE_DIRECTION_B 11
+#define PIN_STEPPER_MUTE_STEP_B 4
+#define PIN_STEPPER_MUTE_DIRECTION_B 12
 #define PIN_STEPPER_PICK_STEP_B 5
 #define PIN_STEPPER_PICK_DIRECTION_B 23
+
+#define PIN_ENABLE_STEPPER_DRIVERS 22
 
 Chime chimeA = {Chime(CHIME_A_ID, notefreq1,
                       PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
@@ -125,10 +127,10 @@ enum class Commands
 void FlashOnboardLED()
 {
     static unsigned long start = millis();
-    if (millis() - start > 50)
+    if (millis() - start > 250)
     {
-        start = millis();
-        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+        start = millis();      
+        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));  
     }
 }
 
@@ -242,12 +244,11 @@ void ProcessUart()
         uartData += (char)readChar;
 
         if (readChar == '\n')
-        {
+        {          
             ProcessCommand(uartData);
             uartData = "";
         }
-
-        // Prevent runaway memory allocation.
+     
         if (uartData.length() > 64)
         {
             uartData = "";
@@ -257,11 +258,14 @@ void ProcessUart()
 
 void TickTimerCallback()
 {
+    FlashOnboardLED();
+
     chimeA.Tick();
     chimeB.Tick();
 }
 ////////////////////////////////////////////////////////////////////////
 
+// Physical test:
 // Time between note test.
 // Manual consist picking (to match previous tests.)
 void TimeBetweenNoteTest(Chime *chime)
@@ -317,43 +321,45 @@ void setup()
     Serial2.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(PIN_ENABLE_STEPPER_DRIVERS, OUTPUT);
+    digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, LOW);
 
-    AudioMemory(120);
 
+    //AudioMemory(120); 
     tickTimer.beginPeriodic(TickTimerCallback, 50); // microseconds.
-
     chimeA.SetTargetNote(63);
     chimeB.SetTargetNote(100);
 
     /*  
     while(1)
     {
-        Serial.println("****** TEST STARTING *******");
+        Serial.println("****** TEST TimeBetweenNoteTest *******");
         TimeBetweenNoteTest(&chimeA);
         delay(3000);
     }
-  */
+    */
 
-    /**/
+    /*
     while (1)
     {
-        Serial.println("****** TEST STARTING *******");
+        Serial.println("****** TEST TimeBetweenHighAndLowNotes *******");
         chimeA.TimeBetweenHighAndLowNotes();
     }
+    */
     
-
-    // chimeA.CalibrateFrequencyPerStep();
-
-
-    //
+    /*
+    Serial.println("****** TEST CalibrateFrequencyPerStep *******");
+    chimeA.CalibrateFrequencyPerStep();
+    */
 }
 
 void loop()
-{
-    FlashOnboardLED();
-
+{   
     ProcessUart();
-/*
+
+    /*
+    // TEST: bounce between lowest and highest notes
+
     static unsigned long startP = millis();
     if (millis() - startP > 2000)
     {

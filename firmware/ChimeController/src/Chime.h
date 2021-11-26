@@ -7,8 +7,8 @@
 
 /*
     Pick Stepper:
-    200 steps/rev, 1/2 steps, 20:30 pulley (20 teeth on drive, 30 teeth on pick), 8 plectrum/rev
-    = 75 steps per pick
+        200 steps/rev, 1/2 microsteps, plectrum with 8 points
+        200 * 1/2 / 8 = 50 steps per pick
 */
 
 class Chime
@@ -89,7 +89,7 @@ const float _regressionCoef = 4;
 
     // Positions.
     const int _stepsPerRestringCommand = 800;
-    const int _stepsPerPick = 75;
+    const int _stepsPerPick = 50;
     const int _stepsPerMute = 50;
 
     // Mute.

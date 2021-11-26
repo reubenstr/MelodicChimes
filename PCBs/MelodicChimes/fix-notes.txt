@@ -1,0 +1,7 @@
+motor head pin spacing, off by a few mils
+motor driver (DR3) jumper set spacing off
+
+add raw signal bypass caps to underside
+add voltage regulator to underside
+
+add silk for UART pins (GND, RX, TX)

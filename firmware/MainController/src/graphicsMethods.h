@@ -1,5 +1,14 @@
+
+
+enum class ErrorCodes
+{
+  sdCardInitFailed,
+  midiNotFound
+};
+
+
 void DisplayClearPartial();
 void DisplayMain();
 void InitScreenElements();
-void DisplayFatalError(int error);
+void DisplayError(ErrorCodes error);
 void ScreenInit();

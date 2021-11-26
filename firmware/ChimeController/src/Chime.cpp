@@ -36,8 +36,8 @@ void Chime::SetStepperParameters()
     _tuneStepper.setPinsInverted(false, false, false);
 
     // TEMP TEST
-    _tuneStepper.setMaxSpeed(10000);
-    _tuneStepper.setAcceleration(10000000);
+    _tuneStepper.setMaxSpeed(1000);
+    _tuneStepper.setAcceleration(10000);
 
     _pickStepper.setPinsInverted(false, false, false);
     _pickStepper.setMaxSpeed(4000);
@@ -160,6 +160,7 @@ bool Chime::TuneNote(float detectedFrequency, int newNoteId)
 }
 */
 
+// helper for dev/testing
 void Chime::PretuneNote(int noteId)
 {
     if (_lockedInNoteId != nullNoteId)
@@ -552,7 +553,6 @@ void Chime::TimeBetweenHighAndLowNotes()
 
     while (true)
     {
-
         delay(1);
 
         if (IsTargetNoteReached())

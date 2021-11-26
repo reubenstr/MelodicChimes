@@ -83,7 +83,7 @@ void InitScreenElements()
   gfxItems.Add(GFXItem(int(GFXItemId::Default), int(PageId::Development), "1", 2, 370, 90, 0, 0, TFT_WHITE, TFT_BLACK, Justification::Left));
 }
 
-void DisplayFatalError(int error)
+void DisplayError(ErrorCodes error)
 {
   tft.fillScreen(TFT_BLACK);
   tft.setTextFont(GLCD);
@@ -91,9 +91,14 @@ void DisplayFatalError(int error)
   tft.setTextSize(3);
 
   tft.drawString("Error: ", 50, 50);
-  if (error == 1)
+  if (error == ErrorCodes::sdCardInitFailed)
   {
     tft.drawString("SD card not detected!", 50, 100);
+  }
+
+  if (error == ErrorCodes::midiNotFound)
+  {
+    tft.drawString("MIDI file(s) not found!", 50, 100);
   }
 
   // TODO: tell chimes to halt activity.
