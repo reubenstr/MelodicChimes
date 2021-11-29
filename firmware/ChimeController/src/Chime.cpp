@@ -193,11 +193,11 @@ bool Chime::TuneNote(int targetNoteId)
     {
         return false;
     }
-
+    
     float detectedFrequency = GetFrequency();
 
     // Return if frequency was not detected.
-    if (detectedFrequency == 0)
+    if (detectedFrequency == 0) // TODO CHANBGE TO CONST already delcared nofreqdetected
     {
         return false;
     }
@@ -209,17 +209,12 @@ bool Chime::TuneNote(int targetNoteId)
     }
 
     //_detectedFrequency = detectedFrequency;
-
-    if (targetNoteId < lowestNote[_chimeId] || targetNoteId > highestNote[_chimeId])
-    {
-        return false;
-    }
-
+  
     float targetFrequency = NoteIdToFrequency(targetNoteId);
 
     // Based on linear regression test.
     float targetPosition = int(_regressionCoef * (targetFrequency - detectedFrequency));
-
+    
     int minPos = 1;
     int maxPos = 1000;
 
@@ -275,11 +270,13 @@ void Chime::SetVibrato(bool flag)
 
 void Chime::RestringTighten()
 {
+    //_chimeState = ChimeState::Calibrate;
     _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestringCommand);
 }
 
 void Chime::RestringLoosen()
 {
+   // _chimeState = ChimeState::Calibrate;
     _tuneStepper.moveTo(_tuneStepper.currentPosition() - _stepsPerRestringCommand);
 }
 
@@ -295,7 +292,6 @@ void Chime::Pick()
 
 void Chime::Mute()
 {
-
     if (!_muteState)
     {
         _muteState = true;
@@ -324,7 +320,6 @@ void Chime::UnMute()
 
 void Chime::MuteTick()
 {
-
     /*
     if (_muteReturnToOpenFlag && _muteStepper.distanceToGo() == 0)
     {

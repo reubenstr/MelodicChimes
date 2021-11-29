@@ -62,6 +62,8 @@ private:
     // Chime.
     const float noFrequencyDetected = 0.0;
     const float acceptableProbability = 0.995;
+
+
     int _chimeId;
     bool _vibrato;
     enum class ChimeState
@@ -80,15 +82,11 @@ private:
     int _previousNoteId;
     int _lockedInNoteId;
 
-    //const float _regressionCoef = 4.54;
-    // PLanet test
-    //const float _regressionCoef = 0.28;
-const float _regressionCoef = 4;
-
+    const float _regressionCoef = 0.50;
     const int nullNoteId = 0;
 
     // Positions.
-    const int _stepsPerRestringCommand = 800;
+    const int _stepsPerRestringCommand = (1036 * 2) / 36;
     const int _stepsPerPick = 50;
     const int _stepsPerMute = 50;
 

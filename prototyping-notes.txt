@@ -1,86 +1,92 @@
- //////////////////////////////////////////////////////////////////////////////////////////
-    // NOTES AREA
-    //////////////////////////////////////////////////////////////////////////////////////////
-    
-	
-	
-	DEVELOPMENT NOTES
 
-	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
-	faster analysis at the sacrafice of less lower frequency detection
-	which is not required for this application.
 
-	Blocks : lowest frequncy (rough estimate) : milliseconds per note
-	3 : 233hz : 9
-	4 : 174hz : 12
-	5 : 139hz : 15
+Tuner stepper: 5.18:1 gear head 200steps/rev * 5.18 = 1036
 
 
 
-	A weak magnet for the coil is has a low signal to noise ratio.
-	A stronger magnet provides a high signal to noise ration.
-	An overly strong magnet over dampens the string vibrations reducing the length of the signal.
+
+Stringing notes:
+add new string...
 
 
-	TeensyStep async is not working, also forum indicates changing 
-	parameters on the fly my not be supported
-
-	AccelStepper library is awkward and not intuitive when attempting 
-	to get async movements working. Basically just roll my own driving code
-	as I need only basic features (speeds and modest acceleration).
 
 
-	DC-Motor
-
-	Fast motor (N25 500RPM) : fast but not precise
-
-	Slow motor (N20 50RPM) : slow but precise
-
-	Precision due to the delay of frequency detections allow for more in sync timing tuning and motor turn off.
 
 
-	
-	
-	
-	
-	/* 
-    Turn tests: start, turn, test, turn, end
-    400.03 - full - 246.60 - full - 399.67
-    427.02 - full - 272.89 - full - 429.36
+DEVELOPMENT NOTES
 
-    A full rotation roughly spans 8 notes.
+defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
+faster analysis at the sacrafice of less lower frequency detection
+which is not required for this application.
 
-    Estimated Hz per rotation: 153.78
-                    per degre: 0.4271
-
-    0.12815 hz / millisecond (estimated from full turn test)
-    0.05714 hz / millisecond (estimated from note to note test (with pickStall)) ~350ms motor time per note.
+Blocks : lowest frequncy (rough estimate) : milliseconds per note
+3 : 233hz : 9
+4 : 174hz : 12
+5 : 139hz : 15
 
 
-    TEST MOTOR:
-    6v, 50RPM (no load), 24oz/in (crude test), 1200ms per revolution. 
-    Pololu's N20 6v (low power) 54RPM has a oz/in of 24 which is on par with out test motor.
 
-    The current torque is capable of turning the peg (of our current test string (high E)).
+A weak magnet for the coil is has a low signal to noise ratio.
+A stronger magnet provides a high signal to noise ration.
+An overly strong magnet over dampens the string vibrations reducing the length of the signal.
 
-    Test indicate time between notes ~350ms (average), but high notes (A440) take 900ms
-    meaning the current motor does not have enough torque.
 
-    ---
-    
-      // STEPPER TESTS, STEPS TO FREQ
-        90° - 221hz to 280hz = delta 59hz
-        280 334 = 54
-        332 373 = 41
-        371 401 = 30
-        starting to skips steps at 1/2 step 1000us step delay
+TeensyStep async is not working, also forum indicates changing 
+parameters on the fly my not be supported
 
-        // 1/2 step with 100 steps
-        262 - 309 = 47 hz -> 0.94 steps per hz
-        309 - 365 = 56 hz -> 1.12 steps per hz
-        364 - 315 = 49 hz -> 0.98 steps per hz
-        314 - 353 = 39 hz -> 0.78 steps per hz
+AccelStepper library is awkward and not intuitive when attempting 
+to get async movements working. Basically just roll my own driving code
+as I need only basic features (speeds and modest acceleration).
 
-        About one hz per full step (in middle range notes).
 
-    */
+DC-Motor
+
+Fast motor (N25 500RPM) : fast but not precise
+
+Slow motor (N20 50RPM) : slow but precise
+
+Precision due to the delay of frequency detections allow for more in sync timing tuning and motor turn off.
+
+
+
+/* 
+Turn tests: start, turn, test, turn, end
+400.03 - full - 246.60 - full - 399.67
+427.02 - full - 272.89 - full - 429.36
+
+A full rotation roughly spans 8 notes.
+
+Estimated Hz per rotation: 153.78
+				per degre: 0.4271
+
+0.12815 hz / millisecond (estimated from full turn test)
+0.05714 hz / millisecond (estimated from note to note test (with pickStall)) ~350ms motor time per note.
+
+
+TEST MOTOR:
+6v, 50RPM (no load), 24oz/in (crude test), 1200ms per revolution. 
+Pololu's N20 6v (low power) 54RPM has a oz/in of 24 which is on par with out test motor.
+
+The current torque is capable of turning the peg (of our current test string (high E)).
+
+Test indicate time between notes ~350ms (average), but high notes (A440) take 900ms
+meaning the current motor does not have enough torque.
+
+---
+
+  // STEPPER TESTS, STEPS TO FREQ
+	90° - 221hz to 280hz = delta 59hz
+	280 334 = 54
+	332 373 = 41
+	371 401 = 30
+	starting to skips steps at 1/2 step 1000us step delay
+
+	// 1/2 step with 100 steps
+	262 - 309 = 47 hz -> 0.94 steps per hz
+	309 - 365 = 56 hz -> 1.12 steps per hz
+	364 - 315 = 49 hz -> 0.98 steps per hz
+	314 - 353 = 39 hz -> 0.78 steps per hz
+
+	About one hz per full step (in middle range notes).
+
+*/

@@ -5,3 +5,7 @@ add raw signal bypass caps to underside
 add voltage regulator to underside
 
 add silk for UART pins (GND, RX, TX)
+
+add ground tab for test points connections
+
+consider pulldown for stepper to prevent lose of holding power during reprogramming

@@ -26,6 +26,7 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 /*
     DEVELOPMENT NOTES
 	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
+    (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio)
 	faster analysis at the sacrafice of less lower frequency detection
 	which is not required for this application.	
 	3 blocks : 233hz : 9ms per detection
@@ -42,8 +43,6 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
         The variation was further confirmed when attemping to tune using the steps to note lookup table. Some occasions, 
         while tuning, only a few steps were needed for final tune correction while on most occasions the steps required
         where relatively many.
-
-
 
     RPM Calcs for system understanding.
 
@@ -62,8 +61,6 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
     // 4000 steps / sec
     (4000 steps/sec) / (400) * (60) = 600 RPM
-
-
 
 */
 
@@ -96,12 +93,12 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
 #define PIN_ENABLE_STEPPER_DRIVERS 22
 
-Chime chimeA = {Chime(CHIME_A_ID, notefreq1,
+Chime chimeA = {Chime(CHIME_A_ID, notefreq2,
                       PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
                       PIN_STEPPER_PICK_STEP_A, PIN_STEPPER_PICK_DIRECTION_A,
                       PIN_STEPPER_MUTE_STEP_A, PIN_STEPPER_MUTE_DIRECTION_A)};
 
-Chime chimeB = {Chime(CHIME_B_ID, notefreq2,
+Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
                       PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
                       PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
                       PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
@@ -123,7 +120,7 @@ enum class Commands
 };
 
 ////////////////////////////////////////////////////////////////////////
-// Flash onboard LED to show activity
+
 void FlashOnboardLED()
 {
     static unsigned long start = millis();
@@ -134,7 +131,7 @@ void FlashOnboardLED()
     }
 }
 
-// On error, halt program.
+
 void Halt()
 {
     Serial.println("Halted!");
@@ -143,7 +140,6 @@ void Halt()
     }
 }
 
-////////////////////////////////////////////////////////////////////////
 
 String getValue(String data, char separator, int index)
 {
@@ -162,8 +158,6 @@ String getValue(String data, char separator, int index)
     }
     return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
-
-////////////////////////////////////////////////////////////////////////
 
 void ProcessCommand(String command)
 {
@@ -263,51 +257,9 @@ void TickTimerCallback()
     chimeA.Tick();
     chimeB.Tick();
 }
-////////////////////////////////////////////////////////////////////////
-
-// Physical test:
-// Time between note test.
-// Manual consist picking (to match previous tests.)
-void TimeBetweenNoteTest(Chime *chime)
-{
-    int times[10];
-    int steps[10];
-    unsigned long start = millis();
-    int index = 0;
-    int curSteps = 0;
-
-    int targetNote = chime->GetLowestNote();
-
-    while (targetNote < chime->GetHighestNote() + 1)
-    {
-        chime->SetTargetNote(targetNote);
-        if (chime->IsTargetNoteReached())
-        {
-            Serial.println("Note locked.");
-            times[index] = millis() - start;
-            start = millis();
-
-            steps[index] = chime->GetTuneCurrentSteps() - curSteps;
-
-            curSteps = chime->GetTuneCurrentSteps();
-
-            index++;
-            targetNote++;
-        }
-    }
-
-    Serial.println("TimeBetweenNoteTest finished.");
-    for (int i = 0; i < chime->GetHighestNote() - chime->GetLowestNote() + 1; i++)
-    {
-        char buf[256];
-        int nId = chimeA.GetLowestNote() + i - 1;
-        sprintf(buf, "Note %u from %3.2f to %3.2f with time %4u | Steps: %i\n",
-                nId, chimeA.NoteIdToFrequency(nId), chimeA.NoteIdToFrequency(nId + 1), times[i], steps[i]);
-        Serial.print(buf);
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////
+
 void setup()
 {
     // Give platformio time to switch back to the terminal.
@@ -323,21 +275,11 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(PIN_ENABLE_STEPPER_DRIVERS, OUTPUT);
     digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, LOW);
-
-
-    //AudioMemory(120); 
-    tickTimer.beginPeriodic(TickTimerCallback, 50); // microseconds.
-    chimeA.SetTargetNote(63);
-    chimeB.SetTargetNote(100);
-
-    /*  
-    while(1)
-    {
-        Serial.println("****** TEST TimeBetweenNoteTest *******");
-        TimeBetweenNoteTest(&chimeA);
-        delay(3000);
-    }
-    */
+    
+    AudioMemory(120); 
+    tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
+    chimeA.SetTargetNote(69);
+    chimeB.SetTargetNote(69);
 
     /*
     while (1)
@@ -355,30 +297,5 @@ void setup()
 
 void loop()
 {   
-    ProcessUart();
-
-    /*
-    // TEST: bounce between lowest and highest notes
-
-    static unsigned long startP = millis();
-    if (millis() - startP > 2000)
-    {
-        startP = millis();
-        //chimeB.Pick();
-    }
-
-    static unsigned long start = millis();
-    static bool toggle = false;
-    if (millis() - start > 3000)
-    {
-        start = millis();
-        toggle = !toggle;
-
-        int targetNoteA = toggle ? chimeA.GetLowestNote() : chimeA.GetHighestNote();
-        chimeA.SetTargetNote(targetNoteA);
-
-        int targetNoteB = toggle ? chimeB.GetLowestNote() : chimeB.GetHighestNote();
-        chimeB.SetTargetNote(targetNoteB);
-    }
-    */
+    ProcessUart(); 
 }
