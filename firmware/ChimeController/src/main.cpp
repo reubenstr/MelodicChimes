@@ -1,8 +1,23 @@
-// Melodic Chimes
-//
-// Auto-tuning string chimes controlled via MIDI file.
-//
-// PROTOTYPING
+/****************************************************
+
+Project: 
+	Melodic Chimes
+	
+Description: 
+	Auto-tuning string chimes controlled via MIDI file.
+
+Phase:
+	Prototype and develement
+
+ Developer Notes:
+	#define AUDIO_GUITARTUNER_BLOCKS value of 24 changed to n   
+	required faster analysis at the sacrafice of lower frequency detection
+	3 blocks : 233hz : 9ms per detection
+	4 blocks : 174hz : 12ms per detection
+	5 blocks : 139hz : 15ms per detection	
+	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio)
+	
+*/////////////////////////////////////////////////////
 
 #include <Audio.h>
 #include <Wire.h>
@@ -11,7 +26,6 @@
 #include <SerialFlash.h>
 #include "Chime.h"           // Local class.
 #include "movingAvg.h"       // Local class.
-#include <JC_Button.h>       // https://github.com/JChristensen/JC_Button
 #include "TeensyTimerTool.h" // https://github.com/luni64/TeensyTimerTool
 
 using namespace TeensyTimerTool;
@@ -23,48 +37,6 @@ AudioAnalyzeNoteFrequency notefreq1;
 AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
 AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
-/*
-    DEVELOPMENT NOTES
-	defined AUDIO_GUITARTUNER_BLOCKS value of 24 changed to 6 for
-    (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio)
-	faster analysis at the sacrafice of less lower frequency detection
-	which is not required for this application.	
-	3 blocks : 233hz : 9ms per detection
-	4 blocks : 174hz : 12ms per detection
-	5 blocks : 139hz : 15ms per detection
-    A weak magnet for the coil is has a low signal to noise ratio.
-	A stronger magnet provides a high signal to noise ration.
-	An over strong magnet dampens the string vibrations reducing the length of the signal.
-    Tuning:
-    Two types of tuning tested: free tuning, direct steps tuning
-        Direct step tuning (using a look up table for steps between notes) was tested to allow for maximuim
-        stepper speed due to free tuning tending to deaccelerate early. Testing revealed the steps between
-        notes varied between 20% to 50% between each test run (testing the amount of steps between frequencies within tolerance).
-        The variation was further confirmed when attemping to tune using the steps to note lookup table. Some occasions, 
-        while tuning, only a few steps were needed for final tune correction while on most occasions the steps required
-        where relatively many.
-
-    RPM Calcs for system understanding.
-
-    // RPM from steps/sec (accelStepper's speed units).
-    //For tick interupt timing optimization.
-    (n steps/ms * 1000) / (200 steps/rev * 0.5 halfsteps) * 60 = RPM
-
-    // At 1000us between steps
-    (1 * 1000) / (400) * 60 = 150 RPM
-    
-    // At 250us between steps
-    (4 * 1000) / (400) * 60 = 600 RPM
-
-    // 1000 steps / sec
-    (5000 steps/sec) / (400) * (60) = 150 RPM
-
-    // 4000 steps / sec
-    (4000 steps/sec) / (400) * (60) = 600 RPM
-
-*/
-
-// Note: each chime will have a unique id which indicates the note range and EEPROM storage location for config params.
 // Select the controller's chimes.
 #define CHIME_SET_1_AND_2
 // #define CHIME_SET_3_AND_4
@@ -102,9 +74,6 @@ Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
                       PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
                       PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
                       PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
-
-//float detectedFrequencies[numChimes];
-volatile float frequencyFromSerial[2];
 
 // Serial variables.
 const char delimiter = ':';
@@ -169,12 +138,8 @@ void ProcessCommand(String command)
         chime = &chimeA;
     else if (chimeB.GetChimeId() == chimeId)
         chime = &chimeB;
-
-    if (chime == nullptr)
-    {
-        return;
-    }
-
+    else return;
+   
     if (commandInt == int(Commands::RestringTighten))
     {
         Serial.printf("[%u] Command: RestringTighten.\n", chimeId);
