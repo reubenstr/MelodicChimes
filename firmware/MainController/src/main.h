@@ -55,6 +55,13 @@ enum class GFXItemId
   Chime3pick,
   Chime4pick,
 
+  // Volume
+  Chime1VolumePlus,
+  Chime2VolumePlus,
+  Chime3VolumePlus,
+  Chime1VolumeMinus,
+  Chime2VolumeMinus,
+  Chime3VolumeMinus,
 };
 
 enum class PageId
@@ -62,8 +69,8 @@ enum class PageId
   All,
   Home,
   Configuration,
-  Calibration,
-  Development
+  Restring,
+  Volume
 };
 
 enum class PlayState
@@ -73,7 +80,8 @@ enum class PlayState
   Load,
   Play,
   Pause,
-  Stop
+  Stop,
+  Random
 };
 
 // Order of text and colors need to match order of PlayState.
@@ -84,12 +92,11 @@ enum class Commands
 {
     RestringTighten,
     RestringLoosen,
+    VolumePlus,
+    VolumeMinus,
     SetTargetNote,
     PretuneNote,
-    Mute,
     Pick
 };
-
-
 
 #endif

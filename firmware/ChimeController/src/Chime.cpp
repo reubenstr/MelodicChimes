@@ -1,6 +1,20 @@
 #include "Arduino.h"
 #include "Chime.h"
 
+/*
+NOTES:
+
+    // RPM from steps/sec (accelStepper's speed units):
+    (n steps/ms * 1000) / (200 steps/rev * 0.5 halfsteps) * 60 = RPM
+
+    // At 1000us between steps
+    (1 * 1000) / (400) * 60 = 150 RPM
+    
+    // At 250us between steps
+    (4 * 250) / (400) * 60 = 600 RPM
+
+*/
+
 Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
              uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection,
              uint8_t pinStepperPickStep, uint8_t pinStepperPickDirection,
@@ -28,24 +42,19 @@ Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
     _freqAverage.begin();
 
     this->notefreq = &notefreq;
-    this->notefreq->begin(0.15);    
+    this->notefreq->begin(0.15);
 }
 
 void Chime::SetStepperParameters()
 {
-    _tuneStepper.setPinsInverted(false, false, false);
-
-    // TEMP TEST
     _tuneStepper.setMaxSpeed(1000);
     _tuneStepper.setAcceleration(10000);
 
-    _pickStepper.setPinsInverted(false, false, false);
-    _pickStepper.setMaxSpeed(4000);
-    _pickStepper.setAcceleration(8000);
+    _pickStepper.setMaxSpeed(2500);
+    _pickStepper.setAcceleration(20000);
 
-    _muteStepper.setPinsInverted(true, false, false);
-    _muteStepper.setMaxSpeed(8000);
-    _muteStepper.setAcceleration(25000);
+    _muteStepper.setMaxSpeed(1250);
+    _muteStepper.setAcceleration(7500);
 }
 
 // Convert MIDI note number to frequency.
@@ -188,12 +197,12 @@ bool Chime::TuneNote(int targetNoteId)
     bool frequencyWithinTolerance = false;
     float frequencyTolerance = 1.0;
     char directionText[5];
-  
+
     if (!IsNoteWithinChimesRange(targetNoteId))
     {
         return false;
     }
-    
+
     float detectedFrequency = GetFrequency();
 
     // Return if frequency was not detected.
@@ -202,19 +211,21 @@ bool Chime::TuneNote(int targetNoteId)
         return false;
     }
 
+    // TODO: check for acceptable freq range for chime
+
     // TEMP: EMI is causing false freq detections at ~140hz.
     if (detectedFrequency < 230)
     {
-        return false;
+        //  return false;
     }
 
     //_detectedFrequency = detectedFrequency;
-  
+
     float targetFrequency = NoteIdToFrequency(targetNoteId);
 
     // Based on linear regression test.
     float targetPosition = int(_regressionCoef * (targetFrequency - detectedFrequency));
-    
+
     int minPos = 1;
     int maxPos = 1000;
 
@@ -252,8 +263,8 @@ bool Chime::TuneNote(int targetNoteId)
     if (millis() - startTimeBetweenFreqDetections > 100)
         detectionCount = 0;
 
-    Serial.printf("[%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
-                  _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections,
+    Serial.printf("[%u] [%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
+                  millis(), _chimeId, detectionCount, millis() - startTimeBetweenFreqDetections,
                   targetNoteId, detectedFrequency, targetFrequency,
                   targetFrequency - detectedFrequency, int(targetPosition), directionText,
                   _tuneStepper.speed(), _tuneStepper.currentPosition());
@@ -270,14 +281,33 @@ void Chime::SetVibrato(bool flag)
 
 void Chime::RestringTighten()
 {
-    //_chimeState = ChimeState::Calibrate;
+    _chimeState = ChimeState::Calibrate;
     _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestringCommand);
 }
 
 void Chime::RestringLoosen()
 {
-   // _chimeState = ChimeState::Calibrate;
+    _chimeState = ChimeState::Calibrate;
     _tuneStepper.moveTo(_tuneStepper.currentPosition() - _stepsPerRestringCommand);
+}
+
+void Chime::VolumePlus()
+{
+
+    if (_muteStepper.currentPosition())
+
+    _muteStepper.moveTo(_muteStepper.currentPosition() + _stepsPerAdjustment);
+}
+
+void Chime::VolumeMinus()
+{
+    _muteStepper.moveTo(_muteStepper.currentPosition() - _stepsPerAdjustment);
+}
+
+void Chime::SetMaxVolume()
+{
+    _muteStepper.setCurrentPosition(-_stepsToMaxVolume);
+    _muteStepper.moveTo(_stepsToMaxVolume);
 }
 
 // Pick the string if the pick motor is not in motion.
@@ -290,45 +320,6 @@ void Chime::Pick()
     }
 }
 
-void Chime::Mute()
-{
-    if (!_muteState)
-    {
-        _muteState = true;
-        _muteStepper.setCurrentPosition(0);
-        _muteStepper.moveTo(_stepsPerMute);
-    }
-
-    /*
-    _muteStepper.setCurrentPosition(0);
-    _muteStepper.moveTo(_stepsPerMute);
-
-    _muteReturnToOpenFlag = true;
-    _startMute = millis();
-    */
-}
-
-void Chime::UnMute()
-{
-    if (_muteState)
-    {
-        _muteState = false;
-        _muteStepper.setCurrentPosition(0);
-        _muteStepper.moveTo(-_stepsPerMute);
-    }
-}
-
-void Chime::MuteTick()
-{
-    /*
-    if (_muteReturnToOpenFlag && _muteStepper.distanceToGo() == 0)
-    {
-        _muteReturnToOpenFlag = false;
-        _muteStepper.setCurrentPosition(0);
-        _muteStepper.moveTo(-_stepsPerMute);
-    }
-    */
-}
 
 void Chime::PrepareCalibrateStepsToNotes()
 {
@@ -382,7 +373,7 @@ void Chime::CalibrateFrequencyPerStep()
 {
     _freqPerStepState = FreqPerStepStates::Home;
     _totalReadingsCount = 0;
-   
+
     _tuneStepper.setMaxSpeed(500);
     _tuneStepper.setAcceleration(250);
 
@@ -398,13 +389,13 @@ void Chime::CalibrateFrequencyPerStep()
         {
             if (IsTargetNoteReached())
             {
-                 _tuneStepper.setCurrentPosition(0);
+                _tuneStepper.setCurrentPosition(0);
                 _chimeState = ChimeState::Calibrate;
                 _freqPerStepState = FreqPerStepStates::Move;
             }
         }
         else if (_freqPerStepState == FreqPerStepStates::Move)
-        {            
+        {
             _tuneStepper.move(_stepsBetweenReadings);
             _freqPerStepState = FreqPerStepStates::WaitForMove;
         }
@@ -523,8 +514,6 @@ void Chime::Tick()
     _tuneStepper.run();
     _pickStepper.run();
     _muteStepper.run();
-
-    MuteTick();
 }
 
 // Methods for development testing.

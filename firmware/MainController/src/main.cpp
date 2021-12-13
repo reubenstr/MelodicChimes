@@ -204,7 +204,7 @@ void UpdateScreen()
     gfxItems.DisplayGfxItem(int(GFXItemId::PlayState));
   }
 
-  static PageId previousPageId = PageId::Development;
+  static PageId previousPageId = PageId::Volume;
   if (previousPageId != pageId)
   {
     previousPageId = pageId;
@@ -237,7 +237,7 @@ void ProcessPressedButton(int id)
   {
     static bool pageToggle = false;
     pageToggle = !pageToggle;
-    pageId = pageToggle ? PageId::Calibration : PageId::Development;
+    pageId = pageToggle ? PageId::Restring : PageId::Volume;
   }
 
   // Home page.
@@ -263,7 +263,8 @@ void ProcessPressedButton(int id)
   }
   else if ((GFXItemId)id == GFXItemId::Play)
   {
-    playState = PlayState::Load;
+    playState = PlayState::Random;
+    //playState = PlayState::Load;
   }
   else if ((GFXItemId)id == GFXItemId::Pause)
   {
@@ -274,7 +275,7 @@ void ProcessPressedButton(int id)
     playState = PlayState::Stop;
   }
 
-  // Calibration page.
+  // Restring page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
     SendCommand(Commands::RestringTighten, 1);
@@ -308,38 +309,42 @@ void ProcessPressedButton(int id)
     SendCommand(Commands::RestringLoosen, 4);
   }
 
-  // Development page.
-  if ((GFXItemId)id == GFXItemId::Chime1mute)
+  // Volume page.
+  if ((GFXItemId)id == GFXItemId::Chime1VolumePlus)
   {
-    SendCommand(Commands::Mute, 1);
+    SendCommand(Commands::VolumePlus, 1);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime2VolumePlus)
+  {
+    SendCommand(Commands::VolumePlus, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime3VolumePlus)
+  {
+    SendCommand(Commands::VolumePlus, 3);
   }
   else if ((GFXItemId)id == GFXItemId::Chime1pick)
   {
     SendCommand(Commands::Pick, 1);
   }
-  else if ((GFXItemId)id == GFXItemId::Chime2mute)
-  {
-    SendCommand(Commands::Mute, 2);
-  }
   else if ((GFXItemId)id == GFXItemId::Chime2pick)
   {
     SendCommand(Commands::Pick, 2);
-  }
-  else if ((GFXItemId)id == GFXItemId::Chime3mute)
-  {
-    SendCommand(Commands::Mute, 3);
   }
   else if ((GFXItemId)id == GFXItemId::Chime3pick)
   {
     SendCommand(Commands::Pick, 3);
   }
-  else if ((GFXItemId)id == GFXItemId::Chime4mute)
+  if ((GFXItemId)id == GFXItemId::Chime1VolumeMinus)
   {
-    SendCommand(Commands::Mute, 4);
+    SendCommand(Commands::VolumeMinus, 1);
   }
-  else if ((GFXItemId)id == GFXItemId::Chime4pick)
+  else if ((GFXItemId)id == GFXItemId::Chime2VolumeMinus)
   {
-    SendCommand(Commands::Pick, 4);
+    SendCommand(Commands::VolumeMinus, 2);
+  }
+  else if ((GFXItemId)id == GFXItemId::Chime3VolumeMinus)
+  {
+    SendCommand(Commands::VolumeMinus, 3);
   }
 }
 
@@ -372,7 +377,7 @@ void SDInit()
   if (!SD.begin(SD_SELECT, SPI_HALF_SPEED))
   {
     Serial.println("SD Card: init failed!");
-    DisplayError(ErrorCodes::sdCardInitFailed);    
+    DisplayError(ErrorCodes::sdCardInitFailed);
   }
 
   Serial.println("SD Card: init successful.");
@@ -406,7 +411,7 @@ void SDInit()
 
   if (midiFiles.size() == 0)
   {
-    DisplayError(ErrorCodes::sdCardInitFailed); 
+    DisplayError(ErrorCodes::sdCardInitFailed);
   }
 
   for (auto &s : midiFiles)
@@ -463,10 +468,11 @@ void midiCallback(midi_event *pev)
   if (noteState == true && velocity > 0)
   {
 
-    String commandString = CreateTuneCommandString(Commands::PretuneNote, chimeId, noteId - 1);
-    //cList.push_back(QCommand(millis() - 200, commandString));
+    String commandString;
+    // String commandString = CreateTuneCommandString(Commands::PretuneNote, chimeId, noteId - 1);
+    // cList.push_back(QCommand(millis() - 200, commandString));
 
-    commandString = CreateCommandString(Commands::Mute, chimeId);
+    // commandString = CreateCommandString(Commands::Mute, chimeId);
     // cList.push_back(QCommand(millis() - 200, commandString));
 
     commandString = CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId);
@@ -479,7 +485,7 @@ void midiCallback(midi_event *pev)
   // End note.
   if (noteState == false || velocity == 0)
   {
-    String commandString = CreateCommandString(Commands::Mute, chimeId);
+    //String commandString = CreateCommandString(Commands::Mute, chimeId);
     // cList.push_back(QCommand(millis(), commandString));
   }
 }
@@ -582,6 +588,12 @@ void ProcessMIDI()
     cList.clear();
     SMF.close();
     playState = PlayState::Idle;
+  }
+  else if (playState == PlayState::Random)
+  {
+    const int notes2 = []
+
+
   }
 }
 

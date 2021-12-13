@@ -10,7 +10,11 @@ add new string...
 
 
 
-
+28 order:
+orange
+pink 
+yellow
+blue
 
 
 DEVELOPMENT NOTES

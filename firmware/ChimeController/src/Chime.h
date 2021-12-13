@@ -9,6 +9,11 @@
     Pick Stepper:
         200 steps/rev, 1/2 microsteps, plectrum with 8 points
         200 * 1/2 / 8 = 50 steps per pick
+
+
+    Volume Stepper: 28byj-48
+        2048 steps/rev, 1/2 microsteps
+
 */
 
 class Chime
@@ -23,16 +28,19 @@ public:
 
     void RestringTighten();
     void RestringLoosen();
+    void VolumePlus();
+    void VolumeMinus();
+    void SetMaxVolume();
     void SetTargetNote(int noteId);
     void PretuneNote(int noteId);
     void SetVibrato(bool flag);
 
     float NoteIdToFrequency(float noteId);
 
-    void Pick();
-    void Mute();
-    void UnMute();
+    void Pick();   
     void Tick();
+
+    
 
     bool CalibratePick();
 
@@ -56,8 +64,7 @@ private:
     bool TuneNote(int targetNoteId);
 
     float GetFrequency();
-    void SetStepperParameters();
-    void MuteTick();
+    void SetStepperParameters();   
 
     // Chime.
     const float noFrequencyDetected = 0.0;
@@ -82,13 +89,20 @@ private:
     int _previousNoteId;
     int _lockedInNoteId;
 
-    const float _regressionCoef = 0.50;
+
+    const float _regressionCoef = 0.28;
     const int nullNoteId = 0;
 
     // Positions.
     const int _stepsPerRestringCommand = (1036 * 2) / 36;
     const int _stepsPerPick = 50;
-    const int _stepsPerMute = 50;
+    const int _stepsPerMute = 2048;
+
+    // Volume.
+    const int _stepsToMaxVolume = 825;
+    const int _stepsToMinVolume = 0;
+    const int _stepsPerAdjustment = 50;
+    int _stepsCurrentVolume = 0;
 
     // Mute.
     bool _muteReturnToOpenFlag;

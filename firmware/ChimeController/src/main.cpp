@@ -14,8 +14,9 @@ Phase:
 	required faster analysis at the sacrafice of lower frequency detection
 	3 blocks : 233hz : 9ms per detection
 	4 blocks : 174hz : 12ms per detection
-	5 blocks : 139hz : 15ms per detection	
-	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio)
+	5 blocks : 139hz : 15ms per detection
+    6 blocks : 	
+	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio\analyze_notefreq.h)
 	
 */////////////////////////////////////////////////////
 
@@ -27,6 +28,7 @@ Phase:
 #include "Chime.h"           // Local class.
 #include "movingAvg.h"       // Local class.
 #include "TeensyTimerTool.h" // https://github.com/luni64/TeensyTimerTool
+#include "main.h"
 
 using namespace TeensyTimerTool;
 Timer tickTimer; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
@@ -75,18 +77,6 @@ Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
                       PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
                       PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
 
-// Serial variables.
-const char delimiter = ':';
-
-enum class Commands
-{
-    RestringTighten,
-    RestringLoosen,
-    SetTargetNote,
-    PretuneNote,
-    Mute,
-    Pick
-};
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -128,8 +118,9 @@ String getValue(String data, char separator, int index)
     return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
-void ProcessCommand(String command)
+bool ProcessCommand(String command)
 {
+    bool commandValidFlag = true;
     int commandInt = getValue(command, delimiter, 0).toInt();
     int chimeId = getValue(command, delimiter, 1).toInt();
 
@@ -149,6 +140,16 @@ void ProcessCommand(String command)
     {
         Serial.printf("[%u] Command: RestringLoosen.\n", chimeId);
         chime->RestringLoosen();
+    }
+    else if (commandInt == int(Commands::VolumePlus))
+    {
+        Serial.printf("[%u] Command: VolumePlus.\n", chimeId);
+        chime->VolumePlus();
+    }
+     else if (commandInt == int(Commands::VolumeMinus))
+    {
+        Serial.printf("[%u] Command: VolumeMinus.\n", chimeId);
+        chime->VolumeMinus();
     }
     else if (commandInt == int(Commands::SetTargetNote))
     {
@@ -179,22 +180,23 @@ void ProcessCommand(String command)
         {
             Serial.printf("Error: pretune target note with ID %u is outside chime's range.", noteId);
         }
-    }
-    else if (commandInt == int(Commands::Mute))
-    {
-        Serial.printf("[%u] Command: Mute.\n", chimeId);
-        chime->Mute();
-    }
+    }  
     else if (commandInt == int(Commands::Pick))
     {
-        Serial.printf("[%u] Command: Pick.\n", chimeId);
-        chime->UnMute();
+        Serial.printf("[%u] Command: Pick.\n", chimeId);     
         chime->Pick();
     }
+    else
+    {
+        commandValidFlag = false;
+    }
+
+    return commandValidFlag;
 }
 
-void ProcessUart()
+bool ProcessUart()
 {
+    bool validCommandProcessedFlag = false;
     static String uartData = "";
 
     while (Serial2.available() > 0)
@@ -204,7 +206,7 @@ void ProcessUart()
 
         if (readChar == '\n')
         {          
-            ProcessCommand(uartData);
+            validCommandProcessedFlag = ProcessCommand(uartData);
             uartData = "";
         }
      
@@ -213,6 +215,8 @@ void ProcessUart()
             uartData = "";
         }
     }
+
+    return validCommandProcessedFlag;
 }
 
 void TickTimerCallback()
@@ -243,8 +247,13 @@ void setup()
     
     AudioMemory(120); 
     tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
+    
+    // TEMP
     chimeA.SetTargetNote(69);
-    chimeB.SetTargetNote(69);
+    chimeB.SetTargetNote(56);
+
+    chimeA.SetMaxVolume();
+    chimeB.SetMaxVolume();
 
     /*
     while (1)
