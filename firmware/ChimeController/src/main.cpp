@@ -18,7 +18,8 @@ Phase:
     6 blocks : 	
 	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio\analyze_notefreq.h)
 	
-*/////////////////////////////////////////////////////
+*/
+////////////////////////////////////////////////////
 
 #include <Audio.h>
 #include <Wire.h>
@@ -44,11 +45,11 @@ AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 // #define CHIME_SET_3_AND_4
 
 #if defined CHIME_SET_1_AND_2
-#define CHIME_A_ID 1
-#define CHIME_B_ID 2
+#define CHIME_A_ID 0
+#define CHIME_B_ID 1
 #elif defined CHIME_SET_3_AND_4
-#define CHIME_A_ID 3
-#define CHIME_B_ID 4
+#define CHIME_A_ID 2
+#define CHIME_B_ID 3
 #endif
 
 #define PIN_STEPPER_TUNE_STEP_A 0
@@ -77,7 +78,6 @@ Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
                       PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
                       PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
 
-
 ////////////////////////////////////////////////////////////////////////
 
 void FlashOnboardLED()
@@ -85,11 +85,10 @@ void FlashOnboardLED()
     static unsigned long start = millis();
     if (millis() - start > 250)
     {
-        start = millis();      
-        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));  
+        start = millis();
+        // digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     }
 }
-
 
 void Halt()
 {
@@ -98,7 +97,6 @@ void Halt()
     {
     }
 }
-
 
 String getValue(String data, char separator, int index)
 {
@@ -129,8 +127,9 @@ bool ProcessCommand(String command)
         chime = &chimeA;
     else if (chimeB.GetChimeId() == chimeId)
         chime = &chimeB;
-    else return;
-   
+    else
+        return;
+
     if (commandInt == int(Commands::RestringTighten))
     {
         Serial.printf("[%u] Command: RestringTighten.\n", chimeId);
@@ -146,7 +145,7 @@ bool ProcessCommand(String command)
         Serial.printf("[%u] Command: VolumePlus.\n", chimeId);
         chime->VolumePlus();
     }
-     else if (commandInt == int(Commands::VolumeMinus))
+    else if (commandInt == int(Commands::VolumeMinus))
     {
         Serial.printf("[%u] Command: VolumeMinus.\n", chimeId);
         chime->VolumeMinus();
@@ -155,7 +154,7 @@ bool ProcessCommand(String command)
     {
         int noteId = getValue(command, delimiter, 2).toInt();
         int vibrato = getValue(command, delimiter, 3).toInt();
-        Serial.printf("[%u] Command: SetTargetNote, Note ID: %u, Vibrato: %s.\n", chimeId, noteId, vibrato ? "True" : "False");
+        Serial.printf("[%u] Command: SetTargetNote, Note ID: %u, Vibrato: %s\n", chimeId, noteId, vibrato ? "True" : "False");
 
         if (chime->IsNoteWithinChimesRange(noteId))
         {
@@ -170,7 +169,7 @@ bool ProcessCommand(String command)
     else if (commandInt == int(Commands::PretuneNote))
     {
         int noteId = getValue(command, delimiter, 2).toInt();
-        Serial.printf("[%u] Command: PretuneNote, Note ID: %u.\n", chimeId, noteId);
+        Serial.printf("[%u] Command: PretuneNote, Note ID: %u\n", chimeId, noteId);
 
         if (chime->IsNoteWithinChimesRange(noteId))
         {
@@ -180,10 +179,10 @@ bool ProcessCommand(String command)
         {
             Serial.printf("Error: pretune target note with ID %u is outside chime's range.", noteId);
         }
-    }  
+    }
     else if (commandInt == int(Commands::Pick))
     {
-        Serial.printf("[%u] Command: Pick.\n", chimeId);     
+        Serial.printf("[%u] Command: Pick.\n", chimeId);
         chime->Pick();
     }
     else
@@ -205,11 +204,11 @@ bool ProcessUart()
         uartData += (char)readChar;
 
         if (readChar == '\n')
-        {          
+        {
             validCommandProcessedFlag = ProcessCommand(uartData);
             uartData = "";
         }
-     
+
         if (uartData.length() > 64)
         {
             uartData = "";
@@ -225,6 +224,16 @@ void TickTimerCallback()
 
     chimeA.Tick();
     chimeB.Tick();
+}
+
+void EnableSteppers()
+{
+    digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, LOW);
+}
+
+void DisableSteppers()
+{
+    digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, HIGH);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -243,33 +252,45 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(PIN_ENABLE_STEPPER_DRIVERS, OUTPUT);
-    digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, LOW);
-    
-    AudioMemory(120); 
+
+    AudioMemory(120);
     tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
-    
+
     // TEMP
     chimeA.SetTargetNote(69);
-    chimeB.SetTargetNote(56);
+    chimeB.SetTargetNote(58);
 
     chimeA.SetMaxVolume();
     chimeB.SetMaxVolume();
 
-    /*
+    /*    
     while (1)
     {
         Serial.println("****** TEST TimeBetweenHighAndLowNotes *******");
-        chimeA.TimeBetweenHighAndLowNotes();
+        chimeA.CaptureTimeFromLowToHighNote();
+        delay(6000);
     }
     */
-    
+
     /*
     Serial.println("****** TEST CalibrateFrequencyPerStep *******");
-    chimeA.CalibrateFrequencyPerStep();
+    chimeB.CaptureFrequencyPerStep();
+     while (1) {}
     */
 }
 
 void loop()
-{   
-    ProcessUart(); 
+{
+    static unsigned long timeoutMillis = millis();
+    if (ProcessUart())
+    {
+        digitalWrite(LED_BUILTIN, HIGH);
+        EnableSteppers();
+        timeoutMillis = millis();
+    }
+    else if (millis() - timeoutMillis > stepperTimeoutDelayMs)
+    {
+        digitalWrite(LED_BUILTIN, LOW);
+        DisableSteppers();
+    }
 }

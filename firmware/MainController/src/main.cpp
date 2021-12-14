@@ -103,27 +103,6 @@ unsigned int selectedFileId = 0;
 MD_MIDIFile SMF;
 unsigned long midiWaitMillis = 0;
 
-// Commands.
-struct QCommand
-{
-  unsigned long sendTime;
-  String command;
-
-  QCommand()
-  {
-  }
-
-  QCommand(unsigned long sendTime, String command)
-  {
-    this->sendTime = sendTime;
-    this->command = command;
-  }
-
-  bool operator==(const QCommand &qc) const { return sendTime == qc.sendTime && command == qc.command; }
-};
-
-std::list<QCommand> cList(100);
-
 // Configuration.
 struct Configuration
 {
@@ -144,18 +123,10 @@ const char delimiter = ':';
 void SendCommand(Commands command, int chime)
 {
   char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
-  Serial.print(buffer); // Terminal
-
+  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);  
+  Serial.printf("Sending command: %s", buffer);
   Serial1.print(buffer);
   Serial2.print(buffer);
-
-  /*
-  if (chime == 1 || chime == 2)
-    Serial1.print(buffer);
-  if (chime == 3 || chime == 4)
-    Serial2.print(buffer);
-    */
 }
 
 void SendCommandString(String commandString)
@@ -263,8 +234,8 @@ void ProcessPressedButton(int id)
   }
   else if ((GFXItemId)id == GFXItemId::Play)
   {
-    playState = PlayState::Random;
-    //playState = PlayState::Load;
+    //playState = PlayState::Random;
+    playState = PlayState::Load;
   }
   else if ((GFXItemId)id == GFXItemId::Pause)
   {
@@ -278,73 +249,65 @@ void ProcessPressedButton(int id)
   // Restring page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
-    SendCommand(Commands::RestringTighten, 1);
+    SendCommand(Commands::RestringTighten, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_1_down)
   {
-    SendCommand(Commands::RestringLoosen, 1);
+    SendCommand(Commands::RestringLoosen, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_up)
   {
-    SendCommand(Commands::RestringTighten, 2);
+    SendCommand(Commands::RestringTighten, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_down)
   {
-    SendCommand(Commands::RestringLoosen, 2);
+    SendCommand(Commands::RestringLoosen, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_up)
   {
-    SendCommand(Commands::RestringTighten, 3);
+    SendCommand(Commands::RestringTighten, 2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_down)
   {
-    SendCommand(Commands::RestringLoosen, 3);
-  }
-  else if ((GFXItemId)id == GFXItemId::Chime_4_up)
-  {
-    SendCommand(Commands::RestringTighten, 4);
-  }
-  else if ((GFXItemId)id == GFXItemId::Chime_4_down)
-  {
-    SendCommand(Commands::RestringLoosen, 4);
+    SendCommand(Commands::RestringLoosen, 2);
   }
 
   // Volume page.
   if ((GFXItemId)id == GFXItemId::Chime1VolumePlus)
   {
-    SendCommand(Commands::VolumePlus, 1);
+    SendCommand(Commands::VolumePlus, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime2VolumePlus)
   {
-    SendCommand(Commands::VolumePlus, 2);
+    SendCommand(Commands::VolumePlus, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime3VolumePlus)
   {
-    SendCommand(Commands::VolumePlus, 3);
+    SendCommand(Commands::VolumePlus, 2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime1pick)
   {
-    SendCommand(Commands::Pick, 1);
+    SendCommand(Commands::Pick, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime2pick)
   {
-    SendCommand(Commands::Pick, 2);
+    SendCommand(Commands::Pick, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime3pick)
   {
-    SendCommand(Commands::Pick, 3);
+    SendCommand(Commands::Pick, 2);
   }
   if ((GFXItemId)id == GFXItemId::Chime1VolumeMinus)
   {
-    SendCommand(Commands::VolumeMinus, 1);
+    SendCommand(Commands::VolumeMinus, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime2VolumeMinus)
   {
-    SendCommand(Commands::VolumeMinus, 2);
+    SendCommand(Commands::VolumeMinus, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime3VolumeMinus)
   {
-    SendCommand(Commands::VolumeMinus, 3);
+    SendCommand(Commands::VolumeMinus, 2);
   }
 }
 
@@ -460,33 +423,21 @@ void midiCallback(midi_event *pev)
 
   // Interpret MIDI commands for chime system.
   ////////////////////////////////////////////
-  int chimeId = channel + 1;
+  int chimeId = channel;
 
   // TODO: develop a queueing system for note events to allow for pretuning.
 
   // Play note.
   if (noteState == true && velocity > 0)
   {
-
-    String commandString;
-    // String commandString = CreateTuneCommandString(Commands::PretuneNote, chimeId, noteId - 1);
-    // cList.push_back(QCommand(millis() - 200, commandString));
-
-    // commandString = CreateCommandString(Commands::Mute, chimeId);
-    // cList.push_back(QCommand(millis() - 200, commandString));
-
-    commandString = CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId);
-    cList.push_back(QCommand(millis(), commandString));
-
-    commandString = CreateCommandString(Commands::Pick, chimeId);
-    cList.push_back(QCommand(millis(), commandString));
+    SendCommandString(CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId));    
+    SendCommand(Commands::Pick, chimeId);
   }
 
   // End note.
   if (noteState == false || velocity == 0)
   {
-    //String commandString = CreateCommandString(Commands::Mute, chimeId);
-    // cList.push_back(QCommand(millis(), commandString));
+    // Do nothing.
   }
 }
 
@@ -562,7 +513,7 @@ void ProcessMIDI()
   }
   else if (playState == PlayState::Play)
   {
-    if (SMF.isEOF() && cList.size() == 0)
+    if (SMF.isEOF())
     {
       playState = PlayState::Stop;
     }
@@ -571,29 +522,17 @@ void ProcessMIDI()
       if (SMF.getNextEvent())
       {
         tickMetronome();
-      }
-
-      for (QCommand qc : cList)
-      {
-        if (millis() - qc.sendTime > 250)
-        {
-          SendCommandString(qc.command);
-          cList.remove(qc);
-        }
-      }
+      }      
     }
   }
   else if (playState == PlayState::Stop)
-  {
-    cList.clear();
+  {   
     SMF.close();
     playState = PlayState::Idle;
   }
   else if (playState == PlayState::Random)
   {
-    const int notes2 = []
-
-
+    //TODO
   }
 }
 

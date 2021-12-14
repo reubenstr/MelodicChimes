@@ -3,6 +3,19 @@
 Tuner stepper: 5.18:1 gear head 200steps/rev * 5.18 = 1036
 
 
+Stepper driver jumpers:
+
+[M1 - M6]
+MS1: J4, J5, J6, J10, J11, J12
+MS2: J1, J2, J3, J7, J8, J9
+
+MS1 MS2 Steps
++	-	1/2
+-	+	1/4
+-	-	1/8
++	+	1/16
+
+
 
 
 Stringing notes:

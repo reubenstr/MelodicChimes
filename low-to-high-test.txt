@@ -1,0 +1,63 @@
+[Pretune] Locked: 440.00 | Target: 261.63 | positionDelta: -110
+
+Time between lowest note (60) and highest note (69) on chime (1): 521ms
+
+****** TEST TimeBetweenHighAndLowNotes *******
+[8083] [1] |    0 (6093ms) | noteId: 60 | Detected: 382.83 | Target: 261.63 | Delta: -121.20 | Target Position: -75 | DOWN | Step Speed:  -105 | Current Position: 204
+[8097] [1] |    1 (  14ms) | noteId: 60 | Detected: 382.68 | Target: 261.63 | Delta: -121.05 | Target Position: -75 | DOWN | Step Speed:  -300 | Current Position: 201
+[8112] [1] |    2 (  14ms) | noteId: 60 | Detected: 381.81 | Target: 261.63 | Delta: -120.19 | Target Position: -74 | DOWN | Step Speed:  -480 | Current Position: 195
+[8126] [1] |    3 (  14ms) | noteId: 60 | Detected: 379.74 | Target: 261.63 | Delta: -118.11 | Target Position: -73 | DOWN | Step Speed:  -625 | Current Position: 188
+[8141] [1] |    4 (  14ms) | noteId: 60 | Detected: 375.97 | Target: 261.63 | Delta: -114.35 | Target Position: -70 | DOWN | Step Speed:  -781 | Current Position: 178
+[8155] [1] |    5 (  14ms) | noteId: 60 | Detected: 370.80 | Target: 261.63 | Delta: -109.17 | Target Position: -67 | DOWN | Step Speed:  -933 | Current Position: 166
+[8170] [1] |    6 (  14ms) | noteId: 60 | Detected: 364.12 | Target: 261.63 | Delta: -102.50 | Target Position: -63 | DOWN | Step Speed: -1000 | Current Position: 153
+[8184] [1] |    7 (  14ms) | noteId: 60 | Detected: 356.20 | Target: 261.63 | Delta:  -94.57 | Target Position: -58 | DOWN | Step Speed: -1000 | Current Position: 140
+[8201] [1] |    8 (  16ms) | noteId: 60 | Detected: 347.15 | Target: 261.63 | Delta:  -85.52 | Target Position: -53 | DOWN | Step Speed:  -928 | Current Position: 125
+[8215] [1] |    9 (  14ms) | noteId: 60 | Detected: 338.21 | Target: 261.63 | Delta:  -76.59 | Target Position: -47 | DOWN | Step Speed:  -908 | Current Position: 112
+[8230] [1] |   10 (  14ms) | noteId: 60 | Detected: 328.54 | Target: 261.63 | Delta:  -66.92 | Target Position: -41 | DOWN | Step Speed:  -841 | Current Position: 99
+[8244] [1] |   11 (  14ms) | noteId: 60 | Detected: 319.42 | Target: 261.63 | Delta:  -57.79 | Target Position: -35 | DOWN | Step Speed:  -794 | Current Position: 88
+[8259] [1] |   12 (  14ms) | noteId: 60 | Detected: 310.54 | Target: 261.63 | Delta:  -48.91 | Target Position: -30 | DOWN | Step Speed:  -715 | Current Position: 77
+[8274] [1] |   13 (  14ms) | noteId: 60 | Detected: 302.93 | Target: 261.63 | Delta:  -41.30 | Target Position: -25 | DOWN | Step Speed:  -643 | Current Position: 67
+[8303] [1] |   14 (  29ms) | noteId: 60 | Detected: 287.82 | Target: 261.63 | Delta:  -26.19 | Target Position: -16 | DOWN | Step Speed:  -442 | Current Position: 51
+[8317] [1] |   15 (  14ms) | noteId: 60 | Detected: 281.61 | Target: 261.63 | Delta:  -19.99 | Target Position: -12 | DOWN | Step Speed:  -477 | Current Position: 45
+[8332] [1] |   16 (  14ms) | noteId: 60 | Detected: 276.53 | Target: 261.63 | Delta:  -14.91 | Target Position:  -9 | DOWN | Step Speed:  -364 | Current Position: 39
+[8346] [1] |   17 (  14ms) | noteId: 60 | Detected: 271.05 | Target: 261.63 | Delta:   -9.43 | Target Position:  -5 | DOWN | Step Speed:  -320 | Current Position: 34
+[8361] [1] |   18 (  14ms) | noteId: 60 | Detected: 266.42 | Target: 261.63 | Delta:   -4.79 | Target Position:  -2 | DOWN | Step Speed:  -280 | Current Position: 30
+[8376] [1] |   19 (  15ms) | noteId: 60 | Detected: 262.59 | Target: 261.63 | Delta:   -0.96 | Target Position:   0 | STOP | Step Speed:     0 | Current Position: 27
+**** TARGET REACHED ****
+[8390] [1] |   20 (  14ms) | noteId: 69 | Detected: 260.29 | Target: 440.00 | Delta:  179.71 | Target Position: 111 |   UP | Step Speed:   105 | Current Position: 27
+[8404] [1] |   21 (  14ms) | noteId: 69 | Detected: 258.38 | Target: 440.00 | Delta:  181.62 | Target Position: 112 |   UP | Step Speed:   300 | Current Position: 30
+[8419] [1] |   22 (  14ms) | noteId: 69 | Detected: 258.67 | Target: 440.00 | Delta:  181.33 | Target Position: 112 |   UP | Step Speed:   480 | Current Position: 36
+[8433] [1] |   23 (  13ms) | noteId: 69 | Detected: 261.34 | Target: 440.00 | Delta:  178.66 | Target Position: 110 |   UP | Step Speed:   640 | Current Position: 44
+[8448] [1] |   24 (  14ms) | noteId: 69 | Detected: 266.09 | Target: 440.00 | Delta:  173.91 | Target Position: 107 |   UP | Step Speed:   781 | Current Position: 53
+[8462] [1] |   25 (  14ms) | noteId: 69 | Detected: 272.47 | Target: 440.00 | Delta:  167.53 | Target Position: 103 |   UP | Step Speed:   933 | Current Position: 65
+[8477] [1] |   26 (  14ms) | noteId: 69 | Detected: 281.00 | Target: 440.00 | Delta:  159.00 | Target Position:  98 |   UP | Step Speed:  1000 | Current Position: 78
+[8491] [1] |   27 (  14ms) | noteId: 69 | Detected: 291.78 | Target: 440.00 | Delta:  148.22 | Target Position:  91 |   UP | Step Speed:  1000 | Current Position: 91
+[8506] [1] |   28 (  14ms) | noteId: 69 | Detected: 301.63 | Target: 440.00 | Delta:  138.37 | Target Position:  85 |   UP | Step Speed:  1000 | Current Position: 104
+[8520] [1] |   29 (  14ms) | noteId: 69 | Detected: 311.20 | Target: 440.00 | Delta:  128.80 | Target Position:  79 |   UP | Step Speed:  1000 | Current Position: 117
+[8535] [1] |   30 (  15ms) | noteId: 69 | Detected: 320.45 | Target: 440.00 | Delta:  119.55 | Target Position:  74 |   UP | Step Speed:  1000 | Current Position: 130
+[8549] [1] |   31 (  14ms) | noteId: 69 | Detected: 329.70 | Target: 440.00 | Delta:  110.30 | Target Position:  68 |   UP | Step Speed:  1000 | Current Position: 143
+[8563] [1] |   32 (  14ms) | noteId: 69 | Detected: 338.89 | Target: 440.00 | Delta:  101.11 | Target Position:  62 |   UP | Step Speed:  1000 | Current Position: 156
+[8578] [1] |   33 (  14ms) | noteId: 69 | Detected: 347.08 | Target: 440.00 | Delta:   92.92 | Target Position:  57 |   UP | Step Speed:   990 | Current Position: 169
+[8590] [1] |   34 (  12ms) | noteId: 69 | Detected: 355.15 | Target: 440.00 | Delta:   84.85 | Target Position:  52 |   UP | Step Speed:   949 | Current Position: 181
+[8605] [1] |   35 (  14ms) | noteId: 69 | Detected: 362.47 | Target: 440.00 | Delta:   77.53 | Target Position:  48 |   UP | Step Speed:   886 | Current Position: 194
+[8619] [1] |   36 (  14ms) | noteId: 69 | Detected: 370.31 | Target: 440.00 | Delta:   69.69 | Target Position:  43 |   UP | Step Speed:   853 | Current Position: 206
+[8634] [1] |   37 (  14ms) | noteId: 69 | Detected: 377.33 | Target: 440.00 | Delta:   62.67 | Target Position:  38 |   UP | Step Speed:   793 | Current Position: 218
+[8648] [1] |   38 (  14ms) | noteId: 69 | Detected: 384.52 | Target: 440.00 | Delta:   55.48 | Target Position:  34 |   UP | Step Speed:   743 | Current Position: 229
+[8663] [1] |   39 (  14ms) | noteId: 69 | Detected: 391.07 | Target: 440.00 | Delta:   48.93 | Target Position:  30 |   UP | Step Speed:   703 | Current Position: 239
+[8677] [1] |   40 (  14ms) | noteId: 69 | Detected: 397.23 | Target: 440.00 | Delta:   42.77 | Target Position:  26 |   UP | Step Speed:   661 | Current Position: 249
+[8706] [1] |   41 (  28ms) | noteId: 69 | Detected: 407.78 | Target: 440.00 | Delta:   32.22 | Target Position:  19 |   UP | Step Speed:   465 | Current Position: 265
+[8721] [1] |   42 (  14ms) | noteId: 69 | Detected: 411.99 | Target: 440.00 | Delta:   28.01 | Target Position:  17 |   UP | Step Speed:   500 | Current Position: 273
+[8735] [1] |   43 (  14ms) | noteId: 69 | Detected: 415.68 | Target: 440.00 | Delta:   24.32 | Target Position:  15 |   UP | Step Speed:   464 | Current Position: 280
+[8750] [1] |   44 (  14ms) | noteId: 69 | Detected: 419.23 | Target: 440.00 | Delta:   20.77 | Target Position:  12 |   UP | Step Speed:   453 | Current Position: 286
+[8764] [1] |   45 (  14ms) | noteId: 69 | Detected: 422.77 | Target: 440.00 | Delta:   17.23 | Target Position:  10 |   UP | Step Speed:   389 | Current Position: 292
+[8779] [1] |   46 (  14ms) | noteId: 69 | Detected: 426.00 | Target: 440.00 | Delta:   14.00 | Target Position:   8 |   UP | Step Speed:   345 | Current Position: 297
+[8793] [1] |   47 (  14ms) | noteId: 69 | Detected: 429.07 | Target: 440.00 | Delta:   10.93 | Target Position:   6 |   UP | Step Speed:   308 | Current Position: 302
+[8808] [1] |   48 (  14ms) | noteId: 69 | Detected: 431.73 | Target: 440.00 | Delta:    8.27 | Target Position:   5 |   UP | Step Speed:   303 | Current Position: 306
+[8822] [1] |   49 (  14ms) | noteId: 69 | Detected: 434.09 | Target: 440.00 | Delta:    5.91 | Target Position:   3 |   UP | Step Speed:   293 | Current Position: 309
+[8837] [1] |   50 (  14ms) | noteId: 69 | Detected: 436.08 | Target: 440.00 | Delta:    3.92 | Target Position:   2 |   UP | Step Speed:   284 | Current Position: 312
+[8851] [1] |   51 (  14ms) | noteId: 69 | Detected: 437.69 | Target: 440.00 | Delta:    2.31 | Target Position:   1 |   UP | Step Speed:    99 | Current Position: 315
+[8866] [1] |   52 (  14ms) | noteId: 69 | Detected: 439.22 | Target: 440.00 | Delta:    0.78 | Target Position:   0 | STOP | Step Speed:     0 | Current Position: 316
+**** TARGET REACHED ****
+[Pretune] Locked: 440.00 | Target: 261.63 | positionDelta: -110
+
+Time between lowest note (60) and highest note (69) on chime (1): 491ms

@@ -24,7 +24,6 @@ public:
 
     void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
-    void CalibrateFrequencyPerStep();
 
     void RestringTighten();
     void RestringLoosen();
@@ -37,39 +36,31 @@ public:
 
     float NoteIdToFrequency(float noteId);
 
-    void Pick();   
+    void Pick();
     void Tick();
-
-    
-
     bool CalibratePick();
 
     int GetLowestNote();
     int GetHighestNote();
+
     int GetChimeId();
-
     bool IsNoteWithinChimesRange(int noteId);
-
     bool IsTargetNoteReached();
-
     int GetTuneCurrentSteps();
 
-    // Mthods for development assistance.
-    void TimeBetweenHighAndLowNotes();
-
-    unsigned long temp;
-    int setTime;
+    // Developing methods.
+    void CaptureTimeFromLowToHighNote();
+    void CaptureFrequencyPerStep();
 
 private:
     bool TuneNote(int targetNoteId);
 
     float GetFrequency();
-    void SetStepperParameters();   
+    void SetStepperParameters();
 
     // Chime.
-    const float noFrequencyDetected = 0.0;
-    const float acceptableProbability = 0.995;
-
+    const float _noFrequencyDetected = 0.0;
+    const float _acceptableProbability = 0.995;
 
     int _chimeId;
     bool _vibrato;
@@ -80,23 +71,20 @@ private:
         Tune
     } _chimeState;
 
-    const int highestNote[5] = {0, 69, 64, 60, 55};
-    const int lowestNote[5] = {0, 60, 56, 51, 50};
+    const int highestNote[4] = {69, 64, 60};
+    const int lowestNote[4] = {60, 56, 51};
 
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
     int _targetNoteId;
-    int _previousNoteId;
     int _lockedInNoteId;
 
-
-    const float _regressionCoef = 0.28;
+    const float _regressionCoef[3] = {1.65, 1.24, 0.48};
     const int nullNoteId = 0;
 
     // Positions.
-    const int _stepsPerRestringCommand = (1036 * 2) / 36;
+    const int _stepsPerRestring = (1036 * 2) / 36;
     const int _stepsPerPick = 50;
-    const int _stepsPerMute = 2048;
 
     // Volume.
     const int _stepsToMaxVolume = 825;
@@ -104,62 +92,15 @@ private:
     const int _stepsPerAdjustment = 50;
     int _stepsCurrentVolume = 0;
 
-    // Mute.
-    bool _muteReturnToOpenFlag;
-    bool _muteState;
-
-    // Cailbration.
-    unsigned long frequencyDetectionTimeoutMillis = millis();
-    const unsigned int frequencyDetectionTimeoutMs = 500;
-    int noteId;
-    int betweenNotesMillis;
-
-    int _lowestNote = 60;
-    int _highestNote = 69;
-
     AccelStepper _tuneStepper;
     AccelStepper _pickStepper;
-    AccelStepper _muteStepper;
-
-    uint8_t _pinMotorPickLimit;
-    const int _motorPickIndexActivated = 1;
-
-    uint8_t _pinSolenoidMute;
+    AccelStepper _volumeStepper;
 
     unsigned long _startPick;
     unsigned long _startMute;
 
-    // Tuning variables.
-    enum TuneStates
-    {
-        StepTune,
-        FreeTune,
-        WaitForStepTune,
-    };
-    TuneStates _tuneState = FreeTune;
-    int _currentNoteId = 0;
-
-    // FrequenctPerStep.
-    enum FreqPerStepStates
-    {
-        Home,
-        Move,
-        WaitForMove,
-        WaitForReading
-    };
-
-    FreqPerStepStates _freqPerStepState = FreqPerStepStates::Home;
-    int _readingsCount;
-    int _totalReadingsCount;
-    const int _numReadingsToAverage = 10;
-    const int _stepsBetweenReadings = 10;
-    const int _maxSteps = 700;
-    movingAvg _freqAverage = movingAvg(_numReadingsToAverage);
-    float frequencyReadings[200];
-
-    int stepsToNotes[80];
-
-    // Development vars.
-    unsigned long startTime;
-    unsigned long startTimeout;
+    // Tuning development and logging
+    unsigned long frequencyDetectionTimeoutMillis = millis();
+    const unsigned int frequencyDetectionTimeoutMs = 500;
+    unsigned long _startTimeBetweenFreqDetections = millis();
 };
