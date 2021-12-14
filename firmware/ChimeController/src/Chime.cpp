@@ -21,11 +21,11 @@ void Chime::SetStepperParameters()
     _tuneStepper.setMaxSpeed(5000);
     _tuneStepper.setAcceleration(50000);
 
-    _pickStepper.setMaxSpeed(2500);
-    _pickStepper.setAcceleration(20000);
-
-    _volumeStepper.setMaxSpeed(1250);
+      _volumeStepper.setMaxSpeed(1250);
     _volumeStepper.setAcceleration(7500);
+
+    _pickStepper.setMaxSpeed(5000);
+    _pickStepper.setAcceleration(50000);  
 }
 
 // Convert MIDI note number to frequency.
@@ -50,13 +50,6 @@ int Chime::GetChimeId()
     return _chimeId;
 }
 
-/*
-bool IsFrequencyWithinTolerance(float frequency1, float frequency2, float tolerance)
-{
-    return fabs(frequency1 - frequency1) < tolerance;
-}
-*/
-
 float Chime::GetFrequency()
 {
     if (notefreq->available())
@@ -70,17 +63,15 @@ float Chime::GetFrequency()
     return _noFrequencyDetected;
 }
 
-
-// Pretuning starts moving the stepper help counteract 
+// Pretuning starts moving the stepper help counteract
 // frequency detection lag caused during picking.
 void Chime::PretuneNote(int noteId)
-{       
+{
     float targetFrequency = NoteIdToFrequency(noteId);
     float detectedFrequency = NoteIdToFrequency(_lockedInNoteId);
-    int steps = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);  
-    _tuneStepper.moveTo(_tuneStepper.currentPosition() + steps);   
+    int steps = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);
+    _tuneStepper.moveTo(_tuneStepper.currentPosition() + steps);
 }
-
 
 // Return true if detected note is within tolerance of target note.
 bool Chime::TuneNote(int targetNoteId)
@@ -105,11 +96,11 @@ bool Chime::TuneNote(int targetNoteId)
         return false;
     }
 
-     detectionCount++; 
- 
-    float targetFrequency = NoteIdToFrequency(targetNoteId);  
+    detectionCount++;
+
+    float targetFrequency = NoteIdToFrequency(targetNoteId);
     float targetPosition = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);
-    
+
     if (detectedFrequency < targetFrequency - frequencyTolerance)
     {
         sprintf(directionText, "  UP");
@@ -163,9 +154,7 @@ void Chime::RestringLoosen()
 
 void Chime::VolumePlus()
 {
-
     if (_volumeStepper.currentPosition())
-
         _volumeStepper.moveTo(_volumeStepper.currentPosition() + _stepsPerAdjustment);
 }
 
@@ -196,7 +185,7 @@ bool Chime::IsNoteWithinChimesRange(int noteId)
 }
 
 void Chime::SetTargetNote(int noteId)
-{   
+{
     _chimeState = ChimeState::Tune;
 
     if (_targetNoteId != noteId)
@@ -291,7 +280,7 @@ void Chime::CaptureTimeFromLowToHighNote()
         }
     }
 
-    _chimeState = ChimeState::Calibrate;   
+    _chimeState = ChimeState::Calibrate;
 
     Serial.printf("\nTime between lowest note (%u) and highest note (%u) on chime (%u): %ums\n\n",
                   GetLowestNote(), GetHighestNote(), _chimeId, millis() - startTime);
@@ -300,7 +289,7 @@ void Chime::CaptureTimeFromLowToHighNote()
 // Takes an averaged frequency reading per n steps.
 // Used for linear regression calculation for tuning P-controller coefficient.
 void Chime::CaptureFrequencyPerStep()
-{       
+{
     enum FreqPerStepStates
     {
         Home,

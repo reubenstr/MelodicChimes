@@ -84,7 +84,7 @@ private:
 
     // Positions.
     const int _stepsPerRestring = (1036 * 2) / 36;
-    const int _stepsPerPick = 50;
+    const int _stepsPerPick =  200 * 8 / 8;
 
     // Volume.
     const int _stepsToMaxVolume = 825;
