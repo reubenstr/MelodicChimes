@@ -162,7 +162,6 @@ void UpdateMidiInfo(bool updateScreenFlag = true)
   }
 }
 
-//
 void UpdateScreen()
 {
   static PlayState previousPlayState = PlayState::Default;
@@ -395,6 +394,7 @@ void midiCallback(midi_event *pev)
 
   int track = pev->track;
   int channel = pev->channel;
+  int size = pev->size;
   int command = pev->data[0];
   int noteId = pev->data[1];
   int velocity = pev->data[2];
@@ -408,13 +408,13 @@ void midiCallback(midi_event *pev)
     noteState = true;
   }
 
-  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %u | Velocity: %3u | Data: [", millis(), track, channel, onOfText[noteState], noteId, velocity);
+  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %3u | Velocity: %3u | Data: [", millis(), track, channel, onOfText[noteState], noteId, velocity);
 
-  for (uint8_t i = 0; i < pev->size; i++)
+  for (uint8_t i = 0; i < size; i++)
   {
     //Serial.print(pev->data[i] , HEX);
     Serial.printf("%3u", pev->data[i]);
-    if (i < pev->size - 1)
+    if (i < size - 1)
     {
       Serial.print(",");
     }

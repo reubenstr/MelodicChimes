@@ -3,11 +3,12 @@
 
 Chime::Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq,
              uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection,
-             uint8_t pinStepperPickStep, uint8_t pinStepperPickDirection,
-             uint8_t pinStepperVolumeStep, uint8_t pinStepperVolumeDirection)
+              uint8_t pinStepperVolumeStep, uint8_t pinStepperVolumeDirection,
+             uint8_t pinStepperPickStep, uint8_t pinStepperPickDirection)            
     : _tuneStepper(AccelStepper::DRIVER, pinStepperTuneStep, pinStepperTuneDirection),
-      _pickStepper(AccelStepper::DRIVER, pinStepperPickStep, pinStepperPickDirection),
-      _volumeStepper(AccelStepper::DRIVER, pinStepperVolumeStep, pinStepperVolumeDirection)
+     _volumeStepper(AccelStepper::DRIVER, pinStepperVolumeStep, pinStepperVolumeDirection),
+      _pickStepper(AccelStepper::DRIVER, pinStepperPickStep, pinStepperPickDirection)
+      
 {
     _chimeId = chimeId;
     SetStepperParameters();
@@ -20,10 +21,8 @@ void Chime::SetStepperParameters()
 {
     _tuneStepper.setMaxSpeed(5000);
     _tuneStepper.setAcceleration(50000);
-
-      _volumeStepper.setMaxSpeed(1250);
+	_volumeStepper.setMaxSpeed(1250);
     _volumeStepper.setAcceleration(7500);
-
     _pickStepper.setMaxSpeed(5000);
     _pickStepper.setAcceleration(50000);  
 }
@@ -63,24 +62,21 @@ float Chime::GetFrequency()
     return _noFrequencyDetected;
 }
 
-// Pretuning starts moving the stepper help counteract
-// frequency detection lag caused during picking.
+// Pretuning starts moving the stepper to help counteract
+// frequency detection lag caused by picking.
 void Chime::PretuneNote(int noteId)
 {
     float targetFrequency = NoteIdToFrequency(noteId);
     float detectedFrequency = NoteIdToFrequency(_lockedInNoteId);
     int steps = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);
+    _tuneStepper.setCurrentPosition(0);
     _tuneStepper.moveTo(_tuneStepper.currentPosition() + steps);
 }
 
 // Return true if detected note is within tolerance of target note.
 bool Chime::TuneNote(int targetNoteId)
 {
-    static unsigned int detectionCount = 0;
-    static unsigned long startTimeNewTarget = millis();
-
-    bool frequencyWithinTolerance = false;
-    float frequencyTolerance = 1.0;
+    bool frequencyWithinTolerance = false;    
     char directionText[5];
 
     if (!IsNoteWithinChimesRange(targetNoteId))
@@ -89,8 +85,7 @@ bool Chime::TuneNote(int targetNoteId)
     }
 
     float detectedFrequency = GetFrequency();
-
-    // Return if frequency was not detected.
+   
     if (detectedFrequency == _noFrequencyDetected)
     {
         return false;
@@ -99,32 +94,38 @@ bool Chime::TuneNote(int targetNoteId)
     detectionCount++;
 
     float targetFrequency = NoteIdToFrequency(targetNoteId);
-    float targetPosition = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);
+    //float targetPosition = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);
+	
+	// Use results of polynomial regression.
+	float pos1 = 0.0041 * detectedFrequency * detectedFrequency + 0.4195 * detectedFrequency;
+	float pos2 = 0.0041 * targetFrequency * targetFrequency + 0.4195 * targetFrequency;	
+	float targetPosition = (pos2 - pos1) / 2;
 
-    if (detectedFrequency < targetFrequency - frequencyTolerance)
+    if (detectedFrequency < targetFrequency - _frequencyTolerance)
     {
         sprintf(directionText, "  UP");
         _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
     }
-    else if (detectedFrequency > targetFrequency + frequencyTolerance)
+    else if (detectedFrequency > targetFrequency + _frequencyTolerance)
     {
         sprintf(directionText, "DOWN");
         _tuneStepper.moveTo(_tuneStepper.currentPosition() + int(targetPosition));
     }
     else
     {
-        sprintf(directionText, "STOP");
-        startTimeNewTarget = millis();
+        sprintf(directionText, "STOP");     
         targetPosition = 0;
-        _tuneStepper.moveTo(_tuneStepper.currentPosition());
+        _tuneStepper.moveTo(0);
+        _tuneStepper.setCurrentPosition(0); 
         frequencyWithinTolerance = true;
     }
 
     if (millis() - _startTimeBetweenFreqDetections > 100)
         detectionCount = 0;
 
-    if (GetChimeId() == 0) // TEMP FILTER
-        Serial.printf("[%u] [%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Target Position: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
+    
+    if (_chimeId == 0)
+        Serial.printf("[%u] [%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Position Adjustment: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
                       millis(), _chimeId, detectionCount, millis() - _startTimeBetweenFreqDetections,
                       targetNoteId, detectedFrequency, targetFrequency,
                       targetFrequency - detectedFrequency, int(targetPosition), directionText,
@@ -208,18 +209,29 @@ void Chime::Tick()
         if (TuneNote(_targetNoteId))
         {
             _lockedInNoteId = _targetNoteId;
-        }
-    }
+			
+			 if (_vibrato)
+			 {
+				 _chimeState = ChimeState::Vibrato;				 
+				 _tuneStepper.setCurrentPosition(0);
+				 _tuneStepper.moveTo(_tuneStepper.currentPosition());
+			 }			 
+        }	
+    }	
+	else if (_chimeState == ChimeState::Vibrato)
+	{
+		if (_tuneStepper.distanceToGo() == 0)
+		{					
+			_vibratoToggle = !_vibratoToggle;
+			 _tuneStepper.moveTo(_vibratoToggle ? _vibratoSteps : -_vibratoSteps);
+		}		
+	}
 
     _tuneStepper.run();
     _pickStepper.run();
     _volumeStepper.run();
 }
 
-bool Chime::IsTargetNoteReached()
-{
-    return (_lockedInNoteId == _targetNoteId);
-}
 
 int Chime::GetTuneCurrentSteps()
 {
@@ -230,13 +242,13 @@ int Chime::GetTuneCurrentSteps()
 // Blocking routine until a frequency is detected or timeout.
 bool Chime::CalibratePick()
 {
-    _pickStepper.setMaxSpeed(125);
-    _pickStepper.setAcceleration(1000);
+    _pickStepper.setMaxSpeed(1000);
+    _pickStepper.setAcceleration(5000);
 
     _pickStepper.setCurrentPosition(0);
     _pickStepper.moveTo(_stepsPerPick * 4);
 
-    while (GetFrequency() == 0)
+    while (GetFrequency() == _noFrequencyDetected )
     {
         if (_pickStepper.distanceToGo() == 0)
         {
@@ -264,11 +276,11 @@ void Chime::CaptureTimeFromLowToHighNote()
     {
         delay(1);
 
-        if (IsTargetNoteReached())
+        if (_lockedInNoteId == _targetNoteId)
         {
-            Serial.println("**** TARGET REACHED ****");
+            Serial.println("*** TARGET REACHED ***");
 
-            if (_targetNoteId == GetHighestNote())
+            if (_lockedInNoteId == GetHighestNote())
             {
                 break;
             }
@@ -290,6 +302,8 @@ void Chime::CaptureTimeFromLowToHighNote()
 // Used for linear regression calculation for tuning P-controller coefficient.
 void Chime::CaptureFrequencyPerStep()
 {
+   
+
     enum FreqPerStepStates
     {
         Home,
@@ -310,11 +324,13 @@ void Chime::CaptureFrequencyPerStep()
     // _tuneStepper.setMaxSpeed(500);
     // _tuneStepper.setAcceleration(250);
 
+    _lockedInNoteId = nullNoteId;
     SetTargetNote(GetLowestNote());
+    
 
     _freqAverage.begin();
 
-    Serial.println("**** CALCULATE FREQUENCY PER STEPS ****");
+    Serial.println("*** CALCULATE FREQUENCY PER STEPS ***");
 
     while (1)
     {
@@ -322,7 +338,7 @@ void Chime::CaptureFrequencyPerStep()
 
         if (_freqPerStepState == FreqPerStepStates::Home)
         {
-            if (IsTargetNoteReached())
+            if (_lockedInNoteId == GetLowestNote())
             {
                 _tuneStepper.setCurrentPosition(0);
                 _chimeState = ChimeState::Calibrate;
@@ -338,7 +354,7 @@ void Chime::CaptureFrequencyPerStep()
         {
             if (_tuneStepper.currentPosition() > _maxSteps)
             {
-                Serial.println("**** ERROR: MAX STEPS REACHED, HALTING ****");
+                Serial.println("*** ERROR: MAX STEPS REACHED, HALTING ***");
                 break;
             }
             if (_tuneStepper.distanceToGo() == 0)
@@ -362,7 +378,7 @@ void Chime::CaptureFrequencyPerStep()
 
                 if (detectedFrequency > NoteIdToFrequency(GetHighestNote()))
                 {
-                    Serial.printf("\n**** Chime %u finished with FrequencyPerStep. (%u steps between samples) ****\n", _chimeId, _stepsBetweenReadings);
+                    Serial.printf("\n*** Chime %u finished with FrequencyPerStep. (%u steps between samples) ***\n", _chimeId, _stepsBetweenReadings);
                     for (int i = 0; i < _totalReadingsCount; i++)
                     {
                         Serial.printf("%3.2f\n", frequencyReadings[i]);
@@ -388,5 +404,6 @@ void Chime::CaptureFrequencyPerStep()
         }
     }
 
-    _chimeState = ChimeState::Tune;
+     _chimeState = ChimeState::Calibrate;
+    
 }

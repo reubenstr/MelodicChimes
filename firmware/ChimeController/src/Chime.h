@@ -9,18 +9,15 @@
     Pick Stepper:
         200 steps/rev, 1/2 microsteps, plectrum with 8 points
         200 * 1/2 / 8 = 50 steps per pick
-
-
     Volume Stepper: 28byj-48
         2048 steps/rev, 1/2 microsteps
-
 */
 
 class Chime
 {
 
 public:
-    Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq, uint8_t pinMotorTunePhase, uint8_t pinMotorTuneEnable, uint8_t pinMotorPickPhase, uint8_t pinMotorPickEnable, uint8_t pinMotorPickLimit, uint8_t pinSolenoidMute);
+    Chime(int chimeId, AudioAnalyzeNoteFrequency &notefreq, uint8_t pinStepperTuneStep, uint8_t pinStepperTuneDirection, uint8_t pinStepperVolumeStep, uint8_t pinStepperVolumeDirection, uint8_t pinStepperPickStep, uint8_t pinStepperPickDirection);
 
     void PrepareCalibrateStepsToNotes();
     bool CalibrateStepsToNotes(float detectedFrequency);
@@ -45,7 +42,6 @@ public:
 
     int GetChimeId();
     bool IsNoteWithinChimesRange(int noteId);
-    bool IsTargetNoteReached();
     int GetTuneCurrentSteps();
 
     // Developing methods.
@@ -67,8 +63,8 @@ private:
     enum class ChimeState
     {
         Calibrate,
-        Pretune,
-        Tune
+        Tune,
+        Vibrato
     } _chimeState;
 
     const int highestNote[4] = {69, 64, 60};
@@ -78,13 +74,17 @@ private:
     AudioAnalyzeNoteFrequency *notefreq;
     int _targetNoteId;
     int _lockedInNoteId;
+    const float _frequencyTolerance = 0.0;
 
-    const float _regressionCoef[3] = {1.65, 1.24, 0.48};
+    const float _regressionCoef[3] = {2.97 / 2, 1.24, 0.48};
     const int nullNoteId = 0;
+
+    bool _vibratoToggle;
+    const int _vibratoSteps = 10;
 
     // Positions.
     const int _stepsPerRestring = (1036 * 2) / 36;
-    const int _stepsPerPick =  200 * 8 / 8;
+    const int _stepsPerPick = 200 * 8 / 8;
 
     // Volume.
     const int _stepsToMaxVolume = 825;
@@ -103,4 +103,5 @@ private:
     unsigned long frequencyDetectionTimeoutMillis = millis();
     const unsigned int frequencyDetectionTimeoutMs = 500;
     unsigned long _startTimeBetweenFreqDetections = millis();
+    unsigned int detectionCount = 0;
 };

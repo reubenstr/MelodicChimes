@@ -1,21 +1,22 @@
 /****************************************************
-
 Project: 
 	Melodic Chimes
+	02-2020 - 01-2021
+	Reuben Strangelove
 	
 Description: 
 	Auto-tuning string chimes controlled via MIDI file.
-
+	
 Phase:
 	Prototype and develement
-
- Developer Notes:
+	
+ Developer Notes: 
 	#define AUDIO_GUITARTUNER_BLOCKS value of 24 changed to n   
-	required faster analysis at the sacrafice of lower frequency detection
-	3 blocks : 233hz : 9ms per detection
-	4 blocks : 174hz : 12ms per detection
-	5 blocks : 139hz : 15ms per detection
-    6 blocks : 	
+	required for faster analysis at the sacrifice of reduced lower frequency detection
+	blocks : lowest detection frequency : time between detections
+	3 : 233hz : 9ms
+	4 : 174hz : 12ms
+	5 : 139hz : 15ms
 	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio\analyze_notefreq.h)
 	
 */
@@ -40,43 +41,41 @@ AudioAnalyzeNoteFrequency notefreq1;
 AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
 AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
 
-// Select the controller's chimes.
-#define CHIME_SET_1_AND_2
-// #define CHIME_SET_3_AND_4
+// Select the controller's chimes:
+#define CHIME_0_AND_1
+// #define CHIME_2
 
-#if defined CHIME_SET_1_AND_2
-#define CHIME_A_ID 0
-#define CHIME_B_ID 1
-#elif defined CHIME_SET_3_AND_4
-#define CHIME_A_ID 2
-#define CHIME_B_ID 3
+#define PIN_STEPPER_M1_STEP 0
+#define PIN_STEPPER_M1_DIRECTION 6
+#define PIN_STEPPER_M2_STEP 1
+#define PIN_STEPPER_M2_DIRECTION 7
+#define PIN_STEPPER_M3_STEP 2
+#define PIN_STEPPER_M3_DIRECTION 8
+#define PIN_STEPPER_M4_STEP 3
+#define PIN_STEPPER_M4_DIRECTION 11
+#define PIN_STEPPER_M5_STEP 4
+#define PIN_STEPPER_M5_DIRECTION 12
+#define PIN_STEPPER_M6_STEP 5
+#define PIN_STEPPER_M6_DIRECTION 23
+
+#define PIN_STEPPER_DRIVERS_ENABLE 22
+
+#if defined CHIME_0_AND_1
+Chime chime0 = {Chime(0, notefreq2,
+                      PIN_STEPPER_M1_STEP, PIN_STEPPER_M1_DIRECTION,
+                      PIN_STEPPER_M2_STEP, PIN_STEPPER_M2_DIRECTION,
+                      PIN_STEPPER_M3_STEP, PIN_STEPPER_M3_DIRECTION)};
+
+Chime chime1 = {Chime(1, notefreq1,
+                      PIN_STEPPER_M4_STEP, PIN_STEPPER_M4_DIRECTION,
+                      PIN_STEPPER_M5_STEP, PIN_STEPPER_M5_DIRECTION,
+                      PIN_STEPPER_M6_STEP, PIN_STEPPER_M6_DIRECTION)};
+#elif defined CHIME_2
+Chime chime2 = {Chime(2, notefreq2,
+                      PIN_STEPPER_M1_STEP, PIN_STEPPER_M1_DIRECTION,
+                      PIN_STEPPER_M2_STEP, PIN_STEPPER_M2_DIRECTION,
+                      PIN_STEPPER_M3_STEP, PIN_STEPPER_M3_DIRECTION)};
 #endif
-
-#define PIN_STEPPER_TUNE_STEP_A 0
-#define PIN_STEPPER_TUNE_DIRECTION_A 6
-#define PIN_STEPPER_MUTE_STEP_A 1
-#define PIN_STEPPER_MUTE_DIRECTION_A 7
-#define PIN_STEPPER_PICK_STEP_A 2
-#define PIN_STEPPER_PICK_DIRECTION_A 8
-
-#define PIN_STEPPER_TUNE_STEP_B 3
-#define PIN_STEPPER_TUNE_DIRECTION_B 11
-#define PIN_STEPPER_MUTE_STEP_B 4
-#define PIN_STEPPER_MUTE_DIRECTION_B 12
-#define PIN_STEPPER_PICK_STEP_B 5
-#define PIN_STEPPER_PICK_DIRECTION_B 23
-
-#define PIN_ENABLE_STEPPER_DRIVERS 22
-
-Chime chimeA = {Chime(CHIME_A_ID, notefreq2,
-                      PIN_STEPPER_TUNE_STEP_A, PIN_STEPPER_TUNE_DIRECTION_A,
-                      PIN_STEPPER_PICK_STEP_A, PIN_STEPPER_PICK_DIRECTION_A,
-                      PIN_STEPPER_MUTE_STEP_A, PIN_STEPPER_MUTE_DIRECTION_A)};
-
-Chime chimeB = {Chime(CHIME_B_ID, notefreq1,
-                      PIN_STEPPER_TUNE_STEP_B, PIN_STEPPER_TUNE_DIRECTION_B,
-                      PIN_STEPPER_PICK_STEP_B, PIN_STEPPER_PICK_DIRECTION_B,
-                      PIN_STEPPER_MUTE_STEP_B, PIN_STEPPER_MUTE_DIRECTION_B)};
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -86,7 +85,7 @@ void FlashOnboardLED()
     if (millis() - start > 250)
     {
         start = millis();
-        // digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     }
 }
 
@@ -123,12 +122,19 @@ bool ProcessCommand(String command)
     int chimeId = getValue(command, delimiter, 1).toInt();
 
     Chime *chime = nullptr;
-    if (chimeA.GetChimeId() == chimeId)
-        chime = &chimeA;
-    else if (chimeB.GetChimeId() == chimeId)
-        chime = &chimeB;
+#if defined CHIME_0_AND_1
+    if (chimeId == 0)
+        chime = &chime0;
+    else if (chimeId == 1)
+        chime = &chime1;
     else
         return;
+#elif defined CHIME_2
+    if (chimeId == 2)
+        chime = &chime2;
+    else
+        return;
+#endif
 
     if (commandInt == int(Commands::RestringTighten))
     {
@@ -164,20 +170,6 @@ bool ProcessCommand(String command)
         else
         {
             Serial.printf("Error: target note with ID %u is outside chime's range.", noteId);
-        }
-    }
-    else if (commandInt == int(Commands::PretuneNote))
-    {
-        int noteId = getValue(command, delimiter, 2).toInt();
-        Serial.printf("[%u] Command: PretuneNote, Note ID: %u\n", chimeId, noteId);
-
-        if (chime->IsNoteWithinChimesRange(noteId))
-        {
-            chime->PretuneNote(noteId);
-        }
-        else
-        {
-            Serial.printf("Error: pretune target note with ID %u is outside chime's range.", noteId);
         }
     }
     else if (commandInt == int(Commands::Pick))
@@ -220,20 +212,24 @@ bool ProcessUart()
 
 void TickTimerCallback()
 {
-    FlashOnboardLED();
+    // FlashOnboardLED();
 
-    chimeA.Tick();
-    chimeB.Tick();
+#if defined CHIME_0_AND_1
+    chime0.Tick();
+    chime1.Tick();
+#elif defined CHIME_2
+    chime2.Tick();
+#endif
 }
 
 void EnableSteppers()
 {
-    digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, LOW);
+    digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, LOW);
 }
 
 void DisableSteppers()
 {
-    digitalWrite(PIN_ENABLE_STEPPER_DRIVERS, HIGH);
+    digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, HIGH);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -251,31 +247,37 @@ void setup()
     Serial2.begin(115200);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(PIN_ENABLE_STEPPER_DRIVERS, OUTPUT);
+    pinMode(PIN_STEPPER_DRIVERS_ENABLE, OUTPUT);
 
     AudioMemory(120);
     tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
 
-    // TEMP
-    chimeA.SetTargetNote(69);
-    chimeB.SetTargetNote(58);
-
-    chimeA.SetMaxVolume();
-    chimeB.SetMaxVolume();
+    /*
+	// Check if succesful, send error to main controller if unsucessful.
+	#if defined CHIME_0_AND_1
+	chime0.CalibratePick();
+    chime1.CalibratePick();
+	#elif defined CHIME_2
+	chime2.CalibratePick();    
+	#endif	
+	*/
 
     /*    
     while (1)
     {
-        Serial.println("****** TEST TimeBetweenHighAndLowNotes *******");
+        Serial.println("*** TEST TimeBetweenHighAndLowNotes ***");
         chimeA.CaptureTimeFromLowToHighNote();
-        delay(6000);
+        delay(5000);
     }
     */
 
     /*
-    Serial.println("****** TEST CalibrateFrequencyPerStep *******");
-    chimeB.CaptureFrequencyPerStep();
-     while (1) {}
+    while (1)
+    {
+        Serial.println("*** TEST CalibrateFrequencyPerStep ***");
+        chime0.CaptureFrequencyPerStep();
+        delay(5000);
+    }
     */
 }
 

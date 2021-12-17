@@ -94,8 +94,7 @@ enum class Commands
     RestringLoosen,
     VolumePlus,
     VolumeMinus,
-    SetTargetNote,
-    PretuneNote,
+    SetTargetNote,    
     Pick
 };
 
