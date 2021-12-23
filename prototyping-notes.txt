@@ -1,10 +1,23 @@
+HARDWARE:
+tuning stepper mounting bolts 4x M3-20mm (12  total)
+tuning stepper lower brass cover 1x M3-4mm (3 total)
+tunign stepper printed mount 2x M3-10mm		
+pcb M3-6mm course thread
+psu M3-12mm 2x
 
 
 Tuner stepper: 5.18:1 gear head 200steps/rev * 5.18 = 1036
 
+PLA SHRINK:
+1.004651162790698
+1.001792344130073
+
+
+PROJECT FIXES:
+PCB main - add markings for UART headers.
+
 
 Stepper driver jumpers:
-
 [M1 - M6]
 MS1: J4, J5, J6, J10, J11, J12
 MS2: J1, J2, J3, J7, J8, J9

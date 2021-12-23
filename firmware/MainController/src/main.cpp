@@ -72,14 +72,14 @@
 #include "gfxItems.h" // local libray
 #include "main.h"
 #include "graphicsMethods.h"
-
 #include <MD_MIDIFile.h>
+#include <Adafruit_NeoPixel.h>
 
 #define PIN_UART1_TX 33
 #define PIN_UART1_RX 25
 #define PIN_UART2_TX 26
 #define PIN_UART2_RX 27
-//#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+#define PIN_NEOPIXEL 32
 
 // TFT Screen.
 // TFT configuration contained in User_Setup.h in the local library.
@@ -118,12 +118,14 @@ GFXItems gfxItems(&tft);
 
 const char delimiter = ':';
 
+Adafruit_NeoPixel strip(9, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SendCommand(Commands command, int chime)
 {
   char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);  
+  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
   Serial.printf("Sending command: %s", buffer);
   Serial1.print(buffer);
   Serial2.print(buffer);
@@ -430,7 +432,7 @@ void midiCallback(midi_event *pev)
   // Play note.
   if (noteState == true && velocity > 0)
   {
-    SendCommandString(CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId));    
+    SendCommandString(CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId));
     SendCommand(Commands::Pick, chimeId);
   }
 
@@ -522,11 +524,11 @@ void ProcessMIDI()
       if (SMF.getNextEvent())
       {
         tickMetronome();
-      }      
+      }
     }
   }
   else if (playState == PlayState::Stop)
-  {   
+  {
     SMF.close();
     playState = PlayState::Idle;
   }
@@ -538,6 +540,10 @@ void ProcessMIDI()
 
 void setup(void)
 {
+
+  strip.begin();
+  strip.show();
+
   delay(1000);
   Serial.begin(115200);
   Serial.println("Melodic Chimes starting up.");
@@ -559,10 +565,23 @@ void setup(void)
   InitScreenElements();
   UpdateMidiInfo(false);
   DisplayMain();
+
+  strip.setPixelColor(0, 255, 0, 0);
+  strip.setPixelColor(1, 255, 0, 0);
+  strip.setPixelColor(2, 255, 0, 0);
+  strip.setPixelColor(3, 0, 255, 0);
+  strip.setPixelColor(4, 0, 255, 0);
+  strip.setPixelColor(5, 0, 255, 0);
+  strip.setPixelColor(6, 0, 0, 255);
+  strip.setPixelColor(7, 0, 0, 255);
+  strip.setPixelColor(8, 0, 0, 255);
+
+  strip.show();
 }
 
 void loop()
 {
+
   CheckTouchScreen();
 
   UpdateScreen();

@@ -131,7 +131,7 @@ void ScreenInit()
 {
   tft.init();
   delay(150); // TFT driver needs time to process command.
-  tft.setRotation(3);
+  tft.setRotation(1);
   delay(150); // TFT driver needs time to process command.
 
   uint16_t calibrationData[5] = {298, 3574, 266, 3542, 1};
