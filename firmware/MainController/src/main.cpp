@@ -1,39 +1,36 @@
 /*  
-  Project: Melodic Chimes
-  Description: Four auto-tuning strings playing melodic music from custom MIDI files.
+  Project:
+    Melodic Chimes
+  
+  Description: 
+    Three auto-tuning strings playing music from custom MIDI files.
 
-  MCUs:
-      1x ESP32 (DevkitV1) : Main controller parsing MIDI files and fetching time from WiFi.
-      2x Teensy 3.2 : Each determines frequency of two strings and controls two chimes.
-
+  Microcontrollers:
+      1x ESP32 (DevkitV1): Main controller parsing MIDI files and fetching time from WiFi.
+      2x Teensy 3.2: Chime controllers detecting string frequency and driving chime actions.
+ 
   Hardware:
-      TFT Touch Screen : User interface.
-      SD-Card : contains MIDI files.
-      12x Stepper Motors : 4x tuning, 4x muting, 4x picking.
-      12x Stepper motor drivers.
+      TFT Touch Screen: User interface.
+      SD-Card: contains MIDI files.
+      9x Stepper Motors: 3x tuning, 3x volume, 3x picking.    
       
-  Notes:
-
-    TODO
-
-
+  Compilation Notes:
     MD_MIDIFile.h line 899 fix:
         void setFileFolder(const char* apath) { if (apath != nullptr) _sd->chdir(apath); }
 
   Online Tools:
-      MID to JSON: https://tonejs.github.io/Midi/
+    MIDI Creation: https://musescore.org/en
 
   Bugs:
     bootup fails when SD card does not have a .mid file. -> provide error message
 
-  Future Features:
+  TODO / Possible Upgrades:
+    Receive feedback from chime controllers to check if strings are OK (in range).
     MIDI playback progress bar.
-
-
 */
 
 /*
-// tft esp pins
+// TFT LCD Display pins defined in User_Setup.h within the TFT_eSPI library folder.
 #define ILI9488_DRIVER 
 #define TFT_WIDTH  320
 #define TFT_HEIGHT 480
@@ -43,23 +40,7 @@
 #define TFT_MOSI 23
 #define TFT_MISO 19
 #define TFT_RST 4
-
 #define TOUCH_CS 22     // Chip select pin (T_CS) of touch screen
-*/
-
-/*
-// tft teensy pins
-#define ILI9488_DRIVER 
-#define TFT_WIDTH  320
-#define TFT_HEIGHT 480
-#define TFT_CS 4
-#define TFT_DC 6
-#define TFT_SCLK 13
-#define TFT_MOSI 11
-#define TFT_MISO 12
-#define TFT_RST 5
-
-#define TOUCH_CS 3      // Chip select pin (T_CS) of touch screen
 */
 
 #include <Arduino.h>
@@ -69,15 +50,12 @@
 #include "msTimer.h"
 #include <SdFat.h>
 #include "sdios.h"
-#include <list>
-#include <vector>
-#include <map>
 #include "gfxItems.h" // local libray
 #include "main.h"
-#include "graphicsMethods.h"
+#include "graphicsMethods.h" // local libray
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
-#include <NeoPixelMethods.h>
+#include <NeoPixelMethods.h> // local libray
 
 #define PIN_UART1_TX 33
 #define PIN_UART1_RX 25
@@ -86,7 +64,6 @@
 #define PIN_NEOPIXEL 32
 
 // TFT Screen.
-// TFT configuration contained in User_Setup.h in the local library.
 TFT_eSPI tft = TFT_eSPI();
 bool takeTouchReadings = true;
 unsigned long touchDebounceMillis = millis();
@@ -135,25 +112,13 @@ void SendCommand(Commands command, int chime)
   Serial2.print(buffer);
 }
 
-void SendCommandString(String commandString)
-{
-  Serial.printf("Sending command: %s", commandString);
-  Serial1.print(commandString);
-  Serial2.print(commandString);
-}
-
-String CreateCommandString(Commands command, int chime)
+String SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
 {
   char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u\n", int(command), chime);
-  return String(buffer);
-}
-
-String CreateTuneCommandString(Commands command, int chime, int nodeId, bool vibrato = false)
-{
-  char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato));
-  return String(buffer);
+  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato)); 
+  Serial.printf("Sending command: %s", buffer);
+  Serial1.print(buffer);
+  Serial2.print(buffer);
 }
 
 void UpdateMidiInfo(bool updateScreenFlag = true)
@@ -478,7 +443,7 @@ void midiCallback(midi_event *pev)
   // Play note.
   if (noteState == true && velocity > 0)
   {
-    SendCommandString(CreateTuneCommandString(Commands::SetTargetNote, channel, noteId));
+    SendTuneCommand(Commands::SetTargetNote, channel, noteId);
     SendCommand(Commands::Pick, channel);
     TriggerLEDs(channel, noteId);
   }
@@ -602,7 +567,6 @@ void setup(void)
 
   SDInit();
 
-  // Initialize MIDIFile
   SMF.begin(&SD);
   SMF.setMidiHandler(midiCallback);
   SMF.setSysexHandler(sysexCallback);

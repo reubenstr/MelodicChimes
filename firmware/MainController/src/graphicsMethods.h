@@ -1,9 +1,8 @@
-
-
 enum class ErrorCodes
 {
   sdCardInitFailed,
-  midiNotFound
+  midiNotFound,
+  chimeFailed
 };
 
 

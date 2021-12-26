@@ -262,13 +262,14 @@ void setup()
 	#endif	
 	*/
 
-
+    /*
 	#if defined CHIME_0_AND_1
 	chime0.SetMaxVolume();
     chime1.SetMaxVolume();
 	#elif defined CHIME_2
 	chime2.SetMaxVolume();    
-	#endif	
+	#endif
+    */
 
 
 

@@ -42,7 +42,6 @@ void InitScreenElements()
   gfxItems.Add(GFXItem(int(GFXItemId::Chime_2_down), int(PageId::Restring), "DOWN", 195, 210, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Chime_1_down), int(PageId::Restring), "DOWN", 315, 210, buttonCalW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
 
-
   const int buttonVolW = 85;
   gfxItems.Add(GFXItem(int(GFXItemId::Chime3VolumePlus), int(PageId::Volume), "+", 75, 125, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Chime2VolumePlus), int(PageId::Volume), "+", 195, 125, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
@@ -51,12 +50,10 @@ void InitScreenElements()
   gfxItems.Add(GFXItem(int(GFXItemId::Chime3pick), int(PageId::Volume), "Pick", 75, 180, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Chime2pick), int(PageId::Volume), "Pick", 195, 180, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Chime1pick), int(PageId::Volume), "Pick", 315, 180, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
- 
+
   gfxItems.Add(GFXItem(int(GFXItemId::Chime3VolumeMinus), int(PageId::Volume), "-", 75, 235, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Chime2VolumeMinus), int(PageId::Volume), "-", 195, 235, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Chime1VolumeMinus), int(PageId::Volume), "-", 315, 235, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
- 
-
 
   // Create and add labels.
   gfxItems.Add(GFXItem(int(GFXItemId::PlayState), int(PageId::All), "State", 2, 20, 294, 70, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
@@ -91,13 +88,16 @@ void DisplayError(ErrorCodes error)
   {
     tft.drawString("SD card not detected!", 50, 100);
   }
-
-  if (error == ErrorCodes::midiNotFound)
+  else if (error == ErrorCodes::midiNotFound)
   {
     tft.drawString("MIDI file(s) not found!", 50, 100);
   }
+  else if (error == ErrorCodes::chimeFailed)
+  {
+    tft.drawString("Frequency not detected!", 50, 100);
+    tft.drawString("Check if string(s) are in range.", 50, 150);
+  }
 
-  // TODO: tell chimes to halt activity.
   while (1)
     ;
 }
