@@ -8,7 +8,7 @@ Description:
 	Auto-tuning string chimes controlled via MIDI file.
 	
 Phase:
-	Prototype and develement
+	Final development!
 	
  Developer Notes: 
 	#define AUDIO_GUITARTUNER_BLOCKS value of 24 changed to n   
@@ -32,6 +32,10 @@ Phase:
 #include "TeensyTimerTool.h" // https://github.com/luni64/TeensyTimerTool
 #include "main.h"
 
+// Select the controller's chimes:
+//#define CHIME_0_AND_1
+#define CHIME_2
+
 using namespace TeensyTimerTool;
 Timer tickTimer; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
 
@@ -40,10 +44,6 @@ AudioAnalyzeNoteFrequency notefreq2;
 AudioAnalyzeNoteFrequency notefreq1;
 AudioConnection patchCord1(adcs1, 0, notefreq1, 0);
 AudioConnection patchCord2(adcs1, 1, notefreq2, 0);
-
-// Select the controller's chimes:
-#define CHIME_0_AND_1
-// #define CHIME_2
 
 #define PIN_STEPPER_M1_STEP 0
 #define PIN_STEPPER_M1_DIRECTION 6
@@ -261,6 +261,16 @@ void setup()
 	chime2.CalibratePick();    
 	#endif	
 	*/
+
+
+	#if defined CHIME_0_AND_1
+	chime0.SetMaxVolume();
+    chime1.SetMaxVolume();
+	#elif defined CHIME_2
+	chime2.SetMaxVolume();    
+	#endif	
+
+
 
     /*    
     while (1)

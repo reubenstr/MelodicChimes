@@ -26,6 +26,9 @@
   Bugs:
     bootup fails when SD card does not have a .mid file. -> provide error message
 
+  Future Features:
+    MIDI playback progress bar.
+
 
 */
 
@@ -74,6 +77,7 @@
 #include "graphicsMethods.h"
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
+#include <NeoPixelMethods.h>
 
 #define PIN_UART1_TX 33
 #define PIN_UART1_RX 25
@@ -189,7 +193,7 @@ void UpdateScreen()
       // Song border.
       tft.drawRect(20, 70, 440, 40, TFT_LIGHTGREY);
       // Progress bar.
-      tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
+      // tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
     }
   }
 }
@@ -384,6 +388,54 @@ void SDInit()
   }
 }
 
+void TriggerLEDs(int chimeId, int noteId)
+{
+  uint32_t color = Wheel(map(noteId, 50, 69, 0, 255));
+  for (int i = 0; i < 3; i++)
+  {
+    strip.setPixelColor(i + chimeId * 3, color);
+  }
+}
+
+void FadeLEDs()
+{
+  static unsigned long start = millis();
+  if (millis() - start > 10)
+  {
+    start = millis();
+    for (int i = 0; i < strip.numPixels(); i++)
+    {
+      strip.setPixelColor(i, Fade(strip.getPixelColor(i), 4));
+    }
+  }
+  strip.show();
+}
+
+void NameplateLEDs()
+{
+  static bool flag = true;
+
+  if (playState == PlayState::Idle && flag)
+  {
+    flag = false;
+    strip.setPixelColor(0, 255, 0, 0);
+    strip.setPixelColor(1, 255, 0, 0);
+    strip.setPixelColor(2, 255, 0, 0);
+    strip.setPixelColor(3, 0, 255, 0);
+    strip.setPixelColor(4, 0, 255, 0);
+    strip.setPixelColor(5, 0, 255, 0);
+    strip.setPixelColor(6, 0, 0, 255);
+    strip.setPixelColor(7, 0, 0, 255);
+    strip.setPixelColor(8, 0, 0, 255);
+    strip.show();
+  }
+  else if (playState == PlayState::Play)
+  {
+    flag = true;
+    FadeLEDs();
+  }
+}
+
 void midiCallback(midi_event *pev)
 {
   const char *onOfText[] = {"OFF", "ON "};
@@ -423,17 +475,12 @@ void midiCallback(midi_event *pev)
   }
   Serial.println("]");
 
-  // Interpret MIDI commands for chime system.
-  ////////////////////////////////////////////
-  int chimeId = channel;
-
-  // TODO: develop a queueing system for note events to allow for pretuning.
-
   // Play note.
   if (noteState == true && velocity > 0)
   {
-    SendCommandString(CreateTuneCommandString(Commands::SetTargetNote, chimeId, noteId));
-    SendCommand(Commands::Pick, chimeId);
+    SendCommandString(CreateTuneCommandString(Commands::SetTargetNote, channel, noteId));
+    SendCommand(Commands::Pick, channel);
+    TriggerLEDs(channel, noteId);
   }
 
   // End note.
@@ -548,8 +595,6 @@ void setup(void)
   Serial.begin(115200);
   Serial.println("Melodic Chimes starting up.");
 
-  //Serial2.begin(115200);
-
   Serial1.begin(115200, SERIAL_8N1, PIN_UART1_RX, PIN_UART1_TX);
   Serial2.begin(115200, SERIAL_8N1, PIN_UART2_RX, PIN_UART2_TX);
 
@@ -565,26 +610,15 @@ void setup(void)
   InitScreenElements();
   UpdateMidiInfo(false);
   DisplayMain();
-
-  strip.setPixelColor(0, 255, 0, 0);
-  strip.setPixelColor(1, 255, 0, 0);
-  strip.setPixelColor(2, 255, 0, 0);
-  strip.setPixelColor(3, 0, 255, 0);
-  strip.setPixelColor(4, 0, 255, 0);
-  strip.setPixelColor(5, 0, 255, 0);
-  strip.setPixelColor(6, 0, 0, 255);
-  strip.setPixelColor(7, 0, 0, 255);
-  strip.setPixelColor(8, 0, 0, 255);
-
-  strip.show();
 }
 
 void loop()
 {
-
   CheckTouchScreen();
 
   UpdateScreen();
 
   ProcessMIDI();
+
+  NameplateLEDs();
 }
