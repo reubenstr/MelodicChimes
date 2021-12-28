@@ -58,7 +58,7 @@
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
 #include <NeoPixelMethods.h> // local libray
-//#include "tftMethods.h"      // local libray
+#include "tftMethods.h"      // local libray
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -140,7 +140,7 @@ void ProcessIndicators(bool forceUpdate = false)
   static Status previousStatus;
   static int previousMinute;
   char buf[12];
-  int y = 293;
+  int y = 296;
 
   if (previousMinute != sys.time.currentTimeInfo.tm_min)
   {
@@ -154,12 +154,12 @@ void ProcessIndicators(bool forceUpdate = false)
 
     sprintf(buf, "%02u:%02u", sys.time.currentTimeInfo.tm_hour, sys.time.currentTimeInfo.tm_min);
 
-    DisplayIndicator("SD", 25, y, status.sd ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("WIFI", 75, y, status.wifi ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("1", 165, y, status.chime1Enabled ? TFT_BLUE : TFT_YELLOW);
-    DisplayIndicator("2", 185, y, status.chime2Enabled ? TFT_BLUE : TFT_YELLOW);
-    DisplayIndicator("3", 205, y, status.chime3Enabled ? TFT_BLUE : TFT_YELLOW);
-    DisplayIndicator(String(buf), 275, y, status.time ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("SD", 220, y, status.sd ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("WIFI", 270, y, status.wifi ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("1", 310, y, status.chime1Enabled ? TFT_BLUE : TFT_YELLOW);
+    DisplayIndicator("2", 320, y, status.chime2Enabled ? TFT_BLUE : TFT_YELLOW);
+    DisplayIndicator("3", 350, y, status.chime3Enabled ? TFT_BLUE : TFT_YELLOW);
+    DisplayIndicator(String(buf), 420, y, status.time ? TFT_GREEN : TFT_RED);
   }
 }
 
@@ -403,14 +403,6 @@ bool FetchMidiFiles()
 
 bool FetchParametersFromSDCard()
 {
-  //File file = SD.open(parametersFilePath);
-
-  if (!dir.open(parametersFilePath))
-  {
-    Serial.println("SD Card: dir.open() failed!");
-    //return false;
-  }
-
   Serial.printf("SD: Attempting to fetch parameters from %s...\n", parametersFilePath);
 
   if (!file.open(parametersFilePath, O_RDONLY))
@@ -420,48 +412,11 @@ bool FetchParametersFromSDCard()
     return false;
   }
 
-
-
   String str;
   while (file.available())
   {
     str += (char)file.read();
   }
-
-  /**/
-
- 
- /*
-   ifstream sdin(parametersFilePath);
-
-  if (!sdin.is_open()) 
-  {  
-     Serial.println("SD Card: is_open() failed!");
-    return false;
-  }
-
-
-    char *str[2048];
-  
-    // Get text field.
-    sdin.getStr(str);
-
-    // Assume EOF if fail.
-    if (sdin.fail()) 
-    {
-      break;
-    }
-   
- 
-  // Error in an input line if file is not at EOF.
-  if (!sdin.eof())
-  {
-    //error("readFile");
-  }
-*/
-
-
-
 
   DynamicJsonDocument doc(2048);
   DeserializationError error = deserializeJson(doc, str);
@@ -479,14 +434,14 @@ bool FetchParametersFromSDCard()
     wC.ssid = doc["wifiCredentials"][i]["ssid"].as<String>();
     wC.password = doc["wifiCredentials"][i]["password"].as<String>();
     parameters.wifiCredentials.push_back(wC);
-    Serial.println(wC.ssid);
   }
  
   sys.time.timeZone = doc["system"]["timeZone"].as<String>();
-
  
 
   file.close();
+
+  Serial.printf("SD: parameters fetched.\n");
   return true;
 }
 
@@ -703,7 +658,7 @@ void ProcessTime()
 void ProcessWifi()
 {
   static unsigned long start = millis();
-  static int wifiCredentialsIndex = 0;
+  static int wifiCredentialsIndex = -1;
   bool previousStatus = status.wifi;
 
   status.wifi = WiFi.status() == WL_CONNECTED;
@@ -720,12 +675,13 @@ void ProcessWifi()
 
   if (millis() - start > sys.delayMsBetweenWifiScan)
   {
-    WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
-
     if (++wifiCredentialsIndex > parameters.wifiCredentials.size() - 1)
     {
       wifiCredentialsIndex = 0;
     }
+
+     Serial.printf("WIFI: Attemping to connect to %s : %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
+     WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());   
   }
 }
 
@@ -742,7 +698,7 @@ void setup(void)
   Serial2.begin(115200, SERIAL_8N1, PIN_UART2_RX, PIN_UART2_TX);
 
   DisplayInit();
-  // CheckTouchCalibration(&tft, false);
+  CheckTouchCalibration(&tft, false);
 
   if (!SDCardInit())
   {
@@ -785,9 +741,9 @@ void loop()
 
   ProcessIndicators();
 
-  // ProcessTime();
+  ProcessTime();
 
   ProcessNameplate();
 
-  // ProcessWifi();
+  ProcessWifi();
 }

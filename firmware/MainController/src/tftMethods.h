@@ -4,7 +4,7 @@
 	For ESP32 and TFT_eSPI
 */
 
-#include "FS.h"
+#include <FS.h>
 #include <TFT_eSPI.h>
 #include <SPIFFS.h>
 
@@ -30,7 +30,7 @@ void CheckTouchCalibration(TFT_eSPI *tft, bool forceCalibrationFlag)
     if (SPIFFS.exists(CALIBRATION_FILE))
     {
         Serial.println("SPIFFS: Getting calibration file.");
-        File file = SPIFFS.open(CALIBRATION_FILE, "r");
+        fs::File file = SPIFFS.open(CALIBRATION_FILE, "r");
         if (file)
         {
             if (file.readBytes((char *)calData, 14) == 14)
@@ -70,7 +70,7 @@ void CheckTouchCalibration(TFT_eSPI *tft, bool forceCalibrationFlag)
         tft->println("Calibration complete!");
 
         // store data
-        File file = SPIFFS.open(CALIBRATION_FILE, "w");
+        fs::File file = SPIFFS.open(CALIBRATION_FILE, "w");
         if (file)
         {
             file.write((const unsigned char *)calData, 14);
