@@ -103,11 +103,6 @@ bool GFXItems::IsItemInGroupPressed(int groupId, int *id)
 
   if (tft->getTouch(&x, &y, 20))
   {
-
-    // Rotate touch input.
-    //x = tft->width() - x;
-    y = tft->height() - y;
-
     for (auto &gfxItem : gfxItems)
     {
       if (gfxItem.groupId == groupId)
