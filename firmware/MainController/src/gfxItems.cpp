@@ -34,6 +34,7 @@ void GFXItems::DisplayElement(GFXItem gfxItem)
   tft->setFreeFont(gfxItem.gfxFont);
   tft->setTextSize(gfxItem.textSize);
   tft->setTextColor(gfxItem.textColor);
+  tft->setTextDatum(TL_DATUM);
 
   String text(gfxItem.text);
 
@@ -46,16 +47,21 @@ void GFXItems::DisplayElement(GFXItem gfxItem)
 
   int textX;
   if (gfxItem.justification == Justification::Left)
-  {
+  { 
+    
     textX = gfxItem.x;
   }
   else if (gfxItem.justification == Justification::Center)
   {
+ 
     textX = gfxItem.x + gfxItem.w / 2 - tft->textWidth(gfxItem.text) / 2;
+   
   }
   else if (gfxItem.justification == Justification::Right)
   {
+ 
     textX = gfxItem.x + gfxItem.w - tft->textWidth(text);
+    
   }
   else
   {
@@ -99,7 +105,7 @@ bool GFXItems::IsItemInGroupPressed(int groupId, int *id)
   {
 
     // Rotate touch input.
-    x = tft->width() - x;
+    //x = tft->width() - x;
     y = tft->height() - y;
 
     for (auto &gfxItem : gfxItems)

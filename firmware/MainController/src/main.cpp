@@ -4,10 +4,11 @@
   
   Description: 
     Three auto-tuning strings playing music from custom MIDI files.
-
+	  Fetch network time via WiFi for on the hour chime.
+	
   Microcontrollers:
       1x ESP32 (DevkitV1): Main controller parsing MIDI files and fetching time from WiFi.
-      2x Teensy 3.2: Chime controllers detecting string frequency and driving chime actions.
+      [External] 2x Teensy 3.2: Chime controllers detecting string frequency and driving chime actions.
  
   Hardware:
       TFT Touch Screen: User interface.
@@ -17,16 +18,18 @@
   Compilation Notes:
     MD_MIDIFile.h line 899 fix:
         void setFileFolder(const char* apath) { if (apath != nullptr) _sd->chdir(apath); }
-
+		
   Online Tools:
     MIDI Creation: https://musescore.org/en
-
+	
   Bugs:
     bootup fails when SD card does not have a .mid file. -> provide error message
-
+	
   TODO / Possible Upgrades:
     Receive feedback from chime controllers to check if strings are OK (in range).
     MIDI playback progress bar.
+	  Rebuild JSON parameters file if the file is missing or contains bad JSON.
+    Move TFT Pins to build flags (like quotebot)
 */
 
 /*
@@ -47,7 +50,6 @@
 #include <SPI.h>
 #include <TFT_eSPI.h>
 #include "Free_Fonts.h"
-#include "msTimer.h"
 #include <SdFat.h>
 #include "sdios.h"
 #include "gfxItems.h" // local libray
@@ -56,6 +58,14 @@
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
 #include <NeoPixelMethods.h> // local libray
+//#include "tftMethods.h"      // local libray
+
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "time.h"
+
+#define ARDUINOJSON_USE_LONG_LONG 1
+#include <ArduinoJson.h>
 
 #define PIN_UART1_TX 33
 #define PIN_UART1_RX 25
@@ -66,13 +76,14 @@
 // TFT Screen.
 TFT_eSPI tft = TFT_eSPI();
 bool takeTouchReadings = true;
-unsigned long touchDebounceMillis = millis();
+GFXItems gfxItems(&tft);
 
 // SD Card.
-const uint8_t SD_SELECT = 15;
-SdFat32 SD;
+const uint8_t PIN_SD_CHIP_SELECT = 15;
+SdFat SD;
 SdFile dir;
 SdFile file;
+const char *parametersFilePath = "/parameters.json";
 
 // General system.
 PageId pageId = PageId::Home;
@@ -84,22 +95,13 @@ unsigned int selectedFileId = 0;
 MD_MIDIFile SMF;
 unsigned long midiWaitMillis = 0;
 
-// Configuration.
-struct Configuration
-{
-  bool hourly = true;
-  int startHour = 900;
-  int endHour = 2200;
-  signed int timeZone = -4;
-  bool startup = true;
-  String songName = "Default Song";
-} configuration;
-
-GFXItems gfxItems(&tft);
-
-const char delimiter = ':';
-
+// Nameplate LEDs
 Adafruit_NeoPixel strip(9, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+
+// Parameters
+Parameters parameters;
+Status status;
+System sys;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -112,10 +114,10 @@ void SendCommand(Commands command, int chime)
   Serial2.print(buffer);
 }
 
-String SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
+void SendTuneCommand(Commands command, int chime, int nodeId, bool vibrato = false)
 {
   char buffer[16];
-  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato)); 
+  snprintf(buffer, sizeof(buffer), "%u:%u:%u:%u\n", int(command), chime, nodeId, int(vibrato));
   Serial.printf("Sending command: %s", buffer);
   Serial1.print(buffer);
   Serial2.print(buffer);
@@ -133,7 +135,35 @@ void UpdateMidiInfo(bool updateScreenFlag = true)
   }
 }
 
-void UpdateScreen()
+void ProcessIndicators(bool forceUpdate = false)
+{
+  static Status previousStatus;
+  static int previousMinute;
+  char buf[12];
+  int y = 293;
+
+  if (previousMinute != sys.time.currentTimeInfo.tm_min)
+  {
+    previousMinute = sys.time.currentTimeInfo.tm_min;
+    forceUpdate = true;
+  }
+
+  if (previousStatus != status || forceUpdate)
+  {
+    previousStatus = status;
+
+    sprintf(buf, "%02u:%02u", sys.time.currentTimeInfo.tm_hour, sys.time.currentTimeInfo.tm_min);
+
+    DisplayIndicator("SD", 25, y, status.sd ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("WIFI", 75, y, status.wifi ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("1", 165, y, status.chime1Enabled ? TFT_BLUE : TFT_YELLOW);
+    DisplayIndicator("2", 185, y, status.chime2Enabled ? TFT_BLUE : TFT_YELLOW);
+    DisplayIndicator("3", 205, y, status.chime3Enabled ? TFT_BLUE : TFT_YELLOW);
+    DisplayIndicator(String(buf), 275, y, status.time ? TFT_GREEN : TFT_RED);
+  }
+}
+
+void ProcessDisplay()
 {
   static PlayState previousPlayState = PlayState::Default;
   if (previousPlayState != playState)
@@ -281,17 +311,17 @@ void ProcessPressedButton(int id)
   }
 }
 
-void CheckTouchScreen()
+void ProcessTouchScreen()
 {
+  static unsigned long start = millis();
   signed id = -1;
 
-  if (millis() - touchDebounceMillis > 250)
+  if (millis() - start > 250)
   {
     takeTouchReadings = true;
   }
 
   gfxItems.IsItemInGroupPressed(int(PageId::All), &id);
-
   gfxItems.IsItemInGroupPressed(int(pageId), &id);
 
   if (takeTouchReadings)
@@ -300,25 +330,39 @@ void CheckTouchScreen()
     {
       ProcessPressedButton(id);
       takeTouchReadings = false;
-      touchDebounceMillis = millis();
+      start = millis();
     }
   }
 }
 
-void SDInit()
+bool SDCardInit()
 {
-  if (!SD.begin(SD_SELECT, SPI_HALF_SPEED))
+  int count = 0;
+
+  Serial.println("SD: Attempting to mount SD card...");
+
+  while (!SD.begin(PIN_SD_CHIP_SELECT, SPI_HALF_SPEED))
   {
-    Serial.println("SD Card: init failed!");
-    DisplayError(ErrorCodes::sdCardInitFailed);
+    if (++count > 5)
+    {
+      Serial.println("SD: Card Mount Failed.");
+      return false;
+    }
+    delay(100);
   }
 
-  Serial.println("SD Card: init successful.");
-  Serial.println("SD Card: finding .mid files.");
+  Serial.println("SD: SD card mounted.");
+  return true;
+}
+
+bool FetchMidiFiles()
+{
+  Serial.println("SD Card: fetching .mid files.");
 
   if (!dir.open("/"))
   {
     Serial.println("SD Card: dir.open() failed!");
+    return false;
   }
 
   while (file.openNext(&dir, O_RDONLY))
@@ -333,9 +377,11 @@ void SDInit()
     }
     file.close();
   }
+
   if (dir.getError())
   {
     Serial.println("SD Card: openNext() failed!");
+    return false;
   }
   else
   {
@@ -344,66 +390,154 @@ void SDInit()
 
   if (midiFiles.size() == 0)
   {
-    DisplayError(ErrorCodes::sdCardInitFailed);
+    return false;
   }
 
   for (auto &s : midiFiles)
   {
     Serial.println(s);
   }
+  return true;
 }
+
+
+bool FetchParametersFromSDCard()
+{
+  //File file = SD.open(parametersFilePath);
+
+  if (!dir.open(parametersFilePath))
+  {
+    Serial.println("SD Card: dir.open() failed!");
+    //return false;
+  }
+
+  Serial.printf("SD: Attempting to fetch parameters from %s...\n", parametersFilePath);
+
+  if (!file.open(parametersFilePath, O_RDONLY))
+  {
+    Serial.printf("SD: Failed to open file: %s\n", parametersFilePath);
+    file.close();
+    return false;
+  }
+
+
+
+  String str;
+  while (file.available())
+  {
+    str += (char)file.read();
+  }
+
+  /**/
+
+ 
+ /*
+   ifstream sdin(parametersFilePath);
+
+  if (!sdin.is_open()) 
+  {  
+     Serial.println("SD Card: is_open() failed!");
+    return false;
+  }
+
+
+    char *str[2048];
+  
+    // Get text field.
+    sdin.getStr(str);
+
+    // Assume EOF if fail.
+    if (sdin.fail()) 
+    {
+      break;
+    }
+   
+ 
+  // Error in an input line if file is not at EOF.
+  if (!sdin.eof())
+  {
+    //error("readFile");
+  }
+*/
+
+
+
+
+  DynamicJsonDocument doc(2048);
+  DeserializationError error = deserializeJson(doc, str);
+
+  if (error)
+  {
+    Serial.print(F("JSON: DeserializeJson() failed: "));
+    Serial.println(error.c_str());
+    return false;
+  }
+  
+  for (int i = 0; i < doc["wifiCredentials"].size(); i++)
+  {
+    WifiCredentials wC;
+    wC.ssid = doc["wifiCredentials"][i]["ssid"].as<String>();
+    wC.password = doc["wifiCredentials"][i]["password"].as<String>();
+    parameters.wifiCredentials.push_back(wC);
+    Serial.println(wC.ssid);
+  }
+ 
+  sys.time.timeZone = doc["system"]["timeZone"].as<String>();
+
+ 
+
+  file.close();
+  return true;
+}
+
 
 void TriggerLEDs(int chimeId, int noteId)
 {
-  uint32_t color = Wheel(map(noteId, 50, 69, 0, 255));
+  uint32_t color = Wheel(map(noteId, 50, 69, 85, 255));
   for (int i = 0; i < 3; i++)
   {
     strip.setPixelColor(i + chimeId * 3, color);
   }
 }
 
-void FadeLEDs()
+void ProcessNameplate()
 {
+  static byte position;
   static unsigned long start = millis();
-  if (millis() - start > 10)
+
+  if (playState == PlayState::Idle)
   {
-    start = millis();
-    for (int i = 0; i < strip.numPixels(); i++)
+    if (millis() - start > sys.delayMsNameplateLEDRevolve)
     {
-      strip.setPixelColor(i, Fade(strip.getPixelColor(i), 4));
+      start = millis();
+      position++;
+      for (int i = 0; i < strip.numPixels(); i++)
+      {
+        byte input = (255 / strip.numPixels()) * i + position;
+        strip.setPixelColor(i, Wheel(input));
+      }
+      strip.setBrightness(sys.nameplateLEDBrightnessRevolve);
+      strip.show();
     }
-  }
-  strip.show();
-}
-
-void NameplateLEDs()
-{
-  static bool flag = true;
-
-  if (playState == PlayState::Idle && flag)
-  {
-    flag = false;
-    strip.setPixelColor(0, 255, 0, 0);
-    strip.setPixelColor(1, 255, 0, 0);
-    strip.setPixelColor(2, 255, 0, 0);
-    strip.setPixelColor(3, 0, 255, 0);
-    strip.setPixelColor(4, 0, 255, 0);
-    strip.setPixelColor(5, 0, 255, 0);
-    strip.setPixelColor(6, 0, 0, 255);
-    strip.setPixelColor(7, 0, 0, 255);
-    strip.setPixelColor(8, 0, 0, 255);
-    strip.show();
   }
   else if (playState == PlayState::Play)
   {
-    flag = true;
-    FadeLEDs();
+    if (millis() - start > sys.delayMsNameplateLEDFade)
+    {
+      start = millis();
+      for (int i = 0; i < strip.numPixels(); i++)
+      {
+        strip.setPixelColor(i, Fade(strip.getPixelColor(i), 4));
+      }
+      strip.setBrightness(sys.nameplateLEDBrightnessFade);
+      strip.show();
+    }
   }
 }
 
 void midiCallback(midi_event *pev)
 {
-  const char *onOfText[] = {"OFF", "ON "};
+  const char *onOffText[] = {"OFF", "ON "};
   bool noteState = false;
 
   if (pev->size < 3)
@@ -427,7 +561,7 @@ void midiCallback(midi_event *pev)
     noteState = true;
   }
 
-  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %3u | Velocity: %3u | Data: [", millis(), track, channel, onOfText[noteState], noteId, velocity);
+  Serial.printf("(%8u) | Track: %u | Channel: %u | Command: %s | NoteID: %3u | Velocity: %3u | Data: [", millis(), track, channel, onOffText[noteState], noteId, velocity);
 
   for (uint8_t i = 0; i < size; i++)
   {
@@ -440,18 +574,15 @@ void midiCallback(midi_event *pev)
   }
   Serial.println("]");
 
-  // Play note.
   if (noteState == true && velocity > 0)
   {
     SendTuneCommand(Commands::SetTargetNote, channel, noteId);
     SendCommand(Commands::Pick, channel);
     TriggerLEDs(channel, noteId);
   }
-
-  // End note.
-  if (noteState == false || velocity == 0)
+  else if (noteState == false || velocity == 0)
   {
-    // Do nothing.
+    // Do nothing, chimes will fade in volume naturally.
   }
 }
 
@@ -546,43 +677,117 @@ void ProcessMIDI()
   }
   else if (playState == PlayState::Random)
   {
-    //TODO
+    //TODO: create random notes within a from a musical key.
+  }
+}
+
+void ProcessTime()
+{
+  static unsigned long start = millis();
+
+  if (millis() - start > sys.delayMsBetweenFetchTime)
+  {
+    start = millis();
+
+    if (!getLocalTime(&sys.time.currentTimeInfo))
+    {
+      Serial.println("TIME: Failed to obtain time");
+      status.time = false;
+    }
+
+    status.time = true;
+    time(&sys.time.currentEpoch); // Fetch current time as epoch
+  }
+}
+
+void ProcessWifi()
+{
+  static unsigned long start = millis();
+  static int wifiCredentialsIndex = 0;
+  bool previousStatus = status.wifi;
+
+  status.wifi = WiFi.status() == WL_CONNECTED;
+
+  if (status.wifi == true)
+  {
+    start = millis();
+
+    if (previousStatus != status.wifi)
+    {
+      Serial.printf("WIFI: WiFi connected to %s, device IP: %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), WiFi.localIP().toString().c_str());
+    }
+  }
+
+  if (millis() - start > sys.delayMsBetweenWifiScan)
+  {
+    WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
+
+    if (++wifiCredentialsIndex > parameters.wifiCredentials.size() - 1)
+    {
+      wifiCredentialsIndex = 0;
+    }
   }
 }
 
 void setup(void)
 {
-
   strip.begin();
   strip.show();
 
   delay(1000);
   Serial.begin(115200);
-  Serial.println("Melodic Chimes starting up.");
+  Serial.println("Melodic Chimes starting up...");
 
   Serial1.begin(115200, SERIAL_8N1, PIN_UART1_RX, PIN_UART1_TX);
   Serial2.begin(115200, SERIAL_8N1, PIN_UART2_RX, PIN_UART2_TX);
 
-  ScreenInit();
+  DisplayInit();
+  // CheckTouchCalibration(&tft, false);
 
-  SDInit();
+  if (!SDCardInit())
+  {
+    DisplayError(ErrorCodes::sdCardInitFailed);
+  }
+  else
+  {
+    status.sd = true;
+  }
+
+  if (!FetchMidiFiles())
+  {
+    DisplayError(ErrorCodes::midiFilesNotFound);
+  }
+
+	if (!FetchParametersFromSDCard())
+	{
+		DisplayError(ErrorCodes::parametersFileFailed);		
+	}  
+
+  configTime(sys.time.gmtOffset_sec, sys.time.daylightOffset_sec, sys.time.ntpServer);
+
+  DisplayElementsInit();
+  UpdateMidiInfo(false);
+  DisplayMain();
+  ProcessIndicators(true);
 
   SMF.begin(&SD);
   SMF.setMidiHandler(midiCallback);
   SMF.setSysexHandler(sysexCallback);
-
-  InitScreenElements();
-  UpdateMidiInfo(false);
-  DisplayMain();
 }
 
 void loop()
 {
-  CheckTouchScreen();
+  ProcessTouchScreen();
 
-  UpdateScreen();
+  ProcessDisplay();
 
   ProcessMIDI();
 
-  NameplateLEDs();
+  ProcessIndicators();
+
+  // ProcessTime();
+
+  ProcessNameplate();
+
+  // ProcessWifi();
 }

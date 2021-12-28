@@ -1,7 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-
+#include <vector>
 
 enum class GFXItemId
 {
@@ -42,18 +42,14 @@ enum class GFXItemId
   Chime_2_up,
   Chime_3_down,
   Chime_3_up,
-  Chime_4_down,
-  Chime_4_up,
 
   // Development.
   Chime1mute,
   Chime2mute,
   Chime3mute,
-  Chime4mute,
   Chime1pick,
   Chime2pick,
   Chime3pick,
-  Chime4pick,
 
   // Volume
   Chime1VolumePlus,
@@ -96,6 +92,64 @@ enum class Commands
     VolumeMinus,
     SetTargetNote,    
     Pick
+};
+
+struct WifiCredentials
+{
+  String ssid;
+  String password;
+};
+
+struct Time
+{
+  struct tm currentTimeInfo;
+  time_t currentEpoch;
+  const char *ntpServer = "pool.ntp.org";
+  const long gmtOffset_sec = -5 * 60 * 60;
+  const int daylightOffset_sec = 3600;
+  String timeZone;
+};
+
+struct Parameters
+{
+  std::vector<WifiCredentials> wifiCredentials;  
+ 
+};
+
+struct Status
+{
+  bool wifi;
+  bool sd;
+  bool time;
+  bool chime1Enabled;
+  bool chime2Enabled;
+  bool chime3Enabled;
+
+  bool operator!=(Status const &s)
+  {
+    return (wifi != s.wifi ||
+            sd != s.sd ||           
+            time != s.time ||
+			chime1Enabled != s.chime1Enabled ||
+			chime2Enabled != s.chime2Enabled ||
+			chime3Enabled != s.chime3Enabled
+			);
+  }
+};
+
+struct System
+{	
+	Time time;
+	
+	const unsigned long delayMsBetweenWifiScan = 3000;
+	const int delayMsBetweenFetchTime = 250;
+	const int delayMsNameplateLEDFade = 10;
+	const int delayMsNameplateLEDRevolve = 15;
+	const char delimiter = ':';
+	
+	const int nameplateLEDBrightnessFade = 255;
+	const int nameplateLEDBrightnessRevolve = 127;
+	
 };
 
 #endif

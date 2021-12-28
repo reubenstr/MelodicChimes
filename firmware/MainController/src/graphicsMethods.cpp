@@ -7,7 +7,7 @@
 extern TFT_eSPI tft;
 extern GFXItems gfxItems;
 
-void InitScreenElements()
+void DisplayElementsInit()
 {
   const int buttonMainW = 110;
   const int buttonMainH = 55;
@@ -20,7 +20,7 @@ void InitScreenElements()
   gfxItems.Add(GFXItem(int(GFXItemId::Configuration), int(PageId::All), "CONFIG.", 180, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Calibration), int(PageId::All), "CALIB.", 330, 10, buttonMainW, 35, TFT_BLACK, TFT_MAGENTA, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Play), int(PageId::Home), "PLAY", 30, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
-  gfxItems.Add(GFXItem(int(GFXItemId::Pause), int(PageId::Home), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE, gfxFont));
+  // gfxItems.Add(GFXItem(int(GFXItemId::Pause), int(PageId::Home), "PAUSE", 180, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_YELLOW, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Stop), int(PageId::Home), "STOP", 330, 220, buttonMainW, buttonMainH, TFT_BLACK, TFT_RED, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Previous), int(PageId::Home), "PREV.", 30, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
   gfxItems.Add(GFXItem(int(GFXItemId::Next), int(PageId::Home), "NEXT", 330, 150, buttonMainW, buttonMainH, TFT_BLACK, TFT_BLUE, TFT_WHITE, TFT_WHITE, gfxFont));
@@ -88,9 +88,13 @@ void DisplayError(ErrorCodes error)
   {
     tft.drawString("SD card not detected!", 50, 100);
   }
-  else if (error == ErrorCodes::midiNotFound)
+  else if (error == ErrorCodes::midiFilesNotFound)
   {
     tft.drawString("MIDI file(s) not found!", 50, 100);
+  }
+   else if (error == ErrorCodes::midiFilesNotFound)
+  {
+    tft.drawString("Parameter file not found or corrupted!", 50, 100);
   }
   else if (error == ErrorCodes::chimeFailed)
   {
@@ -127,30 +131,22 @@ void DisplayMain()
   gfxItems.DisplayGroup(int(PageId::All));
 }
 
-void ScreenInit()
+void DisplayInit()
 {
   tft.init();
   delay(150); // TFT driver needs time to process command.
   tft.setRotation(1);
-  delay(150); // TFT driver needs time to process command.
+  delay(150); // TFT driver needs time to process command. 
+}
 
-  uint16_t calibrationData[5] = {298, 3574, 266, 3542, 1};
-  // Below line calls calibration routine.
-  /*   
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextFont(GLCD);
-  tft.setTextColor(TFT_GREEN);
+void DisplayIndicator(String string, int x, int y, uint16_t color)
+{
   tft.setTextSize(2);
-  tft.drawString("Calibrate display's touch sensor: ", 25, 50);
-  tft.drawString("touch each of the four corners in order. ", 25, 75);
-  tft.calibrateTouch(calibrationData, TFT_WHITE, TFT_RED, 20);
-  for(int i = 0; i < 5; i ++)
-  {
-    Serial.println(calibrationData[i]);
-  }
-  // TODO: give user indication calibration is complete.
-  while(true);
-  */
-
-  tft.setTouch(calibrationData);
+  tft.setTextDatum(TC_DATUM);
+  tft.setTextColor(TFT_BLACK, color);
+  int padding = tft.textWidth(string);
+  tft.setTextPadding(padding + 6);
+  tft.drawFastHLine(x - ((padding + 6) / 2), y - 1, padding + 6, color);
+  tft.drawFastHLine(x - ((padding + 6) / 2), y - 2, padding + 6, color);
+  tft.drawString(string.c_str(), x, y);
 }
