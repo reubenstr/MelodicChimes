@@ -67,8 +67,8 @@ private:
         Vibrato
     } _chimeState;
 
-    const int highestNote[4] = {69, 64, 60};
-    const int lowestNote[4] = {60, 56, 51};
+    const int highestNote[3] = {69, 64, 60};
+    const int lowestNote[3] = {60, 56, 51};
 
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;
@@ -76,7 +76,8 @@ private:
     int _lockedInNoteId;
     const float _frequencyTolerance = 0.0;
 
-    const float _regressionCoef[3] = {2.97 / 2, 1.24, 0.48};
+    //const float _regressionCoef[3] = {2.97 / 2, 1.24, 0.48};
+    const float _regressionCoef[3] = {0.5, 0.4, 0.3};
     const int nullNoteId = 0;
 
     bool _vibratoToggle;

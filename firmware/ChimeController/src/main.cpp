@@ -33,8 +33,8 @@ Phase:
 #include "main.h"
 
 // Select the controller's chimes:
-//#define CHIME_0_AND_1
-#define CHIME_2
+#define CHIME_0_AND_1
+//#define CHIME_2
 
 using namespace TeensyTimerTool;
 Timer tickTimer; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)

@@ -91,15 +91,21 @@ bool Chime::TuneNote(int targetNoteId)
         return false;
     }
 
+     if (detectedFrequency <  NoteIdToFrequency(highestNote[_chimeId]) / 2)
+    {
+        return false;
+    }
+
     detectionCount++;
 
     float targetFrequency = NoteIdToFrequency(targetNoteId);
     //float targetPosition = _regressionCoef[_chimeId] * (targetFrequency - detectedFrequency);
 	
 	// Use results of polynomial regression.
+    // TODO: move to header, contruct per string.
 	float pos1 = 0.0041 * detectedFrequency * detectedFrequency + 0.4195 * detectedFrequency;
 	float pos2 = 0.0041 * targetFrequency * targetFrequency + 0.4195 * targetFrequency;	
-	float targetPosition = (pos2 - pos1) / 2;
+	float targetPosition = (pos2 - pos1) * _regressionCoef[_chimeId];
 
     if (detectedFrequency < targetFrequency - _frequencyTolerance)
     {
@@ -124,7 +130,7 @@ bool Chime::TuneNote(int targetNoteId)
         detectionCount = 0;
 
     
-    if (_chimeId == 0)
+    if (_chimeId == 5)
         Serial.printf("[%u] [%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Position Adjustment: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
                       millis(), _chimeId, detectionCount, millis() - _startTimeBetweenFreqDetections,
                       targetNoteId, detectedFrequency, targetFrequency,
