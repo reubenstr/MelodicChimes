@@ -34,8 +34,8 @@ Phase:
 #include <main.h>
 
 // Select the controller's chimes:
-#define CHIME_0_AND_1
-//#define CHIME_2
+//#define CHIME_0_AND_1
+#define CHIME_2
 
 using namespace TeensyTimerTool;
 Timer tickTimer; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
@@ -286,7 +286,7 @@ void setup()
     AudioMemory(120);
     tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
 
-// Check if succesful, send error to main controller if unsucessful.
+// TODO: Check if succesful, send error to main controller if unsucessful.
 #if defined CHIME_0_AND_1
     chime0.CalibratePick();
     chime1.CalibratePick();
@@ -306,6 +306,7 @@ void setup()
     /*    
     while (1)
     {
+        EnableSteppers(true);
         Serial.println("*** TEST TimeBetweenHighAndLowNotes ***");
         chimeA.CaptureTimeFromLowToHighNote();
         delay(5000);
@@ -315,8 +316,9 @@ void setup()
     /*
     while (1)
     {
+        EnableSteppers(true);
         Serial.println("*** TEST CalibrateFrequencyPerStep ***");
-        chime2.CaptureFrequencyPerStep();
+        chime1.CaptureFrequencyPerStep();
         delay(5000);
     }
     */

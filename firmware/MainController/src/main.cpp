@@ -59,7 +59,7 @@
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
 #include <NeoPixelMethods.h> // local libray
-#include <tftMethods.h>     // local libray
+#include <tftMethods.h>      // local libray
 #include <utilities.h>
 
 #include <WiFi.h>
@@ -695,53 +695,51 @@ void ProcessCommand(String command)
 
   if (commandInt == int(Commands::StatusDisabled))
   {
-    Serial.printf("Command received: $s - chime %u disabled.", command.c_str(), chimeId);
-    if (chimeId == 1)
+    Serial.printf("Command received: chime %u disabled.\n", chimeId);
+    if (chimeId == 0)
       status.chime1Enabled = false;
-    if (chimeId == 2)
+    if (chimeId == 1)
       status.chime2Enabled = false;
-    if (chimeId == 3)
+    if (chimeId == 2)
       status.chime3Enabled = false;
   }
   else if (commandInt == int(Commands::StatusEnabled))
   {
-    Serial.printf("Received command: $s - chime %u enabled.", command.c_str(), chimeId);
-    if (chimeId == 1)
+    Serial.printf("Received command: chime %u enabled.\n", chimeId);
+    if (chimeId == 0)
       status.chime1Enabled = true;
-    if (chimeId == 2)
+    if (chimeId == 1)
       status.chime2Enabled = true;
-    if (chimeId == 3)
+    if (chimeId == 2)
       status.chime3Enabled = true;
   }
   else if (commandInt == int(Commands::Error))
   {
+    Serial.printf("Received command: error on chime %u.\n", chimeId);
     DisplayError(ErrorCodes::chimeFailed);
   }
 }
 
 void ProcessUart()
-{    
-    static String uartData = "";
+{
+  static String uartData = "";
 
-    while (Serial1.available() > 0)
+  while (Serial1.available() > 0)
+  {
+    char readChar = Serial1.read();
+    uartData += (char)readChar;
+   
+    if (readChar == '\n')
     {
+      ProcessCommand(uartData);
+      uartData = "";
+    }
 
-     
-
-        char readChar = Serial2.read();
-        uartData += (char)readChar;
- Serial.println(readChar);
-        if (readChar == '\n')
-        {
-            ProcessCommand(uartData);
-            uartData = "";
-        }
-
-        if (uartData.length() > 64)
-        {
-            uartData = "";
-        }
-    }    
+    if (uartData.length() > 64)
+    {
+      uartData = "";
+    }
+  }
 }
 
 void setup(void)
@@ -802,7 +800,7 @@ void loop()
   ProcessMIDI();
 
   ProcessIndicators();
- 
+
   ProcessNameplate();
 
   // ProcessWifi();

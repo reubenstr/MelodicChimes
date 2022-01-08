@@ -56,7 +56,7 @@ private:
 
     // Chime.
     const float _noFrequencyDetected = 0.0;
-    const float _acceptableProbability = 0.995;
+    const float _acceptableProbability = 0.99;
 
     int _chimeId;
     bool _vibrato;
@@ -76,10 +76,11 @@ private:
     int _lockedInNoteId;
     const float _frequencyTolerance = 1.0;
 
-    //const float _regressionCoef[3] = {2.97 / 2, 1.24, 0.48};
-    const float _regressionCoef[3] = {0.5, 0.5, 0.5};
-    const int nullNoteId = 0;
+    const float _secondOrderCoef[3] = {0.0041, 0.0039, 0.00155};
+    const float _firstOrderCoef[3] = {0.4195, 0.0104, 1.19004};
+    const float _manualCoef[3] = {0.5, 0.5, 0.5};
 
+    const int _nullNoteId = 0;
     bool _vibratoToggle;
     const int _vibratoSteps = 10;
 
@@ -101,8 +102,8 @@ private:
     unsigned long _startMute;
 
     // Tuning development and logging
-    unsigned long frequencyDetectionTimeoutMillis = millis();
-    const unsigned int frequencyDetectionTimeoutMs = 500;
+    unsigned long _frequencyDetectionTimeoutMillis = millis();
+    const unsigned int _frequencyDetectionTimeoutMs = 500;
     unsigned long _startTimeBetweenFreqDetections = millis();
-    unsigned int detectionCount = 0;
+    unsigned int _detectionCount = 0;
 };
