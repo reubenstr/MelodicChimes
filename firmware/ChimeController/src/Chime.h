@@ -24,6 +24,7 @@ public:
 
     void RestringTighten();
     void RestringLoosen();
+    void AddTension();
     void VolumePlus();
     void VolumeMinus();
     void SetMaxVolume();
@@ -36,6 +37,7 @@ public:
     void Pick();
     void Tick();
     bool CalibratePick();
+    bool CalibrateChime();
 
     int GetLowestNote();
     int GetHighestNote();
@@ -69,6 +71,8 @@ private:
 
     const int highestNote[3] = {69, 64, 60};
     const int lowestNote[3] = {60, 56, 51};
+
+    const int _numberOfCalibratePickAttempts = 3;
 
     // Tuning.
     AudioAnalyzeNoteFrequency *notefreq;

@@ -142,7 +142,7 @@ void ProcessIndicators(bool forceUpdate = false)
   static Status previousStatus;
   static int previousMinute;
   char buf[12];
-  const int y = 296;
+  const int y = 295;
 
   static PlayState previousPlayState = PlayState::Default;
   if (previousPlayState != playState)
@@ -154,12 +154,12 @@ void ProcessIndicators(bool forceUpdate = false)
   if (previousStatus != status || forceUpdate)
   {
     previousStatus = status;
-    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_RED);
+    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_MAGENTA);
     DisplayIndicator("SD", 170, y, status.sd ? TFT_GREEN : TFT_RED);
     DisplayIndicator("WIFI", 220, y, status.wifi ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("1", 270, y, status.chime1Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("1", 265, y, status.chime1Enabled ? TFT_GREEN : TFT_YELLOW);
     DisplayIndicator("2", 290, y, status.chime2Enabled ? TFT_GREEN : TFT_YELLOW);
-    DisplayIndicator("3", 310, y, status.chime3Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("3", 315, y, status.chime3Enabled ? TFT_GREEN : TFT_YELLOW);
   }
 
   if (previousMinute != sys.time.currentTimeInfo.tm_min)
@@ -722,22 +722,40 @@ void ProcessCommand(String command)
 
 void ProcessUart()
 {
-  static String uartData = "";
+  static String uartData1 = "";
+  static String uartData2 = "";
 
   while (Serial1.available() > 0)
   {
     char readChar = Serial1.read();
-    uartData += (char)readChar;
-   
+    uartData1 += (char)readChar;
+
     if (readChar == '\n')
     {
-      ProcessCommand(uartData);
-      uartData = "";
+      ProcessCommand(uartData1);
+      uartData1 = "";
     }
 
-    if (uartData.length() > 64)
+    if (uartData1.length() > 64)
     {
-      uartData = "";
+      uartData1 = "";
+    }
+  }
+
+  while (Serial2.available() > 0)
+  {
+    char readChar = Serial2.read();
+    uartData2 += (char)readChar;
+
+    if (readChar == '\n')
+    {
+      ProcessCommand(uartData2);
+      uartData2 = "";
+    }
+
+    if (uartData2.length() > 64)
+    {
+      uartData2 = "";
     }
   }
 }
@@ -755,6 +773,7 @@ void setup(void)
   Serial2.begin(115200, SERIAL_8N1, PIN_UART2_RX, PIN_UART2_TX);
 
   DisplayInit();
+
   CheckTouchCalibration(&tft, false);
 
   if (!SDCardInit())

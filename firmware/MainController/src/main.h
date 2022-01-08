@@ -82,8 +82,8 @@ enum class PlayState
 };
 
 // Order of text and colors need to match order of PlayState.
-static const char *playStateText[6] = {"", "IDLE ", "LOAD ", "PLAY ", "PAUSE", "STOP "};
-const uint32_t playStateFillColor[6] = {TFT_BLACK, TFT_SKYBLUE, TFT_BLUE, TFT_GREEN, TFT_YELLOW, TFT_RED};
+static const char *playStateText[] = {"", "IDLE ", "PRE  ", "LOAD ", "PLAY ", "PAUSE", "STOP "};
+const uint32_t playStateFillColor[] = {TFT_BLACK, TFT_SKYBLUE, TFT_MAGENTA, TFT_BLUE, TFT_GREEN, TFT_YELLOW, TFT_RED};
 
 const char delimiter = ':';
 

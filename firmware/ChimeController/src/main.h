@@ -1,4 +1,3 @@
-
 const int stepperTimeoutDelayMs = 1000 * 60 * 1;
 
 const char delimiter = ':';

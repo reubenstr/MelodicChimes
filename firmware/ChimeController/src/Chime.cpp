@@ -96,7 +96,7 @@ bool Chime::TuneNote(int targetNoteId)
         return false;
     }
 
-    detectionCount++;
+    _detectionCount++;
 
     // Using results of polynomial regression.
     float targetFrequency = NoteIdToFrequency(targetNoteId);
@@ -124,11 +124,11 @@ bool Chime::TuneNote(int targetNoteId)
     }
 
     if (millis() - _startTimeBetweenFreqDetections > 100)
-        detectionCount = 0;
+        _detectionCount = 0;
 
     //if (_chimeId == 5)
     Serial.printf("[%u] [%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Position Adjustment: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
-                  millis(), _chimeId, detectionCount, millis() - _startTimeBetweenFreqDetections,
+                  millis(), _chimeId, _detectionCount, millis() - _startTimeBetweenFreqDetections,
                   targetNoteId, detectedFrequency, targetFrequency,
                   targetFrequency - detectedFrequency, int(targetPosition), directionText,
                   _tuneStepper.speed(), _tuneStepper.currentPosition());
@@ -144,6 +144,12 @@ void Chime::SetVibrato(bool flag)
 }
 
 void Chime::RestringTighten()
+{
+    _chimeState = ChimeState::Calibrate;
+    _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestring);
+}
+
+void Chime::AddTension()
 {
     _chimeState = ChimeState::Calibrate;
     _tuneStepper.moveTo(_tuneStepper.currentPosition() + _stepsPerRestring);
@@ -195,12 +201,12 @@ void Chime::SetTargetNote(int noteId)
     {
         _targetNoteId = noteId;
 
-        if (_lockedInNoteId != nullNoteId)
+        if (_lockedInNoteId != _nullNoteId)
         {
             PretuneNote(_targetNoteId);
         }
 
-        _lockedInNoteId = nullNoteId;
+        _lockedInNoteId = _nullNoteId;
     }
 }
 
@@ -245,7 +251,6 @@ bool Chime::CalibratePick()
 {
     _pickStepper.setMaxSpeed(300);
     _pickStepper.setAcceleration(2500);
-
     _pickStepper.setCurrentPosition(0);
     _pickStepper.moveTo(_stepsPerPick * 4);
 
@@ -258,10 +263,22 @@ bool Chime::CalibratePick()
     }
 
     _pickStepper.moveTo(_pickStepper.currentPosition() + _stepsPerPick / 16);
-
     SetStepperParameters();
 
     return true;
+}
+
+bool Chime::CalibrateChime()
+{
+    bool passFlag = false;
+    for (int i = 0; i < _numberOfCalibratePickAttempts; i++)
+    {
+        passFlag = CalibratePick();
+        if (passFlag)
+            break;
+        AddTension();
+    }
+    return passFlag;
 }
 
 // Detect time between low note and high note for development and calibration.
@@ -324,7 +341,7 @@ void Chime::CaptureFrequencyPerStep()
     // _tuneStepper.setMaxSpeed(500);
     // _tuneStepper.setAcceleration(250);
 
-    _lockedInNoteId = nullNoteId;
+    _lockedInNoteId = _nullNoteId;
     SetTargetNote(GetLowestNote());
 
     _freqAverage.begin();
@@ -391,13 +408,13 @@ void Chime::CaptureFrequencyPerStep()
         // Check if string needs picked.
         if (detectedFrequency > 0)
         {
-            frequencyDetectionTimeoutMillis = millis();
+            _frequencyDetectionTimeoutMillis = millis();
         }
         else
         {
-            if (millis() - frequencyDetectionTimeoutMillis > frequencyDetectionTimeoutMs)
+            if (millis() - _frequencyDetectionTimeoutMillis > _frequencyDetectionTimeoutMs)
             {
-                frequencyDetectionTimeoutMillis = millis();
+                _frequencyDetectionTimeoutMillis = millis();
                 Pick();
             }
         }
