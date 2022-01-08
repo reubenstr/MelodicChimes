@@ -15,7 +15,7 @@ PLA SHRINK:
 
 PROJECT FIXES:
 PCB main - add markings for UART headers.
-
+PCB chime - break out stepper enables per stepper
 
 Stepper driver jumpers:
 [M1 - M6]

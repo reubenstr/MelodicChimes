@@ -74,10 +74,10 @@ private:
     AudioAnalyzeNoteFrequency *notefreq;
     int _targetNoteId;
     int _lockedInNoteId;
-    const float _frequencyTolerance = 0.0;
+    const float _frequencyTolerance = 1.0;
 
     //const float _regressionCoef[3] = {2.97 / 2, 1.24, 0.48};
-    const float _regressionCoef[3] = {0.5, 0.4, 0.3};
+    const float _regressionCoef[3] = {0.5, 0.5, 0.5};
     const int nullNoteId = 0;
 
     bool _vibratoToggle;

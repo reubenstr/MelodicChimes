@@ -17,6 +17,7 @@ Phase:
 	3 : 233hz : 9ms
 	4 : 174hz : 12ms
 	5 : 139hz : 15ms
+    6 :       : 18ms
 	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio\analyze_notefreq.h)
 	
 */
@@ -27,10 +28,10 @@ Phase:
 #include <SPI.h>
 #include <SD.h>
 #include <SerialFlash.h>
-#include "Chime.h"           // Local class.
-#include "movingAvg.h"       // Local class.
-#include "TeensyTimerTool.h" // https://github.com/luni64/TeensyTimerTool
-#include "main.h"
+#include <Chime.h>           // Local class.
+#include <movingAvg.h>       // Local class.
+#include <TeensyTimerTool.h> // https://github.com/luni64/TeensyTimerTool
+#include <main.h>
 
 // Select the controller's chimes:
 #define CHIME_0_AND_1
@@ -115,6 +116,14 @@ String getValue(String data, char separator, int index)
     return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
+void SendCommand(Commands command, int chime)
+{
+    char buf[16];
+    sprintf(buf, "%u:%u\n", int(command), chime);
+    Serial.printf("Sending command from chime %u: %s", chime, buf);
+    Serial2.print(buf);
+}
+
 bool ProcessCommand(String command)
 {
     bool commandValidFlag = true;
@@ -128,20 +137,24 @@ bool ProcessCommand(String command)
     else if (chimeId == 1)
         chime = &chime1;
     else
-        return;
+        return false;
 #elif defined CHIME_2
     if (chimeId == 2)
         chime = &chime2;
     else
-        return;
+        return false;
 #endif
 
-    if (commandInt == int(Commands::RestringTighten))
+    if (commandInt == int(Commands::Enable))
+    {
+        // No action required, chimes will enable upon command received.
+    }
+    else if (commandInt == int(Commands::Tighten))
     {
         Serial.printf("[%u] Command: RestringTighten.\n", chimeId);
         chime->RestringTighten();
     }
-    else if (commandInt == int(Commands::RestringLoosen))
+    else if (commandInt == int(Commands::Loosen))
     {
         Serial.printf("[%u] Command: RestringLoosen.\n", chimeId);
         chime->RestringLoosen();
@@ -222,14 +235,35 @@ void TickTimerCallback()
 #endif
 }
 
-void EnableSteppers()
+void SendStepperStatus(bool status)
 {
-    digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, LOW);
+    Commands command = status ? Commands::StatusEnabled : Commands::StatusDisabled;
+#if defined CHIME_0_AND_1
+    SendCommand(command, 0);
+    SendCommand(command, 1);
+#elif defined CHIME_2
+    SendCommand(command, 2);
+#endif
 }
 
-void DisableSteppers()
+void EnableSteppers(bool enable)
 {
-    digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, HIGH);
+    if (enable)
+    {
+        if (digitalRead(PIN_STEPPER_DRIVERS_ENABLE) == HIGH)
+        {
+            digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, LOW);
+            SendStepperStatus(true);
+        }
+    }
+    else
+    {
+        if (digitalRead(PIN_STEPPER_DRIVERS_ENABLE) == LOW)
+        {
+            digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, HIGH);
+            SendStepperStatus(false);
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -252,15 +286,13 @@ void setup()
     AudioMemory(120);
     tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
 
-    /*
-	// Check if succesful, send error to main controller if unsucessful.
-	#if defined CHIME_0_AND_1
-	chime0.CalibratePick();
+// Check if succesful, send error to main controller if unsucessful.
+#if defined CHIME_0_AND_1
+    chime0.CalibratePick();
     chime1.CalibratePick();
-	#elif defined CHIME_2
-	chime2.CalibratePick();    
-	#endif	
-	*/
+#elif defined CHIME_2
+    chime2.CalibratePick();
+#endif
 
     /*
 	#if defined CHIME_0_AND_1
@@ -270,8 +302,6 @@ void setup()
 	chime2.SetMaxVolume();    
 	#endif
     */
-
-
 
     /*    
     while (1)
@@ -286,7 +316,7 @@ void setup()
     while (1)
     {
         Serial.println("*** TEST CalibrateFrequencyPerStep ***");
-        chime0.CaptureFrequencyPerStep();
+        chime2.CaptureFrequencyPerStep();
         delay(5000);
     }
     */
@@ -294,16 +324,17 @@ void setup()
 
 void loop()
 {
-    static unsigned long timeoutMillis = millis();
+    static unsigned long startTimeout = millis();
     if (ProcessUart())
     {
         digitalWrite(LED_BUILTIN, HIGH);
-        EnableSteppers();
-        timeoutMillis = millis();
+        EnableSteppers(true);
+        startTimeout = millis();
     }
-    else if (millis() - timeoutMillis > stepperTimeoutDelayMs)
+    else if (millis() - startTimeout > stepperTimeoutDelayMs)
     {
+        startTimeout = millis();
         digitalWrite(LED_BUILTIN, LOW);
-        DisableSteppers();
+        EnableSteppers(false);
     }
 }

@@ -30,6 +30,7 @@
     MIDI playback progress bar.
 	  Rebuild JSON parameters file if the file is missing or contains bad JSON.
     Move TFT Pins to build flags (like quotebot)
+    Spagetti TFT graphics drawing code could have better seperation of concerns.
 */
 
 /*
@@ -49,20 +50,21 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
-#include "Free_Fonts.h"
+#include <Free_Fonts.h>
 #include <SdFat.h>
-#include "sdios.h"
-#include "gfxItems.h" // local libray
-#include "main.h"
-#include "graphicsMethods.h" // local libray
+#include <sdios.h>
+#include <gfxItems.h> // local libray
+#include <main.h>
+#include <graphicsMethods.h> // local libray
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
 #include <NeoPixelMethods.h> // local libray
-#include "tftMethods.h"      // local libray
+#include <tftMethods.h>     // local libray
+#include <utilities.h>
 
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include "time.h"
+#include <time.h>
 
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
@@ -140,41 +142,36 @@ void ProcessIndicators(bool forceUpdate = false)
   static Status previousStatus;
   static int previousMinute;
   char buf[12];
-  int y = 296;
+  const int y = 296;
 
-  if (previousMinute != sys.time.currentTimeInfo.tm_min)
+  static PlayState previousPlayState = PlayState::Default;
+  if (previousPlayState != playState)
   {
-    previousMinute = sys.time.currentTimeInfo.tm_min;
-    forceUpdate = true;
+    previousPlayState = playState;
+    DisplayIndicator(String(playStateText[int(playState)]), 50, y, playStateFillColor[int(playState)]);
   }
 
   if (previousStatus != status || forceUpdate)
   {
     previousStatus = status;
+    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_RED);
+    DisplayIndicator("SD", 170, y, status.sd ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("WIFI", 220, y, status.wifi ? TFT_GREEN : TFT_RED);
+    DisplayIndicator("1", 270, y, status.chime1Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("2", 290, y, status.chime2Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("3", 310, y, status.chime3Enabled ? TFT_GREEN : TFT_YELLOW);
+  }
 
+  if (previousMinute != sys.time.currentTimeInfo.tm_min)
+  {
+    previousMinute = sys.time.currentTimeInfo.tm_min;
     sprintf(buf, "%02u:%02u", sys.time.currentTimeInfo.tm_hour, sys.time.currentTimeInfo.tm_min);
-
-    DisplayIndicator("SD", 220, y, status.sd ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("WIFI", 270, y, status.wifi ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("1", 310, y, status.chime1Enabled ? TFT_BLUE : TFT_YELLOW);
-    DisplayIndicator("2", 320, y, status.chime2Enabled ? TFT_BLUE : TFT_YELLOW);
-    DisplayIndicator("3", 350, y, status.chime3Enabled ? TFT_BLUE : TFT_YELLOW);
     DisplayIndicator(String(buf), 420, y, status.time ? TFT_GREEN : TFT_RED);
   }
 }
 
 void ProcessDisplay()
 {
-  static PlayState previousPlayState = PlayState::Default;
-  if (previousPlayState != playState)
-  {
-    previousPlayState = playState;
-
-    gfxItems.GetGfxItemById(int(GFXItemId::PlayState)).text = String(playStateText[int(playState)]);
-    gfxItems.GetGfxItemById(int(GFXItemId::PlayState)).fillColor = playStateFillColor[int(playState)];
-    gfxItems.DisplayGfxItem(int(GFXItemId::PlayState));
-  }
-
   static PageId previousPageId = PageId::Volume;
   if (previousPageId != pageId)
   {
@@ -234,8 +231,13 @@ void ProcessPressedButton(int id)
   }
   else if ((GFXItemId)id == GFXItemId::Play)
   {
-    //playState = PlayState::Random;
-    playState = PlayState::Load;
+    if (playState == PlayState::Idle)
+    {
+      SendCommand(Commands::Enable, 0);
+      SendCommand(Commands::Enable, 1);
+      SendCommand(Commands::Enable, 2);
+      playState = PlayState::Load;
+    }
   }
   else if ((GFXItemId)id == GFXItemId::Pause)
   {
@@ -249,27 +251,27 @@ void ProcessPressedButton(int id)
   // Restring page.
   if ((GFXItemId)id == GFXItemId::Chime_1_up)
   {
-    SendCommand(Commands::RestringTighten, 0);
+    SendCommand(Commands::Tighten, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_1_down)
   {
-    SendCommand(Commands::RestringLoosen, 0);
+    SendCommand(Commands::Loosen, 0);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_up)
   {
-    SendCommand(Commands::RestringTighten, 1);
+    SendCommand(Commands::Tighten, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_2_down)
   {
-    SendCommand(Commands::RestringLoosen, 1);
+    SendCommand(Commands::Loosen, 1);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_up)
   {
-    SendCommand(Commands::RestringTighten, 2);
+    SendCommand(Commands::Tighten, 2);
   }
   else if ((GFXItemId)id == GFXItemId::Chime_3_down)
   {
-    SendCommand(Commands::RestringLoosen, 2);
+    SendCommand(Commands::Loosen, 2);
   }
 
   // Volume page.
@@ -400,7 +402,6 @@ bool FetchMidiFiles()
   return true;
 }
 
-
 bool FetchParametersFromSDCard()
 {
   Serial.printf("SD: Attempting to fetch parameters from %s...\n", parametersFilePath);
@@ -427,7 +428,7 @@ bool FetchParametersFromSDCard()
     Serial.println(error.c_str());
     return false;
   }
-  
+
   for (int i = 0; i < doc["wifiCredentials"].size(); i++)
   {
     WifiCredentials wC;
@@ -435,16 +436,14 @@ bool FetchParametersFromSDCard()
     wC.password = doc["wifiCredentials"][i]["password"].as<String>();
     parameters.wifiCredentials.push_back(wC);
   }
- 
+
   sys.time.timeZone = doc["system"]["timeZone"].as<String>();
- 
 
   file.close();
 
   Serial.printf("SD: parameters fetched.\n");
   return true;
 }
-
 
 void TriggerLEDs(int chimeId, int noteId)
 {
@@ -557,13 +556,11 @@ void sysexCallback(sysex_event *pev)
 void tickMetronome()
 {
   static uint32_t lastBeatTime = 0;
-  static boolean inBeat = false;
   uint16_t beatTime;
-  static int beatLed;
   static int beatCounter = 1;
 
   beatTime = 60000 / SMF.getTempo(); // msec/beat = ((60sec/min)*(1000 ms/sec))/(beats/min)
-  if (!inBeat)
+  if (!status.beat)
   {
     if ((millis() - lastBeatTime) >= beatTime)
     {
@@ -572,28 +569,34 @@ void tickMetronome()
       {
         beatCounter = 1;
       }
-      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_CYAN;
-      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
-
-      inBeat = true;
+      status.beat = true;
     }
   }
   else
   {
-    if ((millis() - lastBeatTime) >= 50) // keep the flash on for 50ms only
+    if ((millis() - lastBeatTime) >= 50)
     {
-      gfxItems.GetGfxItemById(int(GFXItemId::Beat)).fillColor = TFT_SKYBLUE;
-      gfxItems.DisplayGfxItem(int(GFXItemId::Beat));
-      inBeat = false;
+      status.beat = false;
     }
   }
 }
 
 void ProcessMIDI()
 {
+  static unsigned long startPreload;
+
   if (playState == PlayState::Idle)
   {
     // Do nothing.
+
+    startPreload = millis();
+  }
+  else if (playState == PlayState::PreLoad)
+  {
+    if (millis() - startPreload > sys.delayMsAfterPlayToEnableChimes)
+    {
+      playState = PlayState::Load;
+    }
   }
   else if (playState == PlayState::Load)
   {
@@ -680,9 +683,65 @@ void ProcessWifi()
       wifiCredentialsIndex = 0;
     }
 
-     Serial.printf("WIFI: Attemping to connect to %s : %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
-     WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());   
+    Serial.printf("WIFI: Attemping to connect to %s : %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
+    WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
   }
+}
+
+void ProcessCommand(String command)
+{
+  int commandInt = getValue(command, delimiter, 0).toInt();
+  int chimeId = getValue(command, delimiter, 1).toInt();
+
+  if (commandInt == int(Commands::StatusDisabled))
+  {
+    Serial.printf("Command received: $s - chime %u disabled.", command.c_str(), chimeId);
+    if (chimeId == 1)
+      status.chime1Enabled = false;
+    if (chimeId == 2)
+      status.chime2Enabled = false;
+    if (chimeId == 3)
+      status.chime3Enabled = false;
+  }
+  else if (commandInt == int(Commands::StatusEnabled))
+  {
+    Serial.printf("Received command: $s - chime %u enabled.", command.c_str(), chimeId);
+    if (chimeId == 1)
+      status.chime1Enabled = true;
+    if (chimeId == 2)
+      status.chime2Enabled = true;
+    if (chimeId == 3)
+      status.chime3Enabled = true;
+  }
+  else if (commandInt == int(Commands::Error))
+  {
+    DisplayError(ErrorCodes::chimeFailed);
+  }
+}
+
+void ProcessUart()
+{    
+    static String uartData = "";
+
+    while (Serial1.available() > 0)
+    {
+
+     
+
+        char readChar = Serial2.read();
+        uartData += (char)readChar;
+ Serial.println(readChar);
+        if (readChar == '\n')
+        {
+            ProcessCommand(uartData);
+            uartData = "";
+        }
+
+        if (uartData.length() > 64)
+        {
+            uartData = "";
+        }
+    }    
 }
 
 void setup(void)
@@ -714,10 +773,10 @@ void setup(void)
     DisplayError(ErrorCodes::midiFilesNotFound);
   }
 
-	if (!FetchParametersFromSDCard())
-	{
-		DisplayError(ErrorCodes::parametersFileFailed);		
-	}  
+  if (!FetchParametersFromSDCard())
+  {
+    DisplayError(ErrorCodes::parametersFileFailed);
+  }
 
   configTime(sys.time.gmtOffset_sec, sys.time.daylightOffset_sec, sys.time.ntpServer);
 
@@ -733,6 +792,9 @@ void setup(void)
 
 void loop()
 {
+
+  ProcessUart();
+
   ProcessTouchScreen();
 
   ProcessDisplay();
@@ -740,10 +802,10 @@ void loop()
   ProcessMIDI();
 
   ProcessIndicators();
-
-  ProcessTime();
-
+ 
   ProcessNameplate();
 
-  ProcessWifi();
+  // ProcessWifi();
+
+  // ProcessTime();
 }

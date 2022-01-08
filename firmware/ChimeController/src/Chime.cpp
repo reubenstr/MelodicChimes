@@ -130,7 +130,7 @@ bool Chime::TuneNote(int targetNoteId)
         detectionCount = 0;
 
     
-    if (_chimeId == 5)
+    //if (_chimeId == 5)
         Serial.printf("[%u] [%u] | %4u (%4ums) | noteId: %u | Detected: %3.2f | Target: %3.2f | Delta: % 7.2f | Position Adjustment: %3i | %s | Step Speed: % 5.0f | Current Position: %i\n",
                       millis(), _chimeId, detectionCount, millis() - _startTimeBetweenFreqDetections,
                       targetNoteId, detectedFrequency, targetFrequency,
@@ -248,8 +248,8 @@ int Chime::GetTuneCurrentSteps()
 // Blocking routine until a frequency is detected or timeout.
 bool Chime::CalibratePick()
 {
-    _pickStepper.setMaxSpeed(1000);
-    _pickStepper.setAcceleration(5000);
+    _pickStepper.setMaxSpeed(300);
+    _pickStepper.setAcceleration(2500);
 
     _pickStepper.setCurrentPosition(0);
     _pickStepper.moveTo(_stepsPerPick * 4);

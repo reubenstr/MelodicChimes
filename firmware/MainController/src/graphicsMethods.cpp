@@ -56,14 +56,6 @@ void DisplayElementsInit()
   gfxItems.Add(GFXItem(int(GFXItemId::Chime1VolumeMinus), int(PageId::Volume), "-", 315, 235, buttonVolW, 35, TFT_BLACK, TFT_GREEN, TFT_WHITE, TFT_WHITE, gfxFont));
 
   // Create and add labels.
-
-  gfxItems.Add(GFXItem(int(GFXItemId::PlayState), int(PageId::All), "State", 2, 20, 294, 70, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Beat), int(PageId::All), "BEAT", 2, 100, 294, 55, 20, TFT_BLACK, TFT_BLACK, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Clock), int(PageId::All), "12:47", 2, 390, 294, 60, 20, TFT_WHITE, TFT_BLACK, Justification::Right));
-  gfxItems.Add(GFXItem(int(GFXItemId::SD), int(PageId::All), "SD", 2, 170, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Wifi), int(PageId::All), "WIFI", 2, 245, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
-  gfxItems.Add(GFXItem(int(GFXItemId::Time), int(PageId::All), "TIME", 2, 320, 294, 50, 20, TFT_BLACK, TFT_YELLOW, Justification::Center));
-
   gfxItems.Add(GFXItem(int(GFXItemId::SongTitle), int(PageId::Home), "Song Title 2", 3, 25, 72, 420, 35, TFT_GREEN, TFT_BLACK, Justification::Center));
   // gfxItems.Add(GFXItem(int(GFXItemId::SongLength), int(PageId::Home), "Length", 2, 175, 160, 120, 25, TFT_GREEN, TFT_BLACK, Justification::Center));
   gfxItems.Add(GFXItem(int(GFXItemId::SongNumber), int(PageId::Home), "Count", 2, 175, 160, 120, 25, TFT_GREEN, TFT_BLACK, Justification::Center));
@@ -143,6 +135,8 @@ void DisplayInit()
 
 void DisplayIndicator(String string, int x, int y, uint16_t color)
 {
+  //tft.setFreeFont(&FreeSans9pt7b);
+  tft.setTextFont(1);
   tft.setTextSize(2);
   tft.setTextDatum(TC_DATUM);
   tft.setTextColor(TFT_BLACK, color);

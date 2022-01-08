@@ -73,6 +73,7 @@ enum class PlayState
 {
   Default,
   Idle,
+  PreLoad,
   Load,
   Play,
   Pause,
@@ -81,17 +82,23 @@ enum class PlayState
 };
 
 // Order of text and colors need to match order of PlayState.
-static const char *playStateText[6] = {"", "IDLE", "LOAD", "PLAY ", "PAUSE", "STOP "};
+static const char *playStateText[6] = {"", "IDLE ", "LOAD ", "PLAY ", "PAUSE", "STOP "};
 const uint32_t playStateFillColor[6] = {TFT_BLACK, TFT_SKYBLUE, TFT_BLUE, TFT_GREEN, TFT_YELLOW, TFT_RED};
+
+const char delimiter = ':';
 
 enum class Commands
 {
-    RestringTighten,
-    RestringLoosen,
-    VolumePlus,
-    VolumeMinus,
-    SetTargetNote,    
-    Pick
+  Enable,
+  Tighten,
+  Loosen,
+  VolumePlus,
+  VolumeMinus,
+  SetTargetNote,
+  Pick,
+  StatusEnabled,
+  StatusDisabled,
+  Error
 };
 
 struct WifiCredentials
@@ -112,12 +119,12 @@ struct Time
 
 struct Parameters
 {
-  std::vector<WifiCredentials> wifiCredentials;  
- 
+  std::vector<WifiCredentials> wifiCredentials;
 };
 
 struct Status
 {
+  bool beat;
   bool wifi;
   bool sd;
   bool time;
@@ -127,29 +134,30 @@ struct Status
 
   bool operator!=(Status const &s)
   {
-    return (wifi != s.wifi ||
-            sd != s.sd ||           
+    return (beat != s.beat ||
+            wifi != s.wifi ||
+            sd != s.sd ||
             time != s.time ||
-			chime1Enabled != s.chime1Enabled ||
-			chime2Enabled != s.chime2Enabled ||
-			chime3Enabled != s.chime3Enabled
-			);
+            chime1Enabled != s.chime1Enabled ||
+            chime2Enabled != s.chime2Enabled ||
+            chime3Enabled != s.chime3Enabled);
   }
 };
 
 struct System
-{	
-	Time time;
-	
-	const unsigned long delayMsBetweenWifiScan = 3000;
-	const int delayMsBetweenFetchTime = 250;
-	const int delayMsNameplateLEDFade = 10;
-	const int delayMsNameplateLEDRevolve = 15;
-	const char delimiter = ':';
-	
-	const int nameplateLEDBrightnessFade = 255;
-	const int nameplateLEDBrightnessRevolve = 127;
-	
+{
+  Time time;
+
+  const unsigned long delayMsBetweenWifiScan = 3000;
+  const int delayMsBetweenFetchTime = 250;
+  const int delayMsNameplateLEDFade = 10;
+  const int delayMsNameplateLEDRevolve = 15;
+  const char delimiter = ':';
+
+  const int nameplateLEDBrightnessFade = 255;
+  const int nameplateLEDBrightnessRevolve = 127;
+
+  const unsigned long delayMsAfterPlayToEnableChimes = 500;
 };
 
 #endif
