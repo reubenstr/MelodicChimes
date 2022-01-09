@@ -1,8 +1,8 @@
-const int highestNote[5] = {0, 69, 64, 60, 55};
-const int lowestNote[5] =  {0, 60, 55, 51, 50};
+const int highestNote[3] = {69, 64, 60};
+const int lowestNote[3] = {60, 56, 51};
 
-Chime	1	2	3	4
-HIGH	69	64	60	55
-LOW		60	55	51	50	
-HIGH	A4	E4	C4	G3
-LOW		C4	G3	D#3	D3
+Chime	1	2	3	
+HIGH	69	64	60	
+LOW		60	56	51		
+HIGH	A4	E4	C4	
+LOW		C4	G#3	D#3

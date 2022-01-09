@@ -1,4 +1,4 @@
-// Hint: use https://rextester.com/ to quickly compile and display output.
+// Using https://rextester.com/ to quickly compile and display output.
 //g++  7.4.0
 
 #include <iostream>
