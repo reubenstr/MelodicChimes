@@ -54,15 +54,14 @@
 #include <Free_Fonts.h>
 #include <SdFat.h>
 #include <sdios.h>
-#include <gfxItems.h> // local libray
-#include <main.h>
-#include <graphicsMethods.h> // local libray
 #include <MD_MIDIFile.h>
 #include <Adafruit_NeoPixel.h>
-#include <NeoPixelMethods.h> // local libray
-#include <tftMethods.h>      // local libray
+#include <main.h>
+#include <gfxItems.h>
+#include <graphicsMethods.h>
+#include <NeoPixelMethods.h>
+#include <tftMethods.h>
 #include <utilities.h>
-
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>
@@ -120,6 +119,9 @@ Parameters parameters;
 Status status;
 System sys;
 
+// Wi-Fi
+TaskHandle_t taskWifi;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SendCommand(Commands command, int chime)
@@ -169,12 +171,12 @@ void ProcessIndicators(bool forceUpdate = false)
   if (previousStatus != status || forceUpdate)
   {
     previousStatus = status;
-    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_RED);
-    DisplayIndicator("SD", 170, y, status.sd ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("WIFI", 220, y, status.wifi ? TFT_GREEN : TFT_RED);
-    DisplayIndicator("1", 265, y, status.chime1Enabled ? TFT_GREEN : TFT_YELLOW);
-    DisplayIndicator("2", 290, y, status.chime2Enabled ? TFT_GREEN : TFT_YELLOW);
-    DisplayIndicator("3", 315, y, status.chime3Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_RED);  
+    DisplayIndicator("3", 185, y, status.chime3Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("2", 210, y, status.chime2Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("1", 235, y, status.chime1Enabled ? TFT_GREEN : TFT_YELLOW);
+    DisplayIndicator("SD", 295, y, status.sd ? TFT_GREEN : TFT_RED); 
+     DisplayIndicator("WIFI", 347, y, status.wifi ? TFT_GREEN : TFT_RED);
   }
 
   if (previousMinute != sys.time.currentTimeInfo.tm_min)
@@ -197,10 +199,7 @@ void ProcessDisplay()
 
     if (pageId == PageId::Home)
     {
-      // Song border.
-      tft.drawRect(20, 70, 440, 40, TFT_LIGHTGREY);
-      // Progress bar.
-      // tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
+      DisplaySongBorder();
     }
   }
 }
@@ -673,33 +672,38 @@ void ProcessTime()
   }
 }
 
-void ProcessWifi()
+void WifiTask(void *pvParameters)
 {
-  static unsigned long start = millis();
-  static int wifiCredentialsIndex = -1;
-  bool previousStatus = status.wifi;
-
-  status.wifi = WiFi.status() == WL_CONNECTED;
-
-  if (status.wifi == true)
+  while (1)
   {
-    start = millis();
+    ProcessTime();
 
-    if (previousStatus != status.wifi)
-    {
-      Serial.printf("WIFI: WiFi connected to %s, device IP: %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), WiFi.localIP().toString().c_str());
-    }
-  }
+    static unsigned long start = millis();
+    static int wifiCredentialsIndex = -1;
+    bool previousStatus = status.wifi;
 
-  if (millis() - start > sys.delayMsBetweenWifiScan)
-  {
-    if (++wifiCredentialsIndex > parameters.wifiCredentials.size() - 1)
+    status.wifi = WiFi.status() == WL_CONNECTED;
+
+    if (status.wifi == true)
     {
-      wifiCredentialsIndex = 0;
+      start = millis();
+
+      if (previousStatus != status.wifi)
+      {
+        Serial.printf("WIFI: WiFi connected to %s, device IP: %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), WiFi.localIP().toString().c_str());
+      }
     }
 
-    Serial.printf("WIFI: Attemping to connect to %s : %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
-    WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
+    if (millis() - start > sys.delayMsBetweenWifiScan)
+    {
+      if (++wifiCredentialsIndex > parameters.wifiCredentials.size() - 1)
+      {
+        wifiCredentialsIndex = 0;
+      }
+
+      Serial.printf("WIFI: Attemping to connect to %s : %s\n", parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
+      WiFi.begin(parameters.wifiCredentials[wifiCredentialsIndex].ssid.c_str(), parameters.wifiCredentials[wifiCredentialsIndex].password.c_str());
+    }
   }
 }
 
@@ -737,22 +741,40 @@ void ProcessCommand(String command)
 
 void ProcessUart()
 {
-  static String uartData = "";
+  static String uartData1 = "";
+  static String uartData2 = "";
 
   while (Serial1.available() > 0)
   {
     char readChar = Serial1.read();
-    uartData += (char)readChar;
-   
+    uartData1 += (char)readChar;
+
     if (readChar == '\n')
     {
-      ProcessCommand(uartData);
-      uartData = "";
+      ProcessCommand(uartData1);
+      uartData1 = "";
     }
 
-    if (uartData.length() > 64)
+    if (uartData1.length() > 64)
     {
-      uartData = "";
+      uartData1 = "";
+    }
+  }
+
+   while (Serial2.available() > 0)
+  {
+    char readChar = Serial2.read();
+    uartData2 += (char)readChar;
+
+    if (readChar == '\n')
+    {
+      ProcessCommand(uartData2);
+      uartData2 = "";
+    }
+
+    if (uartData2.length() > 64)
+    {
+      uartData2 = "";
     }
   }
 }
@@ -802,6 +824,15 @@ void setup(void)
   SMF.begin(&SD);
   SMF.setMidiHandler(midiCallback);
   SMF.setSysexHandler(sysexCallback);
+
+  xTaskCreatePinnedToCore(
+      WifiTask,       /* Task function. */
+      "WifiTask",     /* name of task. */
+      10000,         /* Stack size of task */
+      NULL,          /* parameter of the task */
+      1,             /* priority of the task */
+      &taskWifi,     /* Task handle to keep track of created task */
+      1);            /* pin task to core 1 */
 }
 
 void loop()
@@ -817,8 +848,4 @@ void loop()
   ProcessIndicators();
 
   ProcessNameplate();
-
-  // ProcessWifi();
-
-  // ProcessTime();
 }

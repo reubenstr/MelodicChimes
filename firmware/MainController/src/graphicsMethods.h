@@ -11,5 +11,6 @@ void DisplayMain();
 void DisplayElementsInit();
 void DisplayError(ErrorCodes error);
 void DisplayInit();
+void DisplaySongBorder();
 void DisplaySplash();
 void DisplayIndicator(String string, int x, int y, uint16_t color);

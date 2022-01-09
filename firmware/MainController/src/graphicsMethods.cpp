@@ -135,17 +135,26 @@ void DisplayMain()
   gfxItems.DisplayGroup(int(PageId::All));
 }
 
+void DisplaySongBorder()
+{
+  // Song border.
+  // tft.drawRect(19, 69, 442, 42, TFT_BLUE);
+  tft.drawRect(20, 70, 440, 40, TFT_BLUE);
+  // Progress bar.
+  // tft.drawRect(20, 120, 440, 15, TFT_LIGHTGREY);
+}
+
 void DisplayInit()
 {
   tft.init();
   delay(150); // TFT driver needs time to process command.
   tft.setRotation(1);
-  delay(150); // TFT driver needs time to process command. 
+  delay(150); // TFT driver needs time to process command.
 }
 
 void DisplaySplash()
 {
-   tft.pushImage(0, 0, splashWidth, splashHeight, splash);
+  tft.pushImage(0, 0, splashWidth, splashHeight, splash);
   delay(2000);
 }
 
