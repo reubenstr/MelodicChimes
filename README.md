@@ -1,7 +1,4 @@
 # MelodicChimes
 
-Melodic Chimes is a four string auto-tuning wall chime playing SD card located MIDI files.
+Melodic Chimes is a three string auto-tuning wall chime playing MIDI files created in MuseScore.
 
-# Status
-
-Prototype and development.
