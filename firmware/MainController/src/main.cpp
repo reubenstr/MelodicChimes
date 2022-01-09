@@ -76,6 +76,20 @@
 #define PIN_UART2_RX 27
 #define PIN_NEOPIXEL 32
 
+/*
+TFT LCD pin config are found in TFT_eSPI library in User_Setup.h
+#define ILI9488_DRIVER 
+#define TFT_WIDTH  480
+#define TFT_HEIGHT 320
+#define TFT_CS 5
+#define TFT_DC 2
+#define TFT_SCLK 18
+#define TFT_MOSI 23
+#define TFT_MISO 19
+#define TFT_RST 4
+#define TOUCH_CS 22   
+*/
+
 // TFT Screen.
 TFT_eSPI tft = TFT_eSPI();
 bool takeTouchReadings = true;
@@ -143,7 +157,7 @@ void ProcessIndicators(bool forceUpdate = false)
   static Status previousStatus;
   static int previousMinute;
   char buf[12];
-  const int y = 295;
+  const int y = 296;
 
   static PlayState previousPlayState = PlayState::Default;
   if (previousPlayState != playState)
@@ -155,7 +169,7 @@ void ProcessIndicators(bool forceUpdate = false)
   if (previousStatus != status || forceUpdate)
   {
     previousStatus = status;
-    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_MAGENTA);
+    DisplayIndicator("BEAT", 120, y, status.beat ? TFT_CYAN : TFT_RED);
     DisplayIndicator("SD", 170, y, status.sd ? TFT_GREEN : TFT_RED);
     DisplayIndicator("WIFI", 220, y, status.wifi ? TFT_GREEN : TFT_RED);
     DisplayIndicator("1", 265, y, status.chime1Enabled ? TFT_GREEN : TFT_YELLOW);
@@ -723,40 +737,22 @@ void ProcessCommand(String command)
 
 void ProcessUart()
 {
-  static String uartData1 = "";
-  static String uartData2 = "";
+  static String uartData = "";
 
   while (Serial1.available() > 0)
   {
     char readChar = Serial1.read();
-    uartData1 += (char)readChar;
-
+    uartData += (char)readChar;
+   
     if (readChar == '\n')
     {
-      ProcessCommand(uartData1);
-      uartData1 = "";
+      ProcessCommand(uartData);
+      uartData = "";
     }
 
-    if (uartData1.length() > 64)
+    if (uartData.length() > 64)
     {
-      uartData1 = "";
-    }
-  }
-
-  while (Serial2.available() > 0)
-  {
-    char readChar = Serial2.read();
-    uartData2 += (char)readChar;
-
-    if (readChar == '\n')
-    {
-      ProcessCommand(uartData2);
-      uartData2 = "";
-    }
-
-    if (uartData2.length() > 64)
-    {
-      uartData2 = "";
+      uartData = "";
     }
   }
 }
@@ -774,8 +770,8 @@ void setup(void)
   Serial2.begin(115200, SERIAL_8N1, PIN_UART2_RX, PIN_UART2_TX);
 
   DisplayInit();
-
   CheckTouchCalibration(&tft, false);
+  DisplaySplash();
 
   if (!SDCardInit())
   {
@@ -810,10 +806,6 @@ void setup(void)
 
 void loop()
 {
-
-// TEMP:
-gfxItems.DisplayGroup(int(PageId::All));
-
   ProcessUart();
 
   ProcessTouchScreen();

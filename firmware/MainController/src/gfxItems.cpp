@@ -27,32 +27,29 @@ GFXItem &GFXItems::GetGfxItemById(int eId)
 
 void GFXItems::DisplayElement(GFXItem gfxItem)
 {
-  uint32_t backgroundColor = gfxItem.fillColor;
+  uint32_t backgroundColor;
   if (gfxItem.isPressed)
+  {
     backgroundColor = gfxItem.activeColor;
+  }
+  else
+  {
+    backgroundColor = gfxItem.fillColor;
+  }
 
+  tft->setTextColor(gfxItem.textColor, backgroundColor);
   tft->setFreeFont(gfxItem.gfxFont);
   tft->setTextSize(gfxItem.textSize);
-  tft->setTextColor(gfxItem.textColor);
-  tft->setTextDatum(TL_DATUM);
-
-
-  tft->setTextSize(2);
-  tft->setTextDatum(MC_DATUM);
-  tft->setTextPadding(0);
-
-  String text(gfxItem.text);
+  tft->setTextDatum(gfxItem.datem);
 
   if (gfxItem.cornerSize > 0)
   {
-    tft->fillRoundRect(gfxItem.x, gfxItem.y, gfxItem.w, gfxItem.h, gfxItem.cornerSize, gfxItem.borderColor);
+    tft->fillRoundRect(gfxItem.x - gfxItem.w / 2, gfxItem.y - gfxItem.h / 2, gfxItem.w, gfxItem.h, gfxItem.cornerSize, gfxItem.borderColor);
   }
 
-  tft->fillRoundRect(gfxItem.x + gfxItem.borderThickness, gfxItem.y + gfxItem.borderThickness, gfxItem.w - gfxItem.borderThickness * 2, gfxItem.h - gfxItem.borderThickness * 2, gfxItem.cornerSize, backgroundColor);
+  tft->fillRoundRect(gfxItem.x - gfxItem.w / 2 + gfxItem.borderThickness, gfxItem.y - gfxItem.h / 2 + gfxItem.borderThickness, gfxItem.w - gfxItem.borderThickness * 2, gfxItem.h - gfxItem.borderThickness * 2, gfxItem.cornerSize, backgroundColor);
 
-
-
-  tft->drawString(text, gfxItem.x + gfxItem.w / 2, gfxItem.y + gfxItem.h / 2 );
+  tft->drawString(gfxItem.text, gfxItem.x, gfxItem.y);
 }
 
 void GFXItems::DisplayGfxItem(int id)
@@ -108,7 +105,6 @@ bool GFXItems::IsItemInGroupPressed(int groupId, int *id)
   else
   {
     // No touch detected, depress all buttons.
-
     for (auto &gfxItem : gfxItems)
     {
       if (gfxItem.groupId == groupId)

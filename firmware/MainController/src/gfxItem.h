@@ -35,13 +35,15 @@ struct GFXItem
     GFXItem();
 
     // Candidate for buttons.
-    GFXItem(int id, int groupId, String text, int x, int y, int w, int h,
+    GFXItem(int id, int groupId, String text, int textSize, int x, int y, int w, int h,
             uint32_t textColor, uint32_t fillColor, uint32_t activeColor,
             uint32_t borderColor, const GFXfont *gfxFont = nullptr)
     {
-        this->text = text;
+
         this->groupId = groupId;
         this->id = id;
+        this->text = text;
+        this->textSize = textSize;
         this->x = x;
         this->y = y;
         this->w = w;
@@ -52,15 +54,14 @@ struct GFXItem
         this->borderColor = borderColor;
         this->gfxFont = gfxFont;
 
+        datem = MC_DATUM;
         cornerSize = 5;
-        textSize = 1;
         borderThickness = 1;
     }
 
     // Candidate for labels.
     GFXItem(int id, int groupId, String text, int textSize, int x, int y, int w, int h,
-            uint32_t textColor, uint32_t fillColor,
-            uint8_t datem, const GFXfont *gfxFont = nullptr)
+            uint32_t textColor, uint32_t fillColor, uint8_t datem, const GFXfont *gfxFont = nullptr)
     {
         this->id = id;
         this->groupId = groupId;
@@ -78,9 +79,9 @@ struct GFXItem
 
     bool IsPointInBoundry(int xTest, int yTest)
     {
-        if (xTest >= x && xTest <= (x + w))
+        if (xTest >= x - w / 2 && xTest <= (x + w / 2))
         {
-            if (yTest >= y && yTest <= (y + h))
+            if (yTest >= y - h / 2 && yTest <= (y + h / 2))
             {
                 return true;
             }

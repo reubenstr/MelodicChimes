@@ -1,30 +1,27 @@
-/*
-    Project: 
-        Melodic Chimes
-        02-2020 - 01-2021
-        Reuben Strangelove
-        
-    Description: 
-        Auto-tuning string chimes controlled via MIDI file.
-        
-    MCU:
-        Teensy 3.2 (Cortex-M4 MK20DX256VLH7)         
-
-    Phase:
-        Final development!
-        
-    Developer Notes: 
-        #define AUDIO_GUITARTUNER_BLOCKS value of 24 changed to n   
-        required for faster analysis at the sacrifice of reduced lower frequency detection
-        blocks : lowest detection frequency : time between detections
-        3 : 233hz : 9ms
-        4 : 174hz : 12ms
-        5 : 139hz : 15ms
-        6 :       : 18ms
-        File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio\analyze_notefreq.h)
-
-        Stepper drivers are active low.  
+/****************************************************
+Project: 
+	Melodic Chimes
+	02-2020 - 01-2021
+	Reuben Strangelove
+	
+Description: 
+	Auto-tuning string chimes controlled via MIDI file.
+	
+Phase:
+	Final development!
+	
+ Developer Notes: 
+	#define AUDIO_GUITARTUNER_BLOCKS value of 24 changed to n   
+	required for faster analysis at the sacrifice of reduced lower frequency detection
+	blocks : lowest detection frequency : time between detections
+	3 : 233hz : 9ms
+	4 : 174hz : 12ms
+	5 : 139hz : 15ms
+    6 :       : 18ms
+	File/library location: (C:\Users\DrZoidburg\.platformio\packages\framework-arduinoteensy\libraries\Audio\analyze_notefreq.h)
+	
 */
+////////////////////////////////////////////////////
 
 #include <Audio.h>
 #include <Wire.h>
@@ -37,8 +34,8 @@
 #include <main.h>
 
 // Select the controller's chimes:
-#define CHIME_0_AND_1
-//#define CHIME_2
+//#define CHIME_0_AND_1
+#define CHIME_2
 
 using namespace TeensyTimerTool;
 Timer tickTimer; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
@@ -257,13 +254,6 @@ void EnableSteppers(bool enable)
         {
             digitalWrite(PIN_STEPPER_DRIVERS_ENABLE, LOW);
             SendStepperStatus(true);
-
-#if defined CHIME_0_AND_1
-            chime0.AddTension();
-            chime1.AddTension();
-#elif defined CHIME_2
-            chime2.AddTension();
-#endif
         }
     }
     else
@@ -274,21 +264,6 @@ void EnableSteppers(bool enable)
             SendStepperStatus(false);
         }
     }
-}
-
-void CalibrateChimes()
-{
-    EnableSteppers(true);
-
-#if defined CHIME_0_AND_1
-    if (!chime0.CalibrateChime())
-        SendCommand(Commands::Error, 0);
-    if (!chime1.CalibrateChime())
-        SendCommand(Commands::Error, 1);
-#elif defined CHIME_2
-    if (!chime2.CalibrateChime())
-        SendCommand(Commands::Error, 2);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -311,11 +286,13 @@ void setup()
     AudioMemory(120);
     tickTimer.beginPeriodic(TickTimerCallback, 100); // microseconds.
 
-    // Allow time for strings to detension during development to prevent over tensioning.
-    EnableSteppers(false);
-    delay(500);
-
-    CalibrateChimes();
+// TODO: Check if succesful, send error to main controller if unsucessful.
+#if defined CHIME_0_AND_1
+    chime0.CalibratePick();
+    chime1.CalibratePick();
+#elif defined CHIME_2
+    chime2.CalibratePick();
+#endif
 
     /*
 	#if defined CHIME_0_AND_1
