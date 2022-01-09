@@ -36,6 +36,11 @@ void GFXItems::DisplayElement(GFXItem gfxItem)
   tft->setTextColor(gfxItem.textColor);
   tft->setTextDatum(TL_DATUM);
 
+
+  tft->setTextSize(2);
+  tft->setTextDatum(MC_DATUM);
+  tft->setTextPadding(0);
+
   String text(gfxItem.text);
 
   if (gfxItem.cornerSize > 0)
@@ -45,33 +50,9 @@ void GFXItems::DisplayElement(GFXItem gfxItem)
 
   tft->fillRoundRect(gfxItem.x + gfxItem.borderThickness, gfxItem.y + gfxItem.borderThickness, gfxItem.w - gfxItem.borderThickness * 2, gfxItem.h - gfxItem.borderThickness * 2, gfxItem.cornerSize, backgroundColor);
 
-  int textX;
-  if (gfxItem.justification == Justification::Left)
-  { 
-    
-    textX = gfxItem.x;
-  }
-  else if (gfxItem.justification == Justification::Center)
-  {
- 
-    textX = gfxItem.x + gfxItem.w / 2 - tft->textWidth(gfxItem.text) / 2;
-   
-  }
-  else if (gfxItem.justification == Justification::Right)
-  {
- 
-    textX = gfxItem.x + gfxItem.w - tft->textWidth(text);
-    
-  }
-  else
-  {
-    textX = gfxItem.x;
-  }
 
-  int textY;
-  textY = gfxItem.y + gfxItem.h / 2 - tft->fontHeight() / 2;
 
-  tft->drawString(text, textX, textY);
+  tft->drawString(text, gfxItem.x + gfxItem.w / 2, gfxItem.y + gfxItem.h / 2 );
 }
 
 void GFXItems::DisplayGfxItem(int id)

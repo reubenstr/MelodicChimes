@@ -48,6 +48,7 @@
 */
 
 #include <Arduino.h>
+#include <map>
 #include <SPI.h>
 #include <TFT_eSPI.h>
 #include <Free_Fonts.h>
@@ -809,6 +810,9 @@ void setup(void)
 
 void loop()
 {
+
+// TEMP:
+gfxItems.DisplayGroup(int(PageId::All));
 
   ProcessUart();
 
